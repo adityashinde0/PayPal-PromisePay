@@ -57,6 +57,61 @@ export interface AuditTimelineEvent {
   summary: string;
 }
 
+export type EvidenceKind =
+  | 'live_url'
+  | 'repository'
+  | 'screenshot'
+  | 'document'
+  | 'tracking_reference'
+  | 'delivery_confirmation'
+  | 'metadata';
+
+export type EvidenceStatus =
+  | 'SUBMITTED'
+  | 'PENDING_SCAN'
+  | 'SCAN_CLEAN'
+  | 'SUSPICIOUS'
+  | 'REJECTED';
+
+export interface EvidenceProvenance {
+  receivedAt: string;
+  submittedBy: string;
+  uploaderRole: string;
+  sourceHost?: string | null;
+  canonicalUri?: string | null;
+  sha256: string;
+  mimeType?: string | null;
+  sizeBytes?: number | null;
+  scannerStatus: string;
+  scannerVersion: string;
+  isClaimOnly: boolean;
+  metadata?: Record<string, unknown>;
+}
+
+export interface EvidenceItem {
+  evidenceId: string;
+  promiseId: string;
+  kind: EvidenceKind;
+  title: string;
+  sourceUri?: string | null;
+  canonicalUri?: string | null;
+  storageKey?: string | null;
+  sha256: string;
+  requirementIds: string[];
+  submitterClaim: string;
+  uploader: string;
+  status: EvidenceStatus;
+  provenance: EvidenceProvenance;
+  downloadUrl?: string | null;
+  createdAt: string;
+}
+
+export interface EvidenceListResponse {
+  promiseId: string;
+  items: EvidenceItem[];
+  total: number;
+}
+
 export interface PromiseGraphResponse {
   promiseId: string;
   organizationId: string;
@@ -70,6 +125,7 @@ export interface PromiseGraphResponse {
   verification: VerificationSummary;
   resolution: ResolutionSummary;
   timeline: AuditTimelineEvent[];
+  evidence?: EvidenceItem[];
   createdAt: string;
   updatedAt: string;
 }
@@ -90,4 +146,3 @@ export interface PromiseListResponse {
   items: PromiseSummaryResponse[];
   total: number;
 }
-

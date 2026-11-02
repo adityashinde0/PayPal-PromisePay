@@ -25,6 +25,7 @@ venv/
 Thumbs.db
 uploads/
 storage/
+.storage/
 
 # Whitelist infra scripts
 !infra/scripts/*

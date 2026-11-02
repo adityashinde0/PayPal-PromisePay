@@ -2,6 +2,31 @@
 
 from enum import Enum
 
+from promisepay_api.models.evidence import (
+    EvidenceKind,
+    EvidenceListResponse,
+    EvidenceProvenance,
+    EvidenceResponse,
+    EvidenceStatus,
+    EvidenceUploadIntentRequest,
+    EvidenceUploadIntentResponse,
+    RegisterEvidenceRequest,
+)
+
+__all__ = [
+    "PromiseCategory",
+    "PromiseStatus",
+    "PaymentState",
+    "EvidenceKind",
+    "EvidenceStatus",
+    "EvidenceProvenance",
+    "EvidenceUploadIntentRequest",
+    "EvidenceUploadIntentResponse",
+    "RegisterEvidenceRequest",
+    "EvidenceResponse",
+    "EvidenceListResponse",
+]
+
 
 class PromiseCategory(str, Enum):
     DIGITAL_PROJECT = "DIGITAL_PROJECT"

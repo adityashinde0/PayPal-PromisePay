@@ -59,6 +59,9 @@ class PromiseRecord:
         self.timeline: List[AuditTimelineEvent] = []
 
     def to_graph_response(self) -> PromiseGraphResponse:
+        from promisepay_api.services.evidence_store import evidence_store
+
+        evidence_items = [e.to_response() for e in evidence_store.list_evidence(self.promise_id)]
         return PromiseGraphResponse(
             promiseId=self.promise_id,
             organizationId=self.organization_id,
@@ -72,6 +75,7 @@ class PromiseRecord:
             verification=self.verification,
             resolution=self.resolution,
             timeline=self.timeline,
+            evidence=evidence_items,
             createdAt=self.created_at,
             updatedAt=self.updated_at,
         )

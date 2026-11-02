@@ -5,6 +5,8 @@ from typing import List, Optional
 
 from pydantic import BaseModel, Field, field_validator
 
+from promisepay_api.models.evidence import EvidenceResponse
+
 
 class PromiseCategory(str, Enum):
     DIGITAL_PROJECT = "digital_project"
@@ -129,6 +131,7 @@ class PromiseGraphResponse(BaseModel):
     verification: VerificationSummary
     resolution: ResolutionSummary
     timeline: List[AuditTimelineEvent]
+    evidence: List[EvidenceResponse] = Field(default_factory=list)
     createdAt: str
     updatedAt: str
 
