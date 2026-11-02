@@ -46,9 +46,42 @@ def validate_file_metadata(file_name: str, mime_type: str, size_bytes: int) -> N
 
 
 def is_private_or_restricted_ip(ip_str: str) -> bool:
-    """Checks whether an IP address belongs to private/internal/link-local ranges."""
+    """Checks whether an IP address belongs to private/internal/link-local ranges, including integer and hex encodings."""
+    # Check numeric integer or hex representations (e.g. 2130706433 or 0x7f000001)
+    clean = ip_str.strip()
+    if clean.isdigit():
+        try:
+            val = int(clean)
+            if 0 <= val <= 0xFFFFFFFF:
+                ip = ipaddress.ip_address(val)
+                return (
+                    ip.is_private
+                    or ip.is_loopback
+                    or ip.is_link_local
+                    or ip.is_multicast
+                    or ip.is_unspecified
+                    or ip.is_reserved
+                )
+        except ValueError:
+            pass
+    elif clean.lower().startswith("0x"):
+        try:
+            val = int(clean, 16)
+            if 0 <= val <= 0xFFFFFFFF:
+                ip = ipaddress.ip_address(val)
+                return (
+                    ip.is_private
+                    or ip.is_loopback
+                    or ip.is_link_local
+                    or ip.is_multicast
+                    or ip.is_unspecified
+                    or ip.is_reserved
+                )
+        except ValueError:
+            pass
+
     try:
-        ip = ipaddress.ip_address(ip_str)
+        ip = ipaddress.ip_address(clean)
         return (
             ip.is_private
             or ip.is_loopback

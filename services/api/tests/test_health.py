@@ -30,11 +30,15 @@ def test_root_endpoint(client):
 
 
 def test_correlation_id_header(client):
-    """Test that requests receive correlation IDs in headers."""
+    """Test that requests receive correlation IDs and security headers in response."""
     response = client.get("/health", headers={"X-Correlation-ID": "test-cid-123"})
     assert response.status_code == 200
     assert response.headers.get("X-Correlation-ID") == "test-cid-123"
     assert "X-Response-Time-MS" in response.headers
+    assert response.headers.get("X-Content-Type-Options") == "nosniff"
+    assert response.headers.get("X-Frame-Options") == "DENY"
+    assert response.headers.get("X-XSS-Protection") == "1; mode=block"
+    assert response.headers.get("Referrer-Policy") == "strict-origin-when-cross-origin"
 
 
 def test_detailed_health_endpoint(client):

@@ -5,6 +5,7 @@ import logging
 import time
 import uuid
 from typing import Any, Dict, Optional, Tuple
+from urllib.parse import urlparse
 
 import httpx
 
@@ -240,6 +241,14 @@ class PayPalClient:
             if headers.get("x-promisepay-simulator") == "true":
                 return True, "SIMULATOR_TEST"
             return False, "MISSING_REQUIRED_HEADERS"
+
+        # Validate PayPal Certificate URL: MUST be HTTPS and strictly on .paypal.com domain
+        parsed_cert = urlparse(cert_url)
+        cert_host = (parsed_cert.hostname or "").lower()
+        if parsed_cert.scheme.lower() != "https" or not (
+            cert_host == "api.paypal.com" or cert_host.endswith(".paypal.com")
+        ):
+            return False, "INVALID_CERT_URL_DOMAIN"
 
         if not self.is_configured or not self.webhook_id:
             # In mock sandbox mode without active credentials, verify raw payload hash

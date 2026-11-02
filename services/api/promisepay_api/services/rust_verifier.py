@@ -8,6 +8,7 @@ transparent, deterministic pure-Python fallback for environments without Rust.
 from __future__ import annotations
 
 import hashlib
+import hmac
 import json
 import logging
 import subprocess
@@ -231,4 +232,6 @@ def verify_dossier_seal(
         paypal_capture_id=payload.get("paypal_capture_id"),
         ai_outcome=payload.get("ai_outcome"),
     )
-    return py_proof["seal_hash"] == claimed_seal and py_proof["merkle_root"] == claimed_merkle_root
+    return hmac.compare_digest(py_proof["seal_hash"], claimed_seal) and hmac.compare_digest(
+        py_proof["merkle_root"], claimed_merkle_root
+    )

@@ -104,6 +104,8 @@ def test_ssrf_protection_guards(client):
         "http://10.0.0.1/admin",
         "http://192.168.1.1/router",
         "http://169.254.169.254/latest/meta-data",
+        "http://2130706433/admin",
+        "http://0x7f000001/status",
         "ftp://internal-server.local/file.txt",
     ]
 

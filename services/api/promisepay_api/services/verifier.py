@@ -30,7 +30,9 @@ from promisepay_api.services.promise_store import promise_store
 logger = logging.getLogger("promisepay-verifier")
 
 HOSTILE_PATTERNS = [
-    r"ignore (all )?(previous|above) instructions",
+    r"ignore (all )?(previous|above|prior) instructions",
+    r"disregard (all )?(previous|above|prior) instructions",
+    r"forget (all )?(previous|above|prior) instructions",
     r"system prompt",
     r"override verification",
     r"mark as verified",
@@ -38,6 +40,12 @@ HOSTILE_PATTERNS = [
     r"<script.*?>",
     r"bypass security",
     r"drop database",
+    r"you are now (an admin|unrestricted|dan)",
+    r"developer mode",
+    r"roleplay as",
+    r"eval\(",
+    r"exec\(",
+    r"__import__",
 ]
 
 
