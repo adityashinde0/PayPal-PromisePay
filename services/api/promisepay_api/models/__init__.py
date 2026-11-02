@@ -12,6 +12,17 @@ from promisepay_api.models.evidence import (
     EvidenceUploadIntentResponse,
     RegisterEvidenceRequest,
 )
+from promisepay_api.models.resolution import (
+    CaseTimelineEvent,
+    ExecuteRefundRequest,
+    OpenResolutionCaseRequest,
+    RecordDecisionRequest,
+    RefundResultResponse,
+    ResolutionCaseListResponse,
+    ResolutionCaseResponse,
+    ResolutionCaseStatus,
+    ResolutionDecision,
+)
 from promisepay_api.models.verification import (
     CreateVerificationRequest,
     RequirementFinding,
@@ -41,6 +52,15 @@ __all__ = [
     "CreateVerificationRequest",
     "VerificationRunResponse",
     "VerificationListResponse",
+    "ResolutionCaseStatus",
+    "ResolutionDecision",
+    "CaseTimelineEvent",
+    "OpenResolutionCaseRequest",
+    "RecordDecisionRequest",
+    "ExecuteRefundRequest",
+    "ResolutionCaseResponse",
+    "ResolutionCaseListResponse",
+    "RefundResultResponse",
 ]
 
 

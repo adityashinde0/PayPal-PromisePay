@@ -7,7 +7,15 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 
 from promisepay_api.config import settings
-from promisepay_api.routers import evidence, health, payments, promises, verifications, webhooks
+from promisepay_api.routers import (
+    evidence,
+    health,
+    payments,
+    promises,
+    resolutions,
+    verifications,
+    webhooks,
+)
 
 app = FastAPI(
     title="PayPal PromisePay API",
@@ -69,6 +77,10 @@ app.include_router(evidence.router, prefix="/api")
 # Verification Routers (Phase 4)
 app.include_router(verifications.router)
 app.include_router(verifications.router, prefix="/api")
+
+# Resolution Routers (Phase 5)
+app.include_router(resolutions.router)
+app.include_router(resolutions.router, prefix="/api")
 
 
 @app.get("/")

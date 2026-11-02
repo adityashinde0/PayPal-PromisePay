@@ -50,6 +50,66 @@ export interface ResolutionSummary {
   reason?: string | null;
 }
 
+export type ResolutionCaseStatus =
+  | 'OPEN'
+  | 'UNDER_REVIEW'
+  | 'EVIDENCE_REQUESTED'
+  | 'DECISION_RECORDED'
+  | 'RESOLVED_COMPLETE'
+  | 'RESOLVED_REFUNDED'
+  | 'CLOSED';
+
+export type ResolutionDecision =
+  | 'MARK_COMPLETE'
+  | 'REQUEST_EVIDENCE'
+  | 'OPEN_REVIEW'
+  | 'RECOMMEND_REFUND';
+
+export interface CaseTimelineEvent {
+  timestamp: string;
+  actor: string;
+  action: string;
+  notes: string;
+}
+
+export interface ResolutionCase {
+  caseId: string;
+  promiseId: string;
+  status: ResolutionCaseStatus;
+  reason: string;
+  submitter: string;
+  submitterRole: string;
+  decision?: ResolutionDecision | null;
+  decisionReason?: string | null;
+  decisionBy?: string | null;
+  decidedAt?: string | null;
+  refundId?: string | null;
+  paypalRefundId?: string | null;
+  refundedAmount?: string | null;
+  refundedAt?: string | null;
+  timeline: CaseTimelineEvent[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ResolutionCaseListResponse {
+  promiseId: string;
+  items: ResolutionCase[];
+  total: number;
+}
+
+export interface RefundResult {
+  caseId: string;
+  promiseId: string;
+  refundId: string;
+  paypalRefundId: string;
+  amount: string;
+  currency: string;
+  status: string;
+  idempotencyKey: string;
+  executedAt: string;
+}
+
 export type VerificationStatus =
   | 'VERIFIED'
   | 'PARTIALLY_VERIFIED'

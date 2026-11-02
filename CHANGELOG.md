@@ -6,6 +6,12 @@ All notable changes to PromisePay are recorded here. This project follows [Keep 
 
 ### Added
 
+- **Phase 5 (Resolution, Human-Gated Review & PayPal Sandbox Refunds)**:
+  - Resolution case repository and workflow (`promisepay_api/services/resolution_store.py`) enabling buyers, merchants, and reviewers to open dispute/review cases (`POST /promises/{id}/resolution-cases`, `GET /promises/{id}/resolution-cases`, `GET /resolution-cases/{caseId}`).
+  - Human-gated reviewer decision endpoint (`POST /resolution-cases/{caseId}/decisions`) enforcing mandatory human justification notes for `MARK_COMPLETE`, `REQUEST_EVIDENCE`, `OPEN_REVIEW`, or `RECOMMEND_REFUND`.
+  - PayPal Payments v2 refund endpoint (`POST /resolution-cases/{caseId}/refunds`) strictly guarded by `Idempotency-Key` headers, payment capture state validation, and prior confirmed `RECOMMEND_REFUND` decision.
+  - Interactive Human Review & Resolution Center in the Next.js frontend with case timeline tracking, reviewer adjudication forms, and confirmation modal for PayPal Sandbox refunds.
+  - 100% test coverage for resolution lifecycle, human gate enforcement, idempotency caching, and payment state transitions (`services/api/tests/test_resolutions.py`).
 - **Phase 4 (AI Verification Engine & Explainability UX)**:
   - Explainable AI verification service (`promisepay_api/services/verifier.py`) with frozen evidence manifest hashing, strict anti-injection sanitization, and deterministic pre-checks.
   - Verification run queue and endpoints (`POST /promises/{id}/verifications`, `GET /promises/{id}/verifications/{runId}`, `GET /promises/{id}/verifications`).

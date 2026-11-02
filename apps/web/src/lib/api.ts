@@ -7,6 +7,10 @@ import {
   PromiseGraphResponse,
   PromiseListResponse,
   PromiseStatus,
+  RefundResult,
+  ResolutionCase,
+  ResolutionCaseListResponse,
+  ResolutionDecision,
   VerificationListResponse,
   VerificationRun,
 } from '@/types/promise';
@@ -240,6 +244,99 @@ export async function listVerificationRuns(
   if (!res.ok) {
     const errorData = await res.json().catch(() => ({}));
     throw new Error(errorData.detail || `Failed to list verifications for ${promiseId}`);
+  }
+  return res.json();
+}
+
+// ==========================================
+// Phase 5: Resolution & Refund API Methods
+// ==========================================
+
+export async function openResolutionCase(
+  promiseId: string,
+  payload: {
+    reason: string;
+    requestedOutcome?: string;
+    submitter?: string;
+    role?: string;
+  }
+): Promise<ResolutionCase> {
+  const res = await fetch(`${API_BASE}/api/promises/${promiseId}/resolution-cases`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.detail || 'Failed to open resolution case');
+  }
+  return res.json();
+}
+
+export async function fetchResolutionCase(caseId: string): Promise<ResolutionCase> {
+  const res = await fetch(`${API_BASE}/api/resolution-cases/${caseId}`, {
+    cache: 'no-store',
+  });
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.detail || `Failed to fetch case ${caseId}`);
+  }
+  return res.json();
+}
+
+export async function listResolutionCases(
+  promiseId: string
+): Promise<ResolutionCaseListResponse> {
+  const res = await fetch(`${API_BASE}/api/promises/${promiseId}/resolution-cases`, {
+    cache: 'no-store',
+  });
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.detail || `Failed to list cases for ${promiseId}`);
+  }
+  return res.json();
+}
+
+export async function recordCaseDecision(
+  caseId: string,
+  payload: {
+    decision: ResolutionDecision;
+    reason: string;
+    reviewer?: string;
+  }
+): Promise<ResolutionCase> {
+  const res = await fetch(`${API_BASE}/api/resolution-cases/${caseId}/decisions`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.detail || 'Failed to record reviewer decision');
+  }
+  return res.json();
+}
+
+export async function executeCaseRefund(
+  caseId: string,
+  payload: {
+    reason: string;
+    amountValue?: string;
+    actor?: string;
+  },
+  idempotencyKey: string
+): Promise<RefundResult> {
+  const res = await fetch(`${API_BASE}/api/resolution-cases/${caseId}/refunds`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Idempotency-Key': idempotencyKey,
+    },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.detail || 'Failed to execute PayPal refund');
   }
   return res.json();
 }
