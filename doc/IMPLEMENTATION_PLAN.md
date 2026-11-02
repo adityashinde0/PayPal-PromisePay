@@ -10,7 +10,7 @@
 | 3. Evidence | Files/URLs/references with provenance | Evidence is safely stored and linked to requirements |
 | 4. AI verification | Explainable, async requirement analysis | Every result cites evidence IDs, gaps, confidence, and model/prompt version |
 | 5. Resolution | Human-gated action recommendation | Reviewer can decide and, in Sandbox, optionally initiate a refund |
-| 6. Polish | AG Grid, accessibility, observability, demo | Fresh-clone judge path is documented and rehearsed |
+| 6. Polish | AG Grid, accessibility, observability, demo | Fresh-clone judge path is documented and rehearsed | ✅ Completed |
 
 ## Sprint-sized task breakdown
 

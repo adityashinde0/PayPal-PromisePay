@@ -99,7 +99,9 @@ class ResolutionStore:
             raise ValueError(f"Resolution case '{case_id}' was not found.")
 
         if not reason or len(reason.strip()) < 5:
-            raise ValueError("Mandatory human reviewer justification reason must be provided (min 5 characters).")
+            raise ValueError(
+                "Mandatory human reviewer justification reason must be provided (min 5 characters)."
+            )
 
         promise = promise_store.get(case.promiseId)
         if not promise:
@@ -255,6 +257,11 @@ class ResolutionStore:
 
         self._idempotency_cache[cache_key] = result
         return result
+
+    def reset(self):
+        """Reset resolution cases and idempotency cache for demo replayability."""
+        self._cases.clear()
+        self._idempotency_cache.clear()
 
 
 resolution_store = ResolutionStore()

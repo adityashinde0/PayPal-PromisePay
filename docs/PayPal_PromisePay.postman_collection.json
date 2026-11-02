@@ -1,0 +1,382 @@
+{
+  "info": {
+    "_postman_id": "promisepay-postman-collection-v1",
+    "name": "PayPal PromisePay API",
+    "description": "Comprehensive Postman collection for PayPal PromisePay MVP: AI-powered proof-of-outcome lifecycle for payments.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8000",
+      "type": "string"
+    },
+    {
+      "key": "promiseId",
+      "value": "PP-DEMO1-2026",
+      "type": "string"
+    },
+    {
+      "key": "orderId",
+      "value": "8XY82019AA120934K",
+      "type": "string"
+    },
+    {
+      "key": "evidenceId",
+      "value": "ev_demo1_live",
+      "type": "string"
+    },
+    {
+      "key": "caseId",
+      "value": "case_demo1_example",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Health & Observability",
+      "item": [
+        {
+          "name": "Service Health Check",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": ["{{baseUrl}}"],
+              "path": ["health"]
+            }
+          }
+        },
+        {
+          "name": "Detailed Subsystem Diagnostics",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/health/detailed",
+              "host": ["{{baseUrl}}"],
+              "path": ["health", "detailed"]
+            }
+          }
+        },
+        {
+          "name": "Prometheus Metrics",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "text/plain" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/metrics",
+              "host": ["{{baseUrl}}"],
+              "path": ["metrics"]
+            }
+          }
+        },
+        {
+          "name": "Reset Demo State",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/demo/reset",
+              "host": ["{{baseUrl}}"],
+              "path": ["demo", "reset"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Promise Core",
+      "item": [
+        {
+          "name": "List Promises (Ledger)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/promises",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "promises"]
+            }
+          }
+        },
+        {
+          "name": "Get Category Template",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/promises/templates/digital_project",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "promises", "templates", "digital_project"]
+            }
+          }
+        },
+        {
+          "name": "Create Promise (AI Extraction)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"category\": \"digital_project\",\n  \"title\": \"E-Commerce Next.js Storefront\",\n  \"promiseText\": \"Build a responsive web application with product catalog, cart checkout flow, and public GitHub repository deployment.\",\n  \"amount\": {\n    \"currencyCode\": \"USD\",\n    \"value\": \"650.00\"\n  },\n  \"merchantOrderRef\": \"DEMO-9001\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/promises",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "promises"]
+            }
+          }
+        },
+        {
+          "name": "Get Promise Graph",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/promises/{{promiseId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "promises", "{{promiseId}}"]
+            }
+          }
+        },
+        {
+          "name": "Confirm Requirements (Merchant Gate)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"actor\": \"merchant@example.com\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/promises/{{promiseId}}/confirm",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "promises", "{{promiseId}}", "confirm"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. PayPal Sandbox Payments & Webhooks",
+      "item": [
+        {
+          "name": "Create PayPal Order",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Idempotency-Key", "value": "idem-order-demo-1" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/promises/{{promiseId}}/payment-orders",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "promises", "{{promiseId}}", "payment-orders"]
+            }
+          }
+        },
+        {
+          "name": "Capture PayPal Order",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Idempotency-Key", "value": "idem-capture-demo-1" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/promises/{{promiseId}}/payment-orders/{{orderId}}/capture",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "promises", "{{promiseId}}", "payment-orders", "{{orderId}}", "capture"]
+            }
+          }
+        },
+        {
+          "name": "Inbound Webhook Listener",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Paypal-Auth-Algo", "value": "SHA256withRSA" },
+              { "key": "Paypal-Transmission-Id", "value": "mock-trans-id-123" },
+              { "key": "Paypal-Cert-Url", "value": "https://api.sandbox.paypal.com/v1/notifications/certs/CERT-123" },
+              { "key": "Paypal-Transmission-Sig", "value": "mock-sig" },
+              { "key": "Paypal-Transmission-Time", "value": "2026-11-02T12:00:00Z" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"WH-EVENT-CAPTURE-COMPLETED-1\",\n  \"event_type\": \"PAYMENT.CAPTURE.COMPLETED\",\n  \"resource\": {\n    \"id\": \"44D091243B590219M\",\n    \"custom_id\": \"{{promiseId}}\",\n    \"status\": \"COMPLETED\",\n    \"amount\": {\n      \"currency_code\": \"USD\",\n      \"value\": \"450.00\"\n    }\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/webhooks/paypal",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "webhooks", "paypal"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Evidence & Provenance Vault",
+      "item": [
+        {
+          "name": "Request Upload Intent",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fileName\": \"deployment-screenshot.png\",\n  \"mimeType\": \"image/png\",\n  \"sizeBytes\": 1048576,\n  \"requirementIds\": [\"REQ-1\"]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/promises/{{promiseId}}/evidence/upload-intents",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "promises", "{{promiseId}}", "evidence", "upload-intents"]
+            }
+          }
+        },
+        {
+          "name": "Register Evidence (URL or Ref)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"kind\": \"live_url\",\n  \"title\": \"Live Production Deployment\",\n  \"source\": \"https://demo-storefront.promisepay.dev\",\n  \"requirementIds\": [\"req_demo1_ui\", \"req_demo1_deploy\"],\n  \"submitterClaim\": \"Live Next.js storefront deployed on Vercel with responsive design.\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/promises/{{promiseId}}/evidence",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "promises", "{{promiseId}}", "evidence"]
+            }
+          }
+        },
+        {
+          "name": "List Evidence Items",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/promises/{{promiseId}}/evidence",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "promises", "{{promiseId}}", "evidence"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Explainable AI Verification",
+      "item": [
+        {
+          "name": "Trigger Verification Run",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"forceRerun\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/promises/{{promiseId}}/verifications",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "promises", "{{promiseId}}", "verifications"]
+            }
+          }
+        },
+        {
+          "name": "List Verification Runs",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/promises/{{promiseId}}/verifications",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "promises", "{{promiseId}}", "verifications"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "6. Human-Gated Resolution & Refunds",
+      "item": [
+        {
+          "name": "Open Resolution Case",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Buyer reported checkout error on Safari mobile.\",\n  \"requestedOutcome\": \"REVIEW\",\n  \"submitter\": \"buyer@example.com\",\n  \"role\": \"BUYER\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/promises/{{promiseId}}/resolution-cases",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "promises", "{{promiseId}}", "resolution-cases"]
+            }
+          }
+        },
+        {
+          "name": "Record Reviewer Decision",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"decision\": \"RECOMMEND_REFUND\",\n  \"reason\": \"Seller failed to deliver functional cart checkout on iOS; refund authorized by operations.\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/resolution-cases/{{caseId}}/decisions",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "resolution-cases", "{{caseId}}", "decisions"]
+            }
+          }
+        },
+        {
+          "name": "Execute PayPal Sandbox Refund",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Idempotency-Key", "value": "idem-refund-demo-1" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Full refund authorized under Resolution Case decisions.\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/resolution-cases/{{caseId}}/refunds",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "resolution-cases", "{{caseId}}", "refunds"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
+

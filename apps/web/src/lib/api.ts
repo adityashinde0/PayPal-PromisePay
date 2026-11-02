@@ -340,3 +340,10 @@ export async function executeCaseRefund(
   }
   return res.json();
 }
+
+
+export async function fetchDisputeDefenseDossier(promiseId: string): Promise<any> {
+  const res = await fetch(`${API_BASE}/api/promises/${promiseId}/dispute-defense-dossier`);
+  if (!res.ok) throw new Error(`Failed to fetch dispute defense dossier for ${promiseId}`);
+  return res.json();
+}

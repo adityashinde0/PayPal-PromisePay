@@ -20,6 +20,7 @@ __pycache__/
 venv/
 
 # Local artifacts and logs
+target/
 *.log
 .DS_Store
 Thumbs.db

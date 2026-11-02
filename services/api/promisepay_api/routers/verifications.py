@@ -48,7 +48,9 @@ async def create_verification_run(
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)) from e
     except Exception as exc:
-        logger.error("Verification execution error on promise %s: %s", promise_id, exc, exc_info=True)
+        logger.error(
+            "Verification execution error on promise %s: %s", promise_id, exc, exc_info=True
+        )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to execute verification run.",

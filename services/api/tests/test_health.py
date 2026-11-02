@@ -35,3 +35,36 @@ def test_correlation_id_header(client):
     assert response.status_code == 200
     assert response.headers.get("X-Correlation-ID") == "test-cid-123"
     assert "X-Response-Time-MS" in response.headers
+
+
+def test_detailed_health_endpoint(client):
+    """Test that /health/detailed returns 200, uptime, and subsystem health."""
+    response = client.get("/health/detailed")
+    assert response.status_code == 200
+    data = response.json()
+    assert data["status"] == "ok"
+    assert "uptimeSeconds" in data
+    assert "subsystems" in data
+    assert "paypal_sandbox" in data["subsystems"]
+    assert "storage" in data["subsystems"]
+    assert "ai_engine" in data["subsystems"]
+
+
+def test_metrics_endpoint(client):
+    """Test that /metrics returns Prometheus format text metrics."""
+    response = client.get("/metrics")
+    assert response.status_code == 200
+    assert "text/plain" in response.headers.get("content-type", "")
+    content = response.text
+    assert "promisepay_uptime_seconds" in content
+    assert "promisepay_promises_total" in content
+    assert "promisepay_evidence_items_total" in content
+
+
+def test_demo_reset_endpoint(client):
+    """Test that /demo/reset successfully resets and re-seeds state."""
+    response = client.post("/demo/reset")
+    assert response.status_code == 200
+    data = response.json()
+    assert data["status"] == "reset_successful"
+    assert data["promisesCount"] >= 3

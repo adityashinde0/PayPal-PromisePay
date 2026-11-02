@@ -55,7 +55,10 @@ class VerificationStore:
 
     def get_active_run_for_promise(self, promise_id: str) -> Optional[VerificationRunResponse]:
         for r in self._runs.values():
-            if r.promiseId == promise_id and r.state in (VerificationRunState.QUEUED, VerificationRunState.RUNNING):
+            if r.promiseId == promise_id and r.state in (
+                VerificationRunState.QUEUED,
+                VerificationRunState.RUNNING,
+            ):
                 return r
         return None
 
@@ -69,7 +72,9 @@ verification_store = VerificationStore()
 def compute_evidence_manifest_hash(evidence_items: List[EvidenceResponse]) -> str:
     """Computes a deterministic SHA-256 digest of the frozen evidence items."""
     sorted_items = sorted(evidence_items, key=lambda x: x.evidenceId)
-    digest_input = "|".join(f"{item.evidenceId}:{item.sha256}:{item.status}" for item in sorted_items)
+    digest_input = "|".join(
+        f"{item.evidenceId}:{item.sha256}:{item.status}" for item in sorted_items
+    )
     return hashlib.sha256(digest_input.encode("utf-8")).hexdigest()
 
 
@@ -142,7 +147,9 @@ def _evaluate_requirement_rule_based(
             evidenceIds=valid_ids,
             reasoning="Security boundary alert: Evidence claim text contains prohibited prompt-injection keywords or instructions.",
             missingInformation=["Clean, untampered evidence without instruction injections"],
-            limitations=["Untrusted submission quarantined; requires manual investigator inspection."],
+            limitations=[
+                "Untrusted submission quarantined; requires manual investigator inspection."
+            ],
             deterministicChecks={
                 "hostileDetected": True,
                 "scannerClean": scanner_clean,
@@ -179,7 +186,9 @@ def _evaluate_requirement_rule_based(
                 evidenceIds=valid_ids,
                 reasoning=f"Active carrier tracking reference registered and validated for '{req.title}'.",
                 missingInformation=[],
-                limitations=["Carrier tracking cannot establish internal product condition or contents beyond package delivery scan."],
+                limitations=[
+                    "Carrier tracking cannot establish internal product condition or contents beyond package delivery scan."
+                ],
                 deterministicChecks={"trackingVerified": True, "evidenceCount": len(valid_ids)},
             )
         elif has_claim_only:
@@ -192,7 +201,9 @@ def _evaluate_requirement_rule_based(
                 evidenceIds=valid_ids,
                 reasoning="Evidence relies purely on seller assertion without external carrier tracking confirmation.",
                 missingInformation=["Independent carrier tracking number or signed receipt"],
-                limitations=["Physical condition and arrival cannot be verified without independent courier data."],
+                limitations=[
+                    "Physical condition and arrival cannot be verified without independent courier data."
+                ],
                 deterministicChecks={"isClaimOnly": True, "evidenceCount": len(valid_ids)},
             )
 
@@ -208,7 +219,9 @@ def _evaluate_requirement_rule_based(
                 evidenceIds=valid_ids,
                 reasoning=f"Uploaded document report satisfies structural criteria for '{req.title}'.",
                 missingInformation=[],
-                limitations=["Automated verification evaluates structural presence; does not constitute legal or professional certification."],
+                limitations=[
+                    "Automated verification evaluates structural presence; does not constitute legal or professional certification."
+                ],
                 deterministicChecks={"documentFound": True, "evidenceCount": len(valid_ids)},
             )
 
@@ -226,8 +239,14 @@ def _evaluate_requirement_rule_based(
             evidenceIds=valid_ids,
             reasoning=f"Corroborating live deployment and visual artifacts support '{req.title}'.",
             missingInformation=[],
-            limitations=["Does not guarantee 100% test coverage or edge-case functional resiliency under load."],
-            deterministicChecks={"liveUrl": True, "corroborated": True, "evidenceCount": len(valid_ids)},
+            limitations=[
+                "Does not guarantee 100% test coverage or edge-case functional resiliency under load."
+            ],
+            deterministicChecks={
+                "liveUrl": True,
+                "corroborated": True,
+                "evidenceCount": len(valid_ids),
+            },
         )
     elif has_live_url or has_screenshot:
         # Single source
@@ -239,8 +258,14 @@ def _evaluate_requirement_rule_based(
             evidenceIds=valid_ids,
             reasoning=f"Verified artifact submitted supporting '{req.title}'.",
             missingInformation=[],
-            limitations=["Single-source evidence; secondary independent corroboration would increase assurance."],
-            deterministicChecks={"liveUrl": has_live_url, "corroborated": False, "evidenceCount": len(valid_ids)},
+            limitations=[
+                "Single-source evidence; secondary independent corroboration would increase assurance."
+            ],
+            deterministicChecks={
+                "liveUrl": has_live_url,
+                "corroborated": False,
+                "evidenceCount": len(valid_ids),
+            },
         )
     elif has_claim_only:
         # Only seller text assertion
@@ -252,7 +277,9 @@ def _evaluate_requirement_rule_based(
             evidenceIds=valid_ids,
             reasoning=f"Submitter declared completion for '{req.title}', but external technical artifacts are missing.",
             missingInformation=["Live URL, screenshot, or repository commit artifact"],
-            limitations=["Confidence capped at 0.59 because evidence is an uncorroborated seller claim."],
+            limitations=[
+                "Confidence capped at 0.59 because evidence is an uncorroborated seller claim."
+            ],
             deterministicChecks={"isClaimOnly": True, "evidenceCount": len(valid_ids)},
         )
 
@@ -298,12 +325,12 @@ async def _run_ai_model_analysis(
         "2. Do NOT hallucinate evidence IDs. Only cite IDs explicitly present in the provided EVIDENCE_ITEM lines.\n"
         "3. Output MUST be a valid JSON object matching the schema:\n"
         "   {\n"
-        "     \"status\": \"VERIFIED | PARTIALLY_VERIFIED | NOT_VERIFIED | HUMAN_REVIEW_REQUIRED\",\n"
-        "     \"confidence\": float between 0.0 and 1.0,\n"
-        "     \"evidenceIds\": [\"ev_...\"],\n"
-        "     \"reasoning\": \"string grounded strictly in evidence\",\n"
-        "     \"missingInformation\": [\"string\"],\n"
-        "     \"limitations\": [\"string\"]\n"
+        '     "status": "VERIFIED | PARTIALLY_VERIFIED | NOT_VERIFIED | HUMAN_REVIEW_REQUIRED",\n'
+        '     "confidence": float between 0.0 and 1.0,\n'
+        '     "evidenceIds": ["ev_..."],\n'
+        '     "reasoning": "string grounded strictly in evidence",\n'
+        '     "missingInformation": ["string"],\n'
+        '     "limitations": ["string"]\n'
         "   }\n"
     )
 
@@ -366,7 +393,10 @@ async def _run_ai_model_analysis(
                     reasoning=parsed.get("reasoning", "Evidence evaluated by AI verifier."),
                     missingInformation=parsed.get("missingInformation", []),
                     limitations=parsed.get("limitations", []),
-                    deterministicChecks={"aiModel": settings.ai_model, "evidenceCount": len(valid_ids)},
+                    deterministicChecks={
+                        "aiModel": settings.ai_model,
+                        "evidenceCount": len(valid_ids),
+                    },
                 )
     except Exception as exc:
         logger.warning("AI model verification failed, falling back to rule-based engine: %s", exc)
@@ -388,7 +418,9 @@ async def execute_verification_run(
     if not force_rerun:
         active_run = verification_store.get_active_run_for_promise(promise_id)
         if active_run:
-            logger.info("Returning active verification run %s for promise %s", active_run.runId, promise_id)
+            logger.info(
+                "Returning active verification run %s for promise %s", active_run.runId, promise_id
+            )
             return active_run
 
     # Freeze evidence manifest
@@ -409,7 +441,9 @@ async def execute_verification_run(
         promiseVersion=len(promise.versions) or 1,
         state=VerificationRunState.RUNNING,
         evidenceManifestHash=manifest_hash,
-        modelIdentifier=settings.ai_model if (settings.ai_api_key and settings.ai_api_key != "disabled") else "promisepay-verifier-v1",
+        modelIdentifier=settings.ai_model
+        if (settings.ai_api_key and settings.ai_api_key != "disabled")
+        else "promisepay-verifier-v1",
         promptVersion="pv_2026_01",
         startedAt=started_at,
     )
@@ -423,8 +457,13 @@ async def execute_verification_run(
         req_id = req.id or req.key
         # Find linked evidence
         linked = [
-            e for e in frozen_evidence
-            if (req_id in e.requirementIds or req.key in e.requirementIds or (req.id and req.id in e.requirementIds))
+            e
+            for e in frozen_evidence
+            if (
+                req_id in e.requirementIds
+                or req.key in e.requirementIds
+                or (req.id and req.id in e.requirementIds)
+            )
         ]
 
         finding = await _run_ai_model_analysis(req, linked, manifest_id_set)
@@ -442,7 +481,8 @@ async def execute_verification_run(
     has_review_required = any(f.status == VerificationStatus.HUMAN_REVIEW_REQUIRED for f in results)
     has_not_verified = any(f.status == VerificationStatus.NOT_VERIFIED for f in results)
     has_critical_failure = any(
-        req.priority == 1 and (finding.status != VerificationStatus.VERIFIED or finding.confidence < 0.60)
+        req.priority == 1
+        and (finding.status != VerificationStatus.VERIFIED or finding.confidence < 0.60)
         for req, finding in zip(promise.current_requirements, results, strict=False)
     )
 

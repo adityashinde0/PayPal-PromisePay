@@ -5,8 +5,11 @@
   "description": "PayPal PromisePay: AI-powered proof-of-outcome lifecycle for payments.",
   "scripts": {
     "dev:web": "npm --prefix apps/web run dev",
-    "dev:api": "python -m uvicorn promisepay_api.main:app --app-dir services/api --reload --port 8000",
+    "dev:api": "python -m uvicorn promisepay_api.main:app --app-dir services/api --reload --host 0.0.0.0 --port 8000",
     "dev:worker": "python services/worker/promisepay_worker/worker.py",
+    "build:rust": "cargo +stable-x86_64-pc-windows-gnu build --release --manifest-path crates/promisepay-verify/Cargo.toml",
+    "test:rust": "cargo +stable-x86_64-pc-windows-gnu test --manifest-path crates/promisepay-verify/Cargo.toml",
+    "build:web": "npm --prefix apps/web run build",
     "lint:python": "python -m ruff check services infra",
     "lint:web": "npm --prefix apps/web run lint",
     "lint": "npm run lint:python",

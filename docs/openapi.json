@@ -1,0 +1,4506 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "PayPal PromisePay API",
+    "description": "AI-powered proof-of-outcome lifecycle platform for PayPal payments.",
+    "version": "0.1.0"
+  },
+  "paths": {
+    "/health": {
+      "get": {
+        "tags": [
+          "Health & Observability"
+        ],
+        "summary": "Get Health",
+        "description": "Returns the operational status of the PromisePay API service.",
+        "operationId": "get_health_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/health/detailed": {
+      "get": {
+        "tags": [
+          "Health & Observability"
+        ],
+        "summary": "Get Detailed Health",
+        "description": "Returns comprehensive subsystem health, sandbox config check, and storage diagnostics.",
+        "operationId": "get_detailed_health_health_detailed_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DetailedHealthResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/metrics": {
+      "get": {
+        "tags": [
+          "Health & Observability"
+        ],
+        "summary": "Get Metrics",
+        "description": "Returns Prometheus standard text metrics for observability.",
+        "operationId": "get_metrics_metrics_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/demo/reset": {
+      "post": {
+        "tags": [
+          "Health & Observability"
+        ],
+        "summary": "Reset Demo State",
+        "description": "Re-initializes all stores back to fresh judge demo state.",
+        "operationId": "reset_demo_state_demo_reset_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/health": {
+      "get": {
+        "tags": [
+          "Health & Observability"
+        ],
+        "summary": "Get Health",
+        "description": "Returns the operational status of the PromisePay API service.",
+        "operationId": "get_health_api_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/health/detailed": {
+      "get": {
+        "tags": [
+          "Health & Observability"
+        ],
+        "summary": "Get Detailed Health",
+        "description": "Returns comprehensive subsystem health, sandbox config check, and storage diagnostics.",
+        "operationId": "get_detailed_health_api_health_detailed_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DetailedHealthResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/metrics": {
+      "get": {
+        "tags": [
+          "Health & Observability"
+        ],
+        "summary": "Get Metrics",
+        "description": "Returns Prometheus standard text metrics for observability.",
+        "operationId": "get_metrics_api_metrics_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/demo/reset": {
+      "post": {
+        "tags": [
+          "Health & Observability"
+        ],
+        "summary": "Reset Demo State",
+        "description": "Re-initializes all stores back to fresh judge demo state.",
+        "operationId": "reset_demo_state_api_demo_reset_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/promises": {
+      "get": {
+        "tags": [
+          "Promises"
+        ],
+        "summary": "List Promises",
+        "description": "Retrieves list of promises for the Promise Ledger.",
+        "operationId": "list_promises_promises_get",
+        "parameters": [
+          {
+            "name": "category",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/PromiseCategory"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter by category",
+              "title": "Category"
+            },
+            "description": "Filter by category"
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/PromiseStatus"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter by lifecycle status",
+              "title": "Status"
+            },
+            "description": "Filter by lifecycle status"
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Search by title or Promise ID",
+              "title": "Q"
+            },
+            "description": "Search by title or Promise ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PromiseListResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Promises"
+        ],
+        "summary": "Create Promise",
+        "description": "Creates a draft promise, runs requirement extraction, and creates initial version.",
+        "operationId": "create_promise_promises_post",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreatePromiseRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PromiseGraphResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/promises/templates/{category}": {
+      "get": {
+        "tags": [
+          "Promises"
+        ],
+        "summary": "Get Category Template",
+        "description": "Returns the default atomic requirements for a given category.",
+        "operationId": "get_category_template_promises_templates__category__get",
+        "parameters": [
+          {
+            "name": "category",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/PromiseCategory"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AtomicRequirement"
+                  },
+                  "title": "Response Get Category Template Promises Templates  Category  Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/promises/{promise_id}": {
+      "get": {
+        "tags": [
+          "Promises"
+        ],
+        "summary": "Get Promise",
+        "description": "Retrieves full Promise Graph projection by Promise ID.",
+        "operationId": "get_promise_promises__promise_id__get",
+        "parameters": [
+          {
+            "name": "promise_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Promise Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PromiseGraphResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Promises"
+        ],
+        "summary": "Update Promise",
+        "description": "Updates editable draft/ready-for-payment promise and requirements, creating a new version.",
+        "operationId": "update_promise_promises__promise_id__patch",
+        "parameters": [
+          {
+            "name": "promise_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Promise Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdatePromiseRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PromiseGraphResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/promises/{promise_id}/confirm": {
+      "post": {
+        "tags": [
+          "Promises"
+        ],
+        "summary": "Confirm Promise",
+        "description": "Explicit merchant confirmation of extracted/edited requirements, locking for checkout.",
+        "operationId": "confirm_promise_promises__promise_id__confirm_post",
+        "parameters": [
+          {
+            "name": "promise_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Promise Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PromiseGraphResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/promises": {
+      "get": {
+        "tags": [
+          "Promises"
+        ],
+        "summary": "List Promises",
+        "description": "Retrieves list of promises for the Promise Ledger.",
+        "operationId": "list_promises_api_promises_get",
+        "parameters": [
+          {
+            "name": "category",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/PromiseCategory"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter by category",
+              "title": "Category"
+            },
+            "description": "Filter by category"
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/PromiseStatus"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter by lifecycle status",
+              "title": "Status"
+            },
+            "description": "Filter by lifecycle status"
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Search by title or Promise ID",
+              "title": "Q"
+            },
+            "description": "Search by title or Promise ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PromiseListResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Promises"
+        ],
+        "summary": "Create Promise",
+        "description": "Creates a draft promise, runs requirement extraction, and creates initial version.",
+        "operationId": "create_promise_api_promises_post",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreatePromiseRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PromiseGraphResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/promises/templates/{category}": {
+      "get": {
+        "tags": [
+          "Promises"
+        ],
+        "summary": "Get Category Template",
+        "description": "Returns the default atomic requirements for a given category.",
+        "operationId": "get_category_template_api_promises_templates__category__get",
+        "parameters": [
+          {
+            "name": "category",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/PromiseCategory"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AtomicRequirement"
+                  },
+                  "title": "Response Get Category Template Api Promises Templates  Category  Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/promises/{promise_id}": {
+      "get": {
+        "tags": [
+          "Promises"
+        ],
+        "summary": "Get Promise",
+        "description": "Retrieves full Promise Graph projection by Promise ID.",
+        "operationId": "get_promise_api_promises__promise_id__get",
+        "parameters": [
+          {
+            "name": "promise_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Promise Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PromiseGraphResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Promises"
+        ],
+        "summary": "Update Promise",
+        "description": "Updates editable draft/ready-for-payment promise and requirements, creating a new version.",
+        "operationId": "update_promise_api_promises__promise_id__patch",
+        "parameters": [
+          {
+            "name": "promise_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Promise Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdatePromiseRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PromiseGraphResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/promises/{promise_id}/confirm": {
+      "post": {
+        "tags": [
+          "Promises"
+        ],
+        "summary": "Confirm Promise",
+        "description": "Explicit merchant confirmation of extracted/edited requirements, locking for checkout.",
+        "operationId": "confirm_promise_api_promises__promise_id__confirm_post",
+        "parameters": [
+          {
+            "name": "promise_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Promise Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PromiseGraphResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/promises/{promise_id}/payment-orders": {
+      "post": {
+        "tags": [
+          "Payments"
+        ],
+        "summary": "Create Payment Order",
+        "description": "Creates a PayPal Orders v2 with CAPTURE intent using server-side confirmed amount.",
+        "operationId": "create_payment_order_promises__promise_id__payment_orders_post",
+        "parameters": [
+          {
+            "name": "promise_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Promise Id"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreatePaymentOrderResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/promises/{promise_id}/payment-orders/{paypal_order_id}/capture": {
+      "post": {
+        "tags": [
+          "Payments"
+        ],
+        "summary": "Capture Payment Order",
+        "description": "Captures an approved PayPal order and marks the promise as PAID.",
+        "operationId": "capture_payment_order_promises__promise_id__payment_orders__paypal_order_id__capture_post",
+        "parameters": [
+          {
+            "name": "promise_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Promise Id"
+            }
+          },
+          {
+            "name": "paypal_order_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Paypal Order Id"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CapturePaymentOrderResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/promises/{promise_id}/payment-orders": {
+      "post": {
+        "tags": [
+          "Payments"
+        ],
+        "summary": "Create Payment Order",
+        "description": "Creates a PayPal Orders v2 with CAPTURE intent using server-side confirmed amount.",
+        "operationId": "create_payment_order_api_promises__promise_id__payment_orders_post",
+        "parameters": [
+          {
+            "name": "promise_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Promise Id"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreatePaymentOrderResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/promises/{promise_id}/payment-orders/{paypal_order_id}/capture": {
+      "post": {
+        "tags": [
+          "Payments"
+        ],
+        "summary": "Capture Payment Order",
+        "description": "Captures an approved PayPal order and marks the promise as PAID.",
+        "operationId": "capture_payment_order_api_promises__promise_id__payment_orders__paypal_order_id__capture_post",
+        "parameters": [
+          {
+            "name": "promise_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Promise Id"
+            }
+          },
+          {
+            "name": "paypal_order_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Paypal Order Id"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CapturePaymentOrderResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/webhooks/paypal": {
+      "post": {
+        "tags": [
+          "Webhooks"
+        ],
+        "summary": "Handle Paypal Webhook",
+        "description": "Secure PayPal Webhook endpoint.\n\nVerifies raw body signature, deduplicates event ID, reconciles payment state,\nand returns 200 OK only upon durable acceptance.",
+        "operationId": "handle_paypal_webhook_webhooks_paypal_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/webhooks/paypal": {
+      "post": {
+        "tags": [
+          "Webhooks"
+        ],
+        "summary": "Handle Paypal Webhook",
+        "description": "Secure PayPal Webhook endpoint.\n\nVerifies raw body signature, deduplicates event ID, reconciles payment state,\nand returns 200 OK only upon durable acceptance.",
+        "operationId": "handle_paypal_webhook_api_webhooks_paypal_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/promises/{promise_id}/evidence/upload-intents": {
+      "post": {
+        "tags": [
+          "Evidence"
+        ],
+        "summary": "Create Upload Intent",
+        "description": "Generates a short-lived signed upload URL and storage key after validating metadata.",
+        "operationId": "create_upload_intent_promises__promise_id__evidence_upload_intents_post",
+        "parameters": [
+          {
+            "name": "promise_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Promise Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EvidenceUploadIntentRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EvidenceUploadIntentResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/promises/{promise_id}/evidence/uploads/{evidence_id}": {
+      "put": {
+        "tags": [
+          "Evidence"
+        ],
+        "summary": "Upload File Content",
+        "description": "Upload target for binary file upload matching pre-signed intent.",
+        "operationId": "upload_file_content_promises__promise_id__evidence_uploads__evidence_id__put",
+        "parameters": [
+          {
+            "name": "promise_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Promise Id"
+            }
+          },
+          {
+            "name": "evidence_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Evidence Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/promises/{promise_id}/evidence": {
+      "post": {
+        "tags": [
+          "Evidence"
+        ],
+        "summary": "Register Evidence",
+        "description": "Registers evidence (URL, repository, tracking reference, or uploaded file).\n\nValidates provenance, enforces SSRF defenses, and links evidence to requirements.",
+        "operationId": "register_evidence_promises__promise_id__evidence_post",
+        "parameters": [
+          {
+            "name": "promise_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Promise Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterEvidenceRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EvidenceResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Evidence"
+        ],
+        "summary": "List Promise Evidence",
+        "description": "Retrieves all evidence submitted for the specified promise with provenance data.",
+        "operationId": "list_promise_evidence_promises__promise_id__evidence_get",
+        "parameters": [
+          {
+            "name": "promise_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Promise Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EvidenceListResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/promises/{promise_id}/evidence/files": {
+      "post": {
+        "tags": [
+          "Evidence"
+        ],
+        "summary": "Upload Evidence File Direct",
+        "description": "Direct multipart file upload with automated checksum, validation, and registration.",
+        "operationId": "upload_evidence_file_direct_promises__promise_id__evidence_files_post",
+        "parameters": [
+          {
+            "name": "promise_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Promise Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_upload_evidence_file_direct_promises__promise_id__evidence_files_post"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EvidenceResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/promises/{promise_id}/evidence/{evidence_id}/download": {
+      "get": {
+        "tags": [
+          "Evidence"
+        ],
+        "summary": "Download Evidence File",
+        "description": "Safely retrieves uploaded file content with defensive HTTP security headers.",
+        "operationId": "download_evidence_file_promises__promise_id__evidence__evidence_id__download_get",
+        "parameters": [
+          {
+            "name": "promise_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Promise Id"
+            }
+          },
+          {
+            "name": "evidence_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Evidence Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/promises/{promise_id}/evidence/upload-intents": {
+      "post": {
+        "tags": [
+          "Evidence"
+        ],
+        "summary": "Create Upload Intent",
+        "description": "Generates a short-lived signed upload URL and storage key after validating metadata.",
+        "operationId": "create_upload_intent_api_promises__promise_id__evidence_upload_intents_post",
+        "parameters": [
+          {
+            "name": "promise_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Promise Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EvidenceUploadIntentRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EvidenceUploadIntentResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/promises/{promise_id}/evidence/uploads/{evidence_id}": {
+      "put": {
+        "tags": [
+          "Evidence"
+        ],
+        "summary": "Upload File Content",
+        "description": "Upload target for binary file upload matching pre-signed intent.",
+        "operationId": "upload_file_content_api_promises__promise_id__evidence_uploads__evidence_id__put",
+        "parameters": [
+          {
+            "name": "promise_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Promise Id"
+            }
+          },
+          {
+            "name": "evidence_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Evidence Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/promises/{promise_id}/evidence": {
+      "post": {
+        "tags": [
+          "Evidence"
+        ],
+        "summary": "Register Evidence",
+        "description": "Registers evidence (URL, repository, tracking reference, or uploaded file).\n\nValidates provenance, enforces SSRF defenses, and links evidence to requirements.",
+        "operationId": "register_evidence_api_promises__promise_id__evidence_post",
+        "parameters": [
+          {
+            "name": "promise_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Promise Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterEvidenceRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EvidenceResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Evidence"
+        ],
+        "summary": "List Promise Evidence",
+        "description": "Retrieves all evidence submitted for the specified promise with provenance data.",
+        "operationId": "list_promise_evidence_api_promises__promise_id__evidence_get",
+        "parameters": [
+          {
+            "name": "promise_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Promise Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EvidenceListResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/promises/{promise_id}/evidence/files": {
+      "post": {
+        "tags": [
+          "Evidence"
+        ],
+        "summary": "Upload Evidence File Direct",
+        "description": "Direct multipart file upload with automated checksum, validation, and registration.",
+        "operationId": "upload_evidence_file_direct_api_promises__promise_id__evidence_files_post",
+        "parameters": [
+          {
+            "name": "promise_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Promise Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_upload_evidence_file_direct_api_promises__promise_id__evidence_files_post"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EvidenceResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/promises/{promise_id}/evidence/{evidence_id}/download": {
+      "get": {
+        "tags": [
+          "Evidence"
+        ],
+        "summary": "Download Evidence File",
+        "description": "Safely retrieves uploaded file content with defensive HTTP security headers.",
+        "operationId": "download_evidence_file_api_promises__promise_id__evidence__evidence_id__download_get",
+        "parameters": [
+          {
+            "name": "promise_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Promise Id"
+            }
+          },
+          {
+            "name": "evidence_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Evidence Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/promises/{promise_id}/verifications": {
+      "post": {
+        "tags": [
+          "verifications"
+        ],
+        "summary": "Trigger or queue an explainable AI verification run",
+        "description": "Executes verification against frozen promise requirements and evidence manifest.",
+        "operationId": "create_verification_run_promises__promise_id__verifications_post",
+        "parameters": [
+          {
+            "name": "promise_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Promise Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/CreateVerificationRequest"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Payload"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VerificationRunResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "verifications"
+        ],
+        "summary": "List all verification runs for a promise",
+        "description": "Lists all historical verification runs for a given promise.",
+        "operationId": "list_verification_runs_promises__promise_id__verifications_get",
+        "parameters": [
+          {
+            "name": "promise_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Promise Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VerificationListResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/promises/{promise_id}/verifications/{run_id}": {
+      "get": {
+        "tags": [
+          "verifications"
+        ],
+        "summary": "Get verification run details and explainable findings",
+        "description": "Retrieves a specific verification run result.",
+        "operationId": "get_verification_run_promises__promise_id__verifications__run_id__get",
+        "parameters": [
+          {
+            "name": "promise_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Promise Id"
+            }
+          },
+          {
+            "name": "run_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Run Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VerificationRunResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/promises/{promise_id}/verifications": {
+      "post": {
+        "tags": [
+          "verifications"
+        ],
+        "summary": "Trigger or queue an explainable AI verification run",
+        "description": "Executes verification against frozen promise requirements and evidence manifest.",
+        "operationId": "create_verification_run_api_promises__promise_id__verifications_post",
+        "parameters": [
+          {
+            "name": "promise_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Promise Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/CreateVerificationRequest"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Payload"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VerificationRunResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "verifications"
+        ],
+        "summary": "List all verification runs for a promise",
+        "description": "Lists all historical verification runs for a given promise.",
+        "operationId": "list_verification_runs_api_promises__promise_id__verifications_get",
+        "parameters": [
+          {
+            "name": "promise_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Promise Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VerificationListResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/promises/{promise_id}/verifications/{run_id}": {
+      "get": {
+        "tags": [
+          "verifications"
+        ],
+        "summary": "Get verification run details and explainable findings",
+        "description": "Retrieves a specific verification run result.",
+        "operationId": "get_verification_run_api_promises__promise_id__verifications__run_id__get",
+        "parameters": [
+          {
+            "name": "promise_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Promise Id"
+            }
+          },
+          {
+            "name": "run_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Run Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VerificationRunResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/promises/{promise_id}/resolution-cases": {
+      "post": {
+        "tags": [
+          "resolutions"
+        ],
+        "summary": "Open a new resolution case for an agreement",
+        "description": "Opens a resolution or dispute case against a promise from verification findings or user request.",
+        "operationId": "open_resolution_case_promises__promise_id__resolution_cases_post",
+        "parameters": [
+          {
+            "name": "promise_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Promise Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OpenResolutionCaseRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResolutionCaseResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "resolutions"
+        ],
+        "summary": "List all resolution cases for a promise",
+        "description": "Retrieves all resolution cases linked to the given promise.",
+        "operationId": "list_resolution_cases_promises__promise_id__resolution_cases_get",
+        "parameters": [
+          {
+            "name": "promise_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Promise Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResolutionCaseListResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/resolution-cases/{case_id}": {
+      "get": {
+        "tags": [
+          "resolutions"
+        ],
+        "summary": "Get single resolution case details",
+        "description": "Retrieves detailed resolution case history, timeline, and decision status.",
+        "operationId": "get_resolution_case_resolution_cases__case_id__get",
+        "parameters": [
+          {
+            "name": "case_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Case Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResolutionCaseResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/resolution-cases/{case_id}/decisions": {
+      "post": {
+        "tags": [
+          "resolutions"
+        ],
+        "summary": "Record human-gated reviewer decision",
+        "description": "Reviewer-only endpoint to record decision with mandatory justification. Does not move money.",
+        "operationId": "record_case_decision_resolution_cases__case_id__decisions_post",
+        "parameters": [
+          {
+            "name": "case_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Case Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RecordDecisionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResolutionCaseResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/resolution-cases/{case_id}/refunds": {
+      "post": {
+        "tags": [
+          "resolutions"
+        ],
+        "summary": "Execute PayPal captured-payment refund",
+        "description": "Executes a PayPal Sandbox refund on captured funds. Enforces human gate and idempotency.",
+        "operationId": "execute_case_refund_resolution_cases__case_id__refunds_post",
+        "parameters": [
+          {
+            "name": "case_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Case Id"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExecuteRefundRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RefundResultResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/promises/{promise_id}/dispute-defense-dossier": {
+      "get": {
+        "tags": [
+          "resolutions"
+        ],
+        "summary": "Generate automated cryptographic PayPal Dispute Defense Dossier",
+        "description": "Generates an exportable dispute defense dossier compiling promise, PayPal references,\n\nSHA-256 evidence digests, and AI verification findings for PayPal Resolution Center submission.",
+        "operationId": "get_dispute_defense_dossier_promises__promise_id__dispute_defense_dossier_get",
+        "parameters": [
+          {
+            "name": "promise_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Promise Id"
+            }
+          },
+          {
+            "name": "download",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false,
+              "title": "Download"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/promises/{promise_id}/resolution-cases": {
+      "post": {
+        "tags": [
+          "resolutions"
+        ],
+        "summary": "Open a new resolution case for an agreement",
+        "description": "Opens a resolution or dispute case against a promise from verification findings or user request.",
+        "operationId": "open_resolution_case_api_promises__promise_id__resolution_cases_post",
+        "parameters": [
+          {
+            "name": "promise_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Promise Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OpenResolutionCaseRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResolutionCaseResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "resolutions"
+        ],
+        "summary": "List all resolution cases for a promise",
+        "description": "Retrieves all resolution cases linked to the given promise.",
+        "operationId": "list_resolution_cases_api_promises__promise_id__resolution_cases_get",
+        "parameters": [
+          {
+            "name": "promise_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Promise Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResolutionCaseListResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/resolution-cases/{case_id}": {
+      "get": {
+        "tags": [
+          "resolutions"
+        ],
+        "summary": "Get single resolution case details",
+        "description": "Retrieves detailed resolution case history, timeline, and decision status.",
+        "operationId": "get_resolution_case_api_resolution_cases__case_id__get",
+        "parameters": [
+          {
+            "name": "case_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Case Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResolutionCaseResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/resolution-cases/{case_id}/decisions": {
+      "post": {
+        "tags": [
+          "resolutions"
+        ],
+        "summary": "Record human-gated reviewer decision",
+        "description": "Reviewer-only endpoint to record decision with mandatory justification. Does not move money.",
+        "operationId": "record_case_decision_api_resolution_cases__case_id__decisions_post",
+        "parameters": [
+          {
+            "name": "case_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Case Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RecordDecisionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResolutionCaseResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/resolution-cases/{case_id}/refunds": {
+      "post": {
+        "tags": [
+          "resolutions"
+        ],
+        "summary": "Execute PayPal captured-payment refund",
+        "description": "Executes a PayPal Sandbox refund on captured funds. Enforces human gate and idempotency.",
+        "operationId": "execute_case_refund_api_resolution_cases__case_id__refunds_post",
+        "parameters": [
+          {
+            "name": "case_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Case Id"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExecuteRefundRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RefundResultResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/promises/{promise_id}/dispute-defense-dossier": {
+      "get": {
+        "tags": [
+          "resolutions"
+        ],
+        "summary": "Generate automated cryptographic PayPal Dispute Defense Dossier",
+        "description": "Generates an exportable dispute defense dossier compiling promise, PayPal references,\n\nSHA-256 evidence digests, and AI verification findings for PayPal Resolution Center submission.",
+        "operationId": "get_dispute_defense_dossier_api_promises__promise_id__dispute_defense_dossier_get",
+        "parameters": [
+          {
+            "name": "promise_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Promise Id"
+            }
+          },
+          {
+            "name": "download",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false,
+              "title": "Download"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/": {
+      "get": {
+        "summary": "Root",
+        "operationId": "root__get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AtomicRequirement": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id",
+            "description": "Unique identifier for requirement, e.g. 'req_responsive_ui'",
+            "default": ""
+          },
+          "key": {
+            "type": "string",
+            "title": "Key",
+            "description": "Stable requirement key, e.g. 'REQ-1'"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title",
+            "description": "Short summary title"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description",
+            "description": "Detailed description of verifiable outcome"
+          },
+          "priority": {
+            "type": "integer",
+            "maximum": 5.0,
+            "minimum": 1.0,
+            "title": "Priority",
+            "description": "1=Critical, 2=High, 3=Medium",
+            "default": 1
+          },
+          "verificationMethod": {
+            "type": "string",
+            "title": "Verificationmethod",
+            "description": "Expected verification method, e.g. 'URL_SCREENSHOT_ANALYSIS'"
+          }
+        },
+        "type": "object",
+        "required": [
+          "key",
+          "title",
+          "description",
+          "verificationMethod"
+        ],
+        "title": "AtomicRequirement"
+      },
+      "AuditTimelineEvent": {
+        "properties": {
+          "timestamp": {
+            "type": "string",
+            "title": "Timestamp"
+          },
+          "actor": {
+            "type": "string",
+            "title": "Actor"
+          },
+          "eventType": {
+            "type": "string",
+            "title": "Eventtype"
+          },
+          "summary": {
+            "type": "string",
+            "title": "Summary"
+          }
+        },
+        "type": "object",
+        "required": [
+          "timestamp",
+          "actor",
+          "eventType",
+          "summary"
+        ],
+        "title": "AuditTimelineEvent"
+      },
+      "Body_upload_evidence_file_direct_api_promises__promise_id__evidence_files_post": {
+        "properties": {
+          "file": {
+            "type": "string",
+            "format": "binary",
+            "title": "File"
+          },
+          "requirement_ids": {
+            "type": "string",
+            "title": "Requirement Ids"
+          },
+          "submitter_claim": {
+            "type": "string",
+            "title": "Submitter Claim"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          }
+        },
+        "type": "object",
+        "required": [
+          "file",
+          "requirement_ids",
+          "submitter_claim"
+        ],
+        "title": "Body_upload_evidence_file_direct_api_promises__promise_id__evidence_files_post"
+      },
+      "Body_upload_evidence_file_direct_promises__promise_id__evidence_files_post": {
+        "properties": {
+          "file": {
+            "type": "string",
+            "format": "binary",
+            "title": "File"
+          },
+          "requirement_ids": {
+            "type": "string",
+            "title": "Requirement Ids"
+          },
+          "submitter_claim": {
+            "type": "string",
+            "title": "Submitter Claim"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          }
+        },
+        "type": "object",
+        "required": [
+          "file",
+          "requirement_ids",
+          "submitter_claim"
+        ],
+        "title": "Body_upload_evidence_file_direct_promises__promise_id__evidence_files_post"
+      },
+      "CapturePaymentOrderResponse": {
+        "properties": {
+          "promiseId": {
+            "type": "string",
+            "title": "Promiseid"
+          },
+          "paypalOrderId": {
+            "type": "string",
+            "title": "Paypalorderid"
+          },
+          "paypalCaptureId": {
+            "type": "string",
+            "title": "Paypalcaptureid"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          }
+        },
+        "type": "object",
+        "required": [
+          "promiseId",
+          "paypalOrderId",
+          "paypalCaptureId",
+          "status"
+        ],
+        "title": "CapturePaymentOrderResponse"
+      },
+      "CaseTimelineEvent": {
+        "properties": {
+          "timestamp": {
+            "type": "string",
+            "title": "Timestamp"
+          },
+          "actor": {
+            "type": "string",
+            "title": "Actor"
+          },
+          "action": {
+            "type": "string",
+            "title": "Action"
+          },
+          "notes": {
+            "type": "string",
+            "title": "Notes"
+          }
+        },
+        "type": "object",
+        "required": [
+          "timestamp",
+          "actor",
+          "action",
+          "notes"
+        ],
+        "title": "CaseTimelineEvent"
+      },
+      "CreatePaymentOrderResponse": {
+        "properties": {
+          "promiseId": {
+            "type": "string",
+            "title": "Promiseid"
+          },
+          "paypalOrderId": {
+            "type": "string",
+            "title": "Paypalorderid"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          }
+        },
+        "type": "object",
+        "required": [
+          "promiseId",
+          "paypalOrderId",
+          "status"
+        ],
+        "title": "CreatePaymentOrderResponse"
+      },
+      "CreatePromiseRequest": {
+        "properties": {
+          "category": {
+            "$ref": "#/components/schemas/PromiseCategory"
+          },
+          "title": {
+            "type": "string",
+            "maxLength": 150,
+            "minLength": 3,
+            "title": "Title"
+          },
+          "promiseText": {
+            "type": "string",
+            "maxLength": 5000,
+            "minLength": 10,
+            "title": "Promisetext"
+          },
+          "amount": {
+            "$ref": "#/components/schemas/Money"
+          },
+          "merchantOrderRef": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 64
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Merchantorderref"
+          }
+        },
+        "type": "object",
+        "required": [
+          "category",
+          "title",
+          "promiseText",
+          "amount"
+        ],
+        "title": "CreatePromiseRequest"
+      },
+      "CreateVerificationRequest": {
+        "properties": {
+          "evidenceIds": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Evidenceids",
+            "description": "Optional subset of evidence IDs to evaluate. Defaults to all active evidence."
+          },
+          "forceRerun": {
+            "type": "boolean",
+            "title": "Forcererun",
+            "description": "Whether to trigger a new run even if an existing completed run exists.",
+            "default": false
+          }
+        },
+        "type": "object",
+        "title": "CreateVerificationRequest"
+      },
+      "DetailedHealthResponse": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "environment": {
+            "type": "string",
+            "title": "Environment"
+          },
+          "version": {
+            "type": "string",
+            "title": "Version"
+          },
+          "timestamp": {
+            "type": "string",
+            "title": "Timestamp"
+          },
+          "uptimeSeconds": {
+            "type": "number",
+            "title": "Uptimeseconds"
+          },
+          "subsystems": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Subsystems"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "environment",
+          "version",
+          "timestamp",
+          "uptimeSeconds",
+          "subsystems"
+        ],
+        "title": "DetailedHealthResponse"
+      },
+      "EvidenceKind": {
+        "type": "string",
+        "enum": [
+          "live_url",
+          "repository",
+          "screenshot",
+          "document",
+          "tracking_reference",
+          "delivery_confirmation",
+          "metadata"
+        ],
+        "title": "EvidenceKind"
+      },
+      "EvidenceListResponse": {
+        "properties": {
+          "promiseId": {
+            "type": "string",
+            "title": "Promiseid"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/EvidenceResponse"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          }
+        },
+        "type": "object",
+        "required": [
+          "promiseId",
+          "items",
+          "total"
+        ],
+        "title": "EvidenceListResponse"
+      },
+      "EvidenceProvenance": {
+        "properties": {
+          "receivedAt": {
+            "type": "string",
+            "title": "Receivedat"
+          },
+          "submittedBy": {
+            "type": "string",
+            "title": "Submittedby",
+            "default": "bob.merchant@example.com"
+          },
+          "uploaderRole": {
+            "type": "string",
+            "title": "Uploaderrole",
+            "default": "SELLER"
+          },
+          "sourceHost": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sourcehost"
+          },
+          "canonicalUri": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Canonicaluri"
+          },
+          "sha256": {
+            "type": "string",
+            "title": "Sha256",
+            "description": "SHA-256 hash digest"
+          },
+          "mimeType": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mimetype"
+          },
+          "sizeBytes": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sizebytes"
+          },
+          "scannerStatus": {
+            "type": "string",
+            "title": "Scannerstatus",
+            "default": "SCAN_CLEAN"
+          },
+          "scannerVersion": {
+            "type": "string",
+            "title": "Scannerversion",
+            "default": "promisepay-guard-v1"
+          },
+          "isClaimOnly": {
+            "type": "boolean",
+            "title": "Isclaimonly",
+            "default": true
+          },
+          "metadata": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Metadata"
+          }
+        },
+        "type": "object",
+        "required": [
+          "receivedAt",
+          "sha256"
+        ],
+        "title": "EvidenceProvenance"
+      },
+      "EvidenceResponse": {
+        "properties": {
+          "evidenceId": {
+            "type": "string",
+            "title": "Evidenceid"
+          },
+          "promiseId": {
+            "type": "string",
+            "title": "Promiseid"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/EvidenceKind"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "sourceUri": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sourceuri"
+          },
+          "canonicalUri": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Canonicaluri"
+          },
+          "storageKey": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Storagekey"
+          },
+          "sha256": {
+            "type": "string",
+            "title": "Sha256"
+          },
+          "requirementIds": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Requirementids"
+          },
+          "submitterClaim": {
+            "type": "string",
+            "title": "Submitterclaim"
+          },
+          "uploader": {
+            "type": "string",
+            "title": "Uploader"
+          },
+          "status": {
+            "$ref": "#/components/schemas/EvidenceStatus"
+          },
+          "provenance": {
+            "$ref": "#/components/schemas/EvidenceProvenance"
+          },
+          "downloadUrl": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Downloadurl"
+          },
+          "createdAt": {
+            "type": "string",
+            "title": "Createdat"
+          }
+        },
+        "type": "object",
+        "required": [
+          "evidenceId",
+          "promiseId",
+          "kind",
+          "title",
+          "sha256",
+          "requirementIds",
+          "submitterClaim",
+          "uploader",
+          "status",
+          "provenance",
+          "createdAt"
+        ],
+        "title": "EvidenceResponse"
+      },
+      "EvidenceStatus": {
+        "type": "string",
+        "enum": [
+          "SUBMITTED",
+          "PENDING_SCAN",
+          "SCAN_CLEAN",
+          "SUSPICIOUS",
+          "REJECTED"
+        ],
+        "title": "EvidenceStatus"
+      },
+      "EvidenceUploadIntentRequest": {
+        "properties": {
+          "fileName": {
+            "type": "string",
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Filename"
+          },
+          "mimeType": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 3,
+            "title": "Mimetype"
+          },
+          "sizeBytes": {
+            "type": "integer",
+            "maximum": 26214400.0,
+            "exclusiveMinimum": 0.0,
+            "title": "Sizebytes",
+            "description": "Max 25MB"
+          },
+          "requirementIds": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "minItems": 1,
+            "title": "Requirementids"
+          }
+        },
+        "type": "object",
+        "required": [
+          "fileName",
+          "mimeType",
+          "sizeBytes",
+          "requirementIds"
+        ],
+        "title": "EvidenceUploadIntentRequest"
+      },
+      "EvidenceUploadIntentResponse": {
+        "properties": {
+          "evidenceId": {
+            "type": "string",
+            "title": "Evidenceid"
+          },
+          "storageKey": {
+            "type": "string",
+            "title": "Storagekey"
+          },
+          "uploadUrl": {
+            "type": "string",
+            "title": "Uploadurl"
+          },
+          "expiresAt": {
+            "type": "string",
+            "title": "Expiresat"
+          },
+          "maxSizeBytes": {
+            "type": "integer",
+            "title": "Maxsizebytes"
+          }
+        },
+        "type": "object",
+        "required": [
+          "evidenceId",
+          "storageKey",
+          "uploadUrl",
+          "expiresAt",
+          "maxSizeBytes"
+        ],
+        "title": "EvidenceUploadIntentResponse"
+      },
+      "ExecuteRefundRequest": {
+        "properties": {
+          "amountValue": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Amountvalue",
+            "description": "Optional partial refund amount. Defaults to full captured value."
+          },
+          "reason": {
+            "type": "string",
+            "maxLength": 255,
+            "minLength": 5,
+            "title": "Reason",
+            "description": "Mandatory reason sent to payer and logged in audit"
+          },
+          "actor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Actor",
+            "description": "Authorized business user executing the refund",
+            "default": "admin@promisepay.example"
+          }
+        },
+        "type": "object",
+        "required": [
+          "reason"
+        ],
+        "title": "ExecuteRefundRequest"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "HealthResponse": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "environment": {
+            "type": "string",
+            "title": "Environment"
+          },
+          "version": {
+            "type": "string",
+            "title": "Version"
+          },
+          "timestamp": {
+            "type": "string",
+            "title": "Timestamp"
+          },
+          "service": {
+            "type": "string",
+            "title": "Service"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "environment",
+          "version",
+          "timestamp",
+          "service"
+        ],
+        "title": "HealthResponse"
+      },
+      "Money": {
+        "properties": {
+          "currencyCode": {
+            "type": "string",
+            "title": "Currencycode",
+            "description": "ISO 4217 3-letter currency code",
+            "default": "USD"
+          },
+          "value": {
+            "type": "string",
+            "title": "Value",
+            "description": "Decimal string representation of amount, e.g. '500.00'"
+          }
+        },
+        "type": "object",
+        "required": [
+          "value"
+        ],
+        "title": "Money"
+      },
+      "OpenResolutionCaseRequest": {
+        "properties": {
+          "reason": {
+            "type": "string",
+            "maxLength": 1000,
+            "minLength": 5,
+            "title": "Reason",
+            "description": "Reason for opening resolution review"
+          },
+          "requestedOutcome": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Requestedoutcome",
+            "description": "Outcome requested by submitter e.g. REVIEW or REFUND",
+            "default": "REVIEW"
+          },
+          "submitter": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Submitter",
+            "description": "Email or identifier of submitter",
+            "default": "buyer@example.com"
+          },
+          "role": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Role",
+            "description": "Role of submitter (BUYER, MERCHANT, REVIEWER)",
+            "default": "BUYER"
+          }
+        },
+        "type": "object",
+        "required": [
+          "reason"
+        ],
+        "title": "OpenResolutionCaseRequest"
+      },
+      "PaymentSummary": {
+        "properties": {
+          "paypalOrderId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Paypalorderid"
+          },
+          "paypalCaptureId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Paypalcaptureid"
+          },
+          "state": {
+            "type": "string",
+            "title": "State",
+            "default": "NOT_STARTED"
+          },
+          "amount": {
+            "$ref": "#/components/schemas/Money"
+          }
+        },
+        "type": "object",
+        "required": [
+          "amount"
+        ],
+        "title": "PaymentSummary"
+      },
+      "PromiseCategory": {
+        "type": "string",
+        "enum": [
+          "digital_project",
+          "professional_document",
+          "delivery"
+        ],
+        "title": "PromiseCategory"
+      },
+      "PromiseGraphResponse": {
+        "properties": {
+          "promiseId": {
+            "type": "string",
+            "title": "Promiseid"
+          },
+          "organizationId": {
+            "type": "string",
+            "title": "Organizationid"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "category": {
+            "$ref": "#/components/schemas/PromiseCategory"
+          },
+          "status": {
+            "$ref": "#/components/schemas/PromiseStatus"
+          },
+          "amount": {
+            "$ref": "#/components/schemas/Money"
+          },
+          "currentVersion": {
+            "type": "integer",
+            "title": "Currentversion"
+          },
+          "requirements": {
+            "items": {
+              "$ref": "#/components/schemas/AtomicRequirement"
+            },
+            "type": "array",
+            "title": "Requirements"
+          },
+          "payment": {
+            "$ref": "#/components/schemas/PaymentSummary"
+          },
+          "verification": {
+            "$ref": "#/components/schemas/VerificationSummary"
+          },
+          "resolution": {
+            "$ref": "#/components/schemas/ResolutionSummary"
+          },
+          "timeline": {
+            "items": {
+              "$ref": "#/components/schemas/AuditTimelineEvent"
+            },
+            "type": "array",
+            "title": "Timeline"
+          },
+          "evidence": {
+            "items": {
+              "$ref": "#/components/schemas/EvidenceResponse"
+            },
+            "type": "array",
+            "title": "Evidence"
+          },
+          "createdAt": {
+            "type": "string",
+            "title": "Createdat"
+          },
+          "updatedAt": {
+            "type": "string",
+            "title": "Updatedat"
+          }
+        },
+        "type": "object",
+        "required": [
+          "promiseId",
+          "organizationId",
+          "title",
+          "category",
+          "status",
+          "amount",
+          "currentVersion",
+          "requirements",
+          "payment",
+          "verification",
+          "resolution",
+          "timeline",
+          "createdAt",
+          "updatedAt"
+        ],
+        "title": "PromiseGraphResponse"
+      },
+      "PromiseListResponse": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/PromiseSummaryResponse"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items",
+          "total"
+        ],
+        "title": "PromiseListResponse"
+      },
+      "PromiseStatus": {
+        "type": "string",
+        "enum": [
+          "DRAFT",
+          "READY_FOR_PAYMENT",
+          "PAYMENT_PENDING",
+          "PAID",
+          "FULFILLMENT",
+          "EVIDENCE_SUBMITTED",
+          "VERIFYING",
+          "COMPLETE",
+          "REVIEW_REQUIRED",
+          "OUTCOME_NOT_VERIFIED",
+          "RESOLVED",
+          "CANCELLED"
+        ],
+        "title": "PromiseStatus"
+      },
+      "PromiseSummaryResponse": {
+        "properties": {
+          "promiseId": {
+            "type": "string",
+            "title": "Promiseid"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "category": {
+            "$ref": "#/components/schemas/PromiseCategory"
+          },
+          "status": {
+            "$ref": "#/components/schemas/PromiseStatus"
+          },
+          "amount": {
+            "$ref": "#/components/schemas/Money"
+          },
+          "paymentState": {
+            "type": "string",
+            "title": "Paymentstate"
+          },
+          "outcome": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Outcome"
+          },
+          "confidence": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Confidence"
+          },
+          "createdAt": {
+            "type": "string",
+            "title": "Createdat"
+          }
+        },
+        "type": "object",
+        "required": [
+          "promiseId",
+          "title",
+          "category",
+          "status",
+          "amount",
+          "paymentState",
+          "createdAt"
+        ],
+        "title": "PromiseSummaryResponse"
+      },
+      "RecordDecisionRequest": {
+        "properties": {
+          "decision": {
+            "$ref": "#/components/schemas/ResolutionDecision",
+            "description": "Action decision recommended by authorized human reviewer"
+          },
+          "reason": {
+            "type": "string",
+            "maxLength": 1000,
+            "minLength": 5,
+            "title": "Reason",
+            "description": "Mandatory human justification notes"
+          },
+          "reviewer": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reviewer",
+            "description": "Reviewer email or identity",
+            "default": "reviewer@example.com"
+          }
+        },
+        "type": "object",
+        "required": [
+          "decision",
+          "reason"
+        ],
+        "title": "RecordDecisionRequest"
+      },
+      "RefundResultResponse": {
+        "properties": {
+          "caseId": {
+            "type": "string",
+            "title": "Caseid"
+          },
+          "promiseId": {
+            "type": "string",
+            "title": "Promiseid"
+          },
+          "refundId": {
+            "type": "string",
+            "title": "Refundid"
+          },
+          "paypalRefundId": {
+            "type": "string",
+            "title": "Paypalrefundid"
+          },
+          "amount": {
+            "type": "string",
+            "title": "Amount"
+          },
+          "currency": {
+            "type": "string",
+            "title": "Currency"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "idempotencyKey": {
+            "type": "string",
+            "title": "Idempotencykey"
+          },
+          "executedAt": {
+            "type": "string",
+            "title": "Executedat"
+          }
+        },
+        "type": "object",
+        "required": [
+          "caseId",
+          "promiseId",
+          "refundId",
+          "paypalRefundId",
+          "amount",
+          "currency",
+          "status",
+          "idempotencyKey",
+          "executedAt"
+        ],
+        "title": "RefundResultResponse"
+      },
+      "RegisterEvidenceRequest": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "title": "Kind"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          },
+          "source": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source"
+          },
+          "requirementIds": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "minItems": 1,
+            "title": "Requirementids"
+          },
+          "submitterClaim": {
+            "type": "string",
+            "maxLength": 2000,
+            "minLength": 5,
+            "title": "Submitterclaim",
+            "description": "Explicit seller statement of what this item claims to prove"
+          },
+          "evidenceId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Evidenceid"
+          },
+          "storageKey": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Storagekey"
+          },
+          "sha256": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sha256"
+          },
+          "mimeType": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mimetype"
+          },
+          "sizeBytes": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sizebytes"
+          }
+        },
+        "type": "object",
+        "required": [
+          "kind",
+          "requirementIds",
+          "submitterClaim"
+        ],
+        "title": "RegisterEvidenceRequest"
+      },
+      "RequirementFinding": {
+        "properties": {
+          "requirementId": {
+            "type": "string",
+            "title": "Requirementid",
+            "description": "ID or key of the requirement being verified"
+          },
+          "requirementKey": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Requirementkey",
+            "description": "Human-readable requirement key e.g. REQ-1"
+          },
+          "status": {
+            "$ref": "#/components/schemas/VerificationStatus",
+            "description": "Verification classification"
+          },
+          "confidence": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Confidence",
+            "description": "Confidence score clamped by deterministic rules"
+          },
+          "evidenceIds": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Evidenceids",
+            "description": "Validated evidence IDs cited as proof"
+          },
+          "reasoning": {
+            "type": "string",
+            "title": "Reasoning",
+            "description": "Plain-language explanation grounded strictly in submitted evidence"
+          },
+          "missingInformation": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Missinginformation",
+            "description": "Gaps preventing full verification"
+          },
+          "limitations": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Limitations",
+            "description": "What this evidence cannot establish"
+          },
+          "deterministicChecks": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Deterministicchecks",
+            "description": "Pre-check outputs (reachability, hashes, MIME validity)"
+          }
+        },
+        "type": "object",
+        "required": [
+          "requirementId",
+          "status",
+          "confidence",
+          "reasoning"
+        ],
+        "title": "RequirementFinding"
+      },
+      "ResolutionCaseListResponse": {
+        "properties": {
+          "promiseId": {
+            "type": "string",
+            "title": "Promiseid"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ResolutionCaseResponse"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          }
+        },
+        "type": "object",
+        "required": [
+          "promiseId",
+          "items",
+          "total"
+        ],
+        "title": "ResolutionCaseListResponse"
+      },
+      "ResolutionCaseResponse": {
+        "properties": {
+          "caseId": {
+            "type": "string",
+            "title": "Caseid",
+            "description": "Unique resolution case identifier (case_...)"
+          },
+          "promiseId": {
+            "type": "string",
+            "title": "Promiseid",
+            "description": "Associated Promise ID"
+          },
+          "status": {
+            "$ref": "#/components/schemas/ResolutionCaseStatus",
+            "description": "Current status of the case"
+          },
+          "reason": {
+            "type": "string",
+            "title": "Reason",
+            "description": "Initial dispute or review request reason"
+          },
+          "submitter": {
+            "type": "string",
+            "title": "Submitter",
+            "description": "Identifier of party opening the case"
+          },
+          "submitterRole": {
+            "type": "string",
+            "title": "Submitterrole",
+            "description": "Role of submitter"
+          },
+          "decision": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ResolutionDecision"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Reviewer decision"
+          },
+          "decisionReason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Decisionreason",
+            "description": "Reviewer justification"
+          },
+          "decisionBy": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Decisionby",
+            "description": "Reviewer identity"
+          },
+          "decidedAt": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Decidedat",
+            "description": "Timestamp of decision"
+          },
+          "refundId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Refundid",
+            "description": "Internal refund ID if executed"
+          },
+          "paypalRefundId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Paypalrefundid",
+            "description": "PayPal Sandbox Refund transaction ID"
+          },
+          "refundedAmount": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Refundedamount",
+            "description": "Refunded monetary value"
+          },
+          "refundedAt": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Refundedat",
+            "description": "Timestamp of refund execution"
+          },
+          "timeline": {
+            "items": {
+              "$ref": "#/components/schemas/CaseTimelineEvent"
+            },
+            "type": "array",
+            "title": "Timeline",
+            "description": "Case event timeline"
+          },
+          "createdAt": {
+            "type": "string",
+            "title": "Createdat"
+          },
+          "updatedAt": {
+            "type": "string",
+            "title": "Updatedat"
+          }
+        },
+        "type": "object",
+        "required": [
+          "caseId",
+          "promiseId",
+          "status",
+          "reason",
+          "submitter",
+          "submitterRole",
+          "createdAt",
+          "updatedAt"
+        ],
+        "title": "ResolutionCaseResponse"
+      },
+      "ResolutionCaseStatus": {
+        "type": "string",
+        "enum": [
+          "OPEN",
+          "UNDER_REVIEW",
+          "EVIDENCE_REQUESTED",
+          "DECISION_RECORDED",
+          "RESOLVED_COMPLETE",
+          "RESOLVED_REFUNDED",
+          "CLOSED"
+        ],
+        "title": "ResolutionCaseStatus"
+      },
+      "ResolutionDecision": {
+        "type": "string",
+        "enum": [
+          "MARK_COMPLETE",
+          "REQUEST_EVIDENCE",
+          "OPEN_REVIEW",
+          "RECOMMEND_REFUND"
+        ],
+        "title": "ResolutionDecision"
+      },
+      "ResolutionSummary": {
+        "properties": {
+          "caseId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Caseid"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status",
+            "default": "NONE"
+          },
+          "decision": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Decision"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          }
+        },
+        "type": "object",
+        "title": "ResolutionSummary"
+      },
+      "UpdatePromiseRequest": {
+        "properties": {
+          "title": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 150,
+                "minLength": 3
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          },
+          "promiseText": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 5000,
+                "minLength": 10
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Promisetext"
+          },
+          "requirements": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/AtomicRequirement"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Requirements"
+          }
+        },
+        "type": "object",
+        "title": "UpdatePromiseRequest"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      },
+      "VerificationListResponse": {
+        "properties": {
+          "promiseId": {
+            "type": "string",
+            "title": "Promiseid"
+          },
+          "runs": {
+            "items": {
+              "$ref": "#/components/schemas/VerificationRunResponse"
+            },
+            "type": "array",
+            "title": "Runs"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          }
+        },
+        "type": "object",
+        "required": [
+          "promiseId",
+          "runs",
+          "total"
+        ],
+        "title": "VerificationListResponse"
+      },
+      "VerificationOutcome": {
+        "type": "string",
+        "enum": [
+          "COMPLETE",
+          "REVIEW_REQUIRED",
+          "OUTCOME_NOT_VERIFIED"
+        ],
+        "title": "VerificationOutcome"
+      },
+      "VerificationRunResponse": {
+        "properties": {
+          "runId": {
+            "type": "string",
+            "title": "Runid",
+            "description": "Unique verification run ID (vr_...)"
+          },
+          "promiseId": {
+            "type": "string",
+            "title": "Promiseid",
+            "description": "Associated Promise ID"
+          },
+          "promiseVersion": {
+            "type": "integer",
+            "title": "Promiseversion",
+            "description": "Frozen promise version evaluated"
+          },
+          "state": {
+            "$ref": "#/components/schemas/VerificationRunState",
+            "description": "Current status of the run"
+          },
+          "outcome": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/VerificationOutcome"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Deterministic overall outcome"
+          },
+          "overallConfidence": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Overallconfidence",
+            "description": "Average confidence score across requirements"
+          },
+          "results": {
+            "items": {
+              "$ref": "#/components/schemas/RequirementFinding"
+            },
+            "type": "array",
+            "title": "Results",
+            "description": "Per-requirement findings"
+          },
+          "evidenceManifestHash": {
+            "type": "string",
+            "title": "Evidencemanifesthash",
+            "description": "SHA-256 digest of frozen evidence items evaluated"
+          },
+          "modelIdentifier": {
+            "type": "string",
+            "title": "Modelidentifier",
+            "description": "Model used for semantic analysis",
+            "default": "promisepay-verifier-v1"
+          },
+          "promptVersion": {
+            "type": "string",
+            "title": "Promptversion",
+            "description": "Version of the prompt template used",
+            "default": "pv_2026_01"
+          },
+          "startedAt": {
+            "type": "string",
+            "title": "Startedat",
+            "description": "ISO 8601 timestamp when run started"
+          },
+          "completedAt": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Completedat",
+            "description": "ISO 8601 timestamp when run completed"
+          },
+          "errorMessage": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Errormessage",
+            "description": "Error details if state is FAILED"
+          }
+        },
+        "type": "object",
+        "required": [
+          "runId",
+          "promiseId",
+          "promiseVersion",
+          "state",
+          "evidenceManifestHash",
+          "startedAt"
+        ],
+        "title": "VerificationRunResponse"
+      },
+      "VerificationRunState": {
+        "type": "string",
+        "enum": [
+          "QUEUED",
+          "RUNNING",
+          "COMPLETED",
+          "FAILED"
+        ],
+        "title": "VerificationRunState"
+      },
+      "VerificationStatus": {
+        "type": "string",
+        "enum": [
+          "VERIFIED",
+          "PARTIALLY_VERIFIED",
+          "NOT_VERIFIED",
+          "HUMAN_REVIEW_REQUIRED"
+        ],
+        "title": "VerificationStatus"
+      },
+      "VerificationSummary": {
+        "properties": {
+          "latestRunId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latestrunid"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status",
+            "default": "NONE"
+          },
+          "confidence": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Confidence"
+          },
+          "outcome": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Outcome"
+          },
+          "completedAt": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Completedat"
+          }
+        },
+        "type": "object",
+        "title": "VerificationSummary"
+      }
+    }
+  }
+}

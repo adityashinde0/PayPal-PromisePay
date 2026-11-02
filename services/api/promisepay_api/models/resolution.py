@@ -31,22 +31,45 @@ class CaseTimelineEvent(BaseModel):
 
 
 class OpenResolutionCaseRequest(BaseModel):
-    reason: str = Field(..., min_length=5, max_length=1000, description="Reason for opening resolution review")
-    requestedOutcome: Optional[str] = Field("REVIEW", description="Outcome requested by submitter e.g. REVIEW or REFUND")
-    submitter: Optional[str] = Field("buyer@example.com", description="Email or identifier of submitter")
-    role: Optional[str] = Field("BUYER", description="Role of submitter (BUYER, MERCHANT, REVIEWER)")
+    reason: str = Field(
+        ..., min_length=5, max_length=1000, description="Reason for opening resolution review"
+    )
+    requestedOutcome: Optional[str] = Field(
+        "REVIEW", description="Outcome requested by submitter e.g. REVIEW or REFUND"
+    )
+    submitter: Optional[str] = Field(
+        "buyer@example.com", description="Email or identifier of submitter"
+    )
+    role: Optional[str] = Field(
+        "BUYER", description="Role of submitter (BUYER, MERCHANT, REVIEWER)"
+    )
 
 
 class RecordDecisionRequest(BaseModel):
-    decision: ResolutionDecision = Field(..., description="Action decision recommended by authorized human reviewer")
-    reason: str = Field(..., min_length=5, max_length=1000, description="Mandatory human justification notes")
-    reviewer: Optional[str] = Field("reviewer@example.com", description="Reviewer email or identity")
+    decision: ResolutionDecision = Field(
+        ..., description="Action decision recommended by authorized human reviewer"
+    )
+    reason: str = Field(
+        ..., min_length=5, max_length=1000, description="Mandatory human justification notes"
+    )
+    reviewer: Optional[str] = Field(
+        "reviewer@example.com", description="Reviewer email or identity"
+    )
 
 
 class ExecuteRefundRequest(BaseModel):
-    amountValue: Optional[str] = Field(None, description="Optional partial refund amount. Defaults to full captured value.")
-    reason: str = Field(..., min_length=5, max_length=255, description="Mandatory reason sent to payer and logged in audit")
-    actor: Optional[str] = Field("admin@promisepay.example", description="Authorized business user executing the refund")
+    amountValue: Optional[str] = Field(
+        None, description="Optional partial refund amount. Defaults to full captured value."
+    )
+    reason: str = Field(
+        ...,
+        min_length=5,
+        max_length=255,
+        description="Mandatory reason sent to payer and logged in audit",
+    )
+    actor: Optional[str] = Field(
+        "admin@promisepay.example", description="Authorized business user executing the refund"
+    )
 
 
 class ResolutionCaseResponse(BaseModel):
@@ -64,7 +87,9 @@ class ResolutionCaseResponse(BaseModel):
     paypalRefundId: Optional[str] = Field(None, description="PayPal Sandbox Refund transaction ID")
     refundedAmount: Optional[str] = Field(None, description="Refunded monetary value")
     refundedAt: Optional[str] = Field(None, description="Timestamp of refund execution")
-    timeline: List[CaseTimelineEvent] = Field(default_factory=list, description="Case event timeline")
+    timeline: List[CaseTimelineEvent] = Field(
+        default_factory=list, description="Case event timeline"
+    )
     createdAt: str
     updatedAt: str
 
@@ -85,3 +110,16 @@ class RefundResultResponse(BaseModel):
     status: str
     idempotencyKey: str
     executedAt: str
+
+
+class DisputeDefenseDossierResponse(BaseModel):
+    dossierId: str
+    generatedAt: str
+    promiseId: str
+    complianceStatement: str
+    paypalDefenseReady: bool
+    agreement: dict
+    paypalTransaction: dict
+    cryptographicEvidence: dict
+    aiVerificationAudit: dict
+    resolutionAudit: dict

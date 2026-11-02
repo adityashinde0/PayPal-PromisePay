@@ -183,6 +183,81 @@ class EvidenceStore:
         )
         self._evidence["PP-DEMO1-2026"] = [ev1, ev2]
 
+        # Pre-staged evidence for PP-DEMO2-2026 (Professional Document with deliberate missing section)
+        ev_doc = EvidenceItemRecord(
+            evidence_id="ev_demo2_doc",
+            promise_id="PP-DEMO2-2026",
+            kind=EvidenceKind.DOCUMENT,
+            title="SOC2 Type II Security Assessment & Architecture Draft",
+            requirement_ids=["req_demo2_sec", "req_demo2_len"],
+            submitter_claim="Comprehensive 12-page draft containing Executive Summary, Architecture, and STRIDE Threat Model (Access Matrix section pending final review).",
+            sha256="b8c7d6e5f4a3b2c1d0e9f8a7b6c5d4e3f2a1b0c9d8e7f6a5b4c3d2e1f0a9b8c7",
+            uploader="bob.merchant@example.com",
+            source_uri="https://storage.promisepay.dev/reports/soc2-readiness-draft.pdf",
+            canonical_uri="https://storage.promisepay.dev/reports/soc2-readiness-draft.pdf",
+            status=EvidenceStatus.SCAN_CLEAN,
+            provenance=EvidenceProvenance(
+                receivedAt=now_iso,
+                submittedBy="bob.merchant@example.com",
+                uploaderRole="SELLER",
+                sourceHost="storage.promisepay.dev",
+                canonicalUri="https://storage.promisepay.dev/reports/soc2-readiness-draft.pdf",
+                sha256="b8c7d6e5f4a3b2c1d0e9f8a7b6c5d4e3f2a1b0c9d8e7f6a5b4c3d2e1f0a9b8c7",
+                mimeType="application/pdf",
+                scannerStatus="SCAN_CLEAN",
+                scannerVersion="promisepay-guard-v1",
+                isClaimOnly=True,
+                metadata={
+                    "submitterClaim": "12-page draft containing Executive Summary, Architecture, and STRIDE Threat Model.",
+                    "pageCount": 12,
+                    "targetPageCount": 15,
+                },
+            ),
+        )
+        self._evidence["PP-DEMO2-2026"] = [ev_doc]
+
+        # Pre-staged evidence for PP-DEMO3-2026 (Delivery with tracking carrier adapter)
+        ev_trk = EvidenceItemRecord(
+            evidence_id="ev_demo3_trk",
+            promise_id="PP-DEMO3-2026",
+            kind=EvidenceKind.TRACKING_REFERENCE,
+            title="UPS Express Carrier Dispatch & Proof of Delivery",
+            requirement_ids=["req_demo3_trk", "req_demo3_del"],
+            submitter_claim="Carrier tracking number 1Z9999999999999999 confirmed dispatched within 24h and delivered to loading dock / recipient signed.",
+            sha256="c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1",
+            uploader="bob.merchant@example.com",
+            source_uri="https://www.ups.com/track?tracknum=1Z9999999999999999",
+            canonical_uri="https://www.ups.com/track?tracknum=1Z9999999999999999",
+            status=EvidenceStatus.SCAN_CLEAN,
+            provenance=EvidenceProvenance(
+                receivedAt=now_iso,
+                submittedBy="bob.merchant@example.com",
+                uploaderRole="SELLER",
+                sourceHost="www.ups.com",
+                canonicalUri="https://www.ups.com/track?tracknum=1Z9999999999999999",
+                sha256="c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1",
+                mimeType="text/plain",
+                scannerStatus="SCAN_CLEAN",
+                scannerVersion="promisepay-guard-v1",
+                isClaimOnly=True,
+                metadata={
+                    "carrier": "UPS",
+                    "trackingNumber": "1Z9999999999999999",
+                    "status": "DELIVERED",
+                    "deliveredAt": now_iso,
+                    "conditionGuarantee": False,
+                },
+            ),
+        )
+        self._evidence["PP-DEMO3-2026"] = [ev_trk]
+
+    def reset(self):
+        """Reset evidence store to default seed state for demo replayability."""
+        self._upload_intents.clear()
+        self._evidence.clear()
+        self._file_contents.clear()
+        self._seed_initial_data()
+
     def create_upload_intent(
         self,
         promise: PromiseRecord,

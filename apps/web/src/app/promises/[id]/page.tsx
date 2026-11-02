@@ -84,6 +84,27 @@ export default function PromiseDetailPage() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [copiedSha, setCopiedSha] = useState<string | null>(null);
 
+  // Dispute Defense Dossier State (Strategic Improvement 1)
+  const [downloadingDossier, setDownloadingDossier] = useState(false);
+  const [dossierSuccess, setDossierSuccess] = useState<string | null>(null);
+
+  const handleDownloadDossier = () => {
+    try {
+      setDownloadingDossier(true);
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+      const link = document.createElement('a');
+      link.href = `${API_URL}/api/promises/${promiseId}/dispute-defense-dossier?download=true`;
+      link.setAttribute('download', `dispute_dossier_${promiseId}.json`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      setDossierSuccess('Cryptographic Dispute Defense Dossier downloaded. Ready for PayPal Resolution Center.');
+      setTimeout(() => setDossierSuccess(null), 5000);
+    } finally {
+      setDownloadingDossier(false);
+    }
+  };
+
   const loadPromise = async () => {
     try {
       setLoading(true);
@@ -482,6 +503,21 @@ export default function PromiseDetailPage() {
         </div>
       )}
 
+      {dossierSuccess && (
+        <div className="rounded-xl border border-blue-300 bg-blue-50 p-4 text-sm font-medium text-blue-900 flex items-center justify-between shadow-sm">
+          <div className="flex items-center gap-2">
+            <span className="text-[#0070BA] font-bold">🛡️</span>
+            <span>{dossierSuccess}</span>
+          </div>
+          <button
+            onClick={() => setDossierSuccess(null)}
+            className="text-xs text-blue-600 hover:text-blue-900 ml-4 font-bold"
+          >
+            &times;
+          </button>
+        </div>
+      )}
+
       {/* Main Header Card */}
       <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -494,12 +530,23 @@ export default function PromiseDetailPage() {
             </div>
             <p className="mt-1 text-base font-semibold text-slate-800">{promise.title}</p>
           </div>
-          <div className="text-left md:text-right">
-            <span className="text-xs uppercase tracking-wider text-slate-400 font-medium">Locked Amount</span>
-            <p className="text-3xl font-extrabold text-[#003087]">
-              ${promise.amount.value}{' '}
-              <span className="text-sm font-normal text-slate-500">{promise.amount.currencyCode}</span>
-            </p>
+          <div className="flex flex-col sm:flex-row sm:items-center gap-4 text-left md:text-right">
+            <button
+              onClick={handleDownloadDossier}
+              disabled={downloadingDossier}
+              className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-blue-300 bg-blue-50 px-3.5 py-2 text-xs font-semibold text-[#0070BA] hover:bg-blue-100 transition-colors shadow-sm"
+              title="Download cryptographic package ready for PayPal Resolution Center"
+            >
+              <span>🛡️</span>
+              <span>{downloadingDossier ? 'Generating...' : 'Export Dispute Dossier'}</span>
+            </button>
+            <div>
+              <span className="text-xs uppercase tracking-wider text-slate-400 font-medium">Locked Amount</span>
+              <p className="text-3xl font-extrabold text-[#003087]">
+                ${promise.amount.value}{' '}
+                <span className="text-sm font-normal text-slate-500">{promise.amount.currencyCode}</span>
+              </p>
+            </div>
           </div>
         </div>
 
@@ -575,11 +622,17 @@ export default function PromiseDetailPage() {
 
           {/* Phase 3: Evidence Vault */}
           <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm space-y-5">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
-                <h3 className="text-lg font-bold text-slate-900">Verifiable Evidence Vault</h3>
+                <div className="flex items-center gap-2">
+                  <h3 className="text-lg font-bold text-slate-900">Verifiable Evidence Vault</h3>
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-orange-200 bg-orange-50 px-2.5 py-0.5 text-[10px] font-bold text-orange-800">
+                    <span className="h-1.5 w-1.5 rounded-full bg-orange-500 animate-pulse" />
+                    Rust Engine (promisepay-verify)
+                  </span>
+                </div>
                 <p className="text-xs text-slate-500 mt-0.5">
-                  Cryptographically fingerprinted proof items linked to requirements.
+                  Cryptographically fingerprinted proof items sealed via deterministic SHA-256 Merkle root.
                 </p>
               </div>
               <button

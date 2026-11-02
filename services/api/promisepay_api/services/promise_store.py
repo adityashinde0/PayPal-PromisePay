@@ -401,6 +401,11 @@ class PromiseStore:
         items.sort(key=lambda x: x.created_at, reverse=True)
         return items
 
+    def reset(self):
+        """Reset store to default initial seed promises for demo replayability."""
+        self._promises.clear()
+        self._seed_initial_data()
+
 
 # Global singleton instance
 promise_store = PromiseStore()

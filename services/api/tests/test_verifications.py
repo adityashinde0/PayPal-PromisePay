@@ -1,7 +1,6 @@
 """Unit and integration tests for AI Verification Engine & Explainability (Phase 4)."""
 
 
-
 def test_verification_demo1_workflow(client):
     """Test full verification flow on PP-DEMO1-2026 with seeded evidence."""
     # Register evidence for REQ-2 and REQ-3 so that all 3 requirements have evidence
@@ -166,6 +165,10 @@ def test_claim_only_evidence_confidence_clamping(client):
 
 def test_get_and_list_verifications(client):
     """Test GET endpoints for retrieving single run and list of runs."""
+    # Ensure at least one run exists
+    post_res = client.post("/api/promises/PP-DEMO1-2026/verifications", json={"forceRerun": True})
+    assert post_res.status_code == 201
+
     # List runs
     list_res = client.get("/api/promises/PP-DEMO1-2026/verifications")
     assert list_res.status_code == 200
