@@ -7,7 +7,7 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 
 from promisepay_api.config import settings
-from promisepay_api.routers import health
+from promisepay_api.routers import health, payments, promises, webhooks
 
 app = FastAPI(
     title="PayPal PromisePay API",
@@ -51,6 +51,16 @@ async def correlation_id_and_timing_middleware(request: Request, call_next):
 # Include Routers
 app.include_router(health.router)
 app.include_router(health.router, prefix="/api")
+
+# Promise Core Routers
+app.include_router(promises.router)
+app.include_router(promises.router, prefix="/api")
+
+# Payment & Webhook Routers
+app.include_router(payments.router)
+app.include_router(payments.router, prefix="/api")
+app.include_router(webhooks.router)
+app.include_router(webhooks.router, prefix="/api")
 
 
 @app.get("/")

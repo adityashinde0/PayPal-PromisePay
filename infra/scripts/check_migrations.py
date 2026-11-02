@@ -30,9 +30,7 @@ def validate_sql_file(file_path: Path) -> bool:
     if "CREATE TABLE" not in content and "INSERT INTO" not in content:
         print(f"[WARN] No CREATE TABLE or INSERT INTO statements in {file_path}")
 
-    print(
-        f"[PASS] {file_path.name} verified successfully ({len(content.splitlines())} lines)."
-    )
+    print(f"[PASS] {file_path.name} verified successfully ({len(content.splitlines())} lines).")
     return True
 
 
