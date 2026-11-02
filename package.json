@@ -1,0 +1,32 @@
+{
+  "name": "paypal-promisepay-root",
+  "version": "0.1.0",
+  "private": true,
+  "description": "PayPal PromisePay: AI-powered proof-of-outcome lifecycle for payments.",
+  "scripts": {
+    "dev:web": "npm --prefix apps/web run dev",
+    "dev:api": "python -m uvicorn promisepay_api.main:app --app-dir services/api --reload --port 8000",
+    "dev:worker": "python services/worker/promisepay_worker/worker.py",
+    "lint:python": "python -m ruff check services infra",
+    "lint:web": "npm --prefix apps/web run lint",
+    "lint": "npm run lint:python",
+    "format:check": "python -m ruff format --check services infra",
+    "format": "python -m ruff format services infra",
+    "test:api": "python -m pytest services/api",
+    "test:worker": "python -m pytest services/worker",
+    "test": "npm run test:api && npm run test:worker",
+    "migrate:check": "python infra/scripts/check_migrations.py",
+    "scan:secrets": "python infra/scripts/scan_secrets.py",
+    "audit": "npm audit --audit-level=high",
+    "ci": "npm run scan:secrets && npm run migrate:check && npm run lint && npm run test"
+  },
+  "keywords": [
+    "paypal",
+    "payments",
+    "ai",
+    "proof-of-outcome",
+    "verification"
+  ],
+  "author": "PromisePay Team",
+  "license": "Apache-2.0"
+}
