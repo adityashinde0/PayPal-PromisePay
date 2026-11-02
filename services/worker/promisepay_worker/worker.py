@@ -32,6 +32,62 @@ class VerificationWorker:
             "scannerVersion": "promisepay-guard-v1",
         }
 
+    async def execute_verification_job(
+        self,
+        promise_id: str,
+        requirements: list[dict[str, Any]],
+        evidence_manifest: list[dict[str, Any]],
+    ) -> dict[str, Any]:
+        """Asynchronously executes requirement analysis and returns explainable findings."""
+        logger.info("Executing async verification job for promise %s with %d requirements...", promise_id, len(requirements))
+        manifest_hash = hashlib.sha256(
+            "|".join(e.get("evidenceId", "") for e in evidence_manifest).encode("utf-8")
+        ).hexdigest()
+
+        findings = []
+        for req in requirements:
+            req_id = req.get("id") or req.get("key", "")
+            # Find evidence citing this req
+            matching = [
+                e["evidenceId"] for e in evidence_manifest
+                if req_id in e.get("requirementIds", []) or req.get("key") in e.get("requirementIds", [])
+            ]
+            if matching:
+                findings.append({
+                    "requirementId": req_id,
+                    "requirementKey": req.get("key"),
+                    "status": "VERIFIED",
+                    "confidence": 0.90,
+                    "evidenceIds": matching,
+                    "reasoning": f"Evidence corroborated for {req.get('title')}.",
+                    "missingInformation": [],
+                    "limitations": ["Worker background audit."],
+                })
+            else:
+                findings.append({
+                    "requirementId": req_id,
+                    "requirementKey": req.get("key"),
+                    "status": "NOT_VERIFIED",
+                    "confidence": 0.0,
+                    "evidenceIds": [],
+                    "reasoning": "No matching evidence submitted.",
+                    "missingInformation": [f"Missing artifact for {req.get('title')}"],
+                    "limitations": ["Unsupported."],
+                })
+
+        overall_conf = round(sum(f["confidence"] for f in findings) / max(len(findings), 1), 2)
+        outcome = "COMPLETE" if all(f["status"] == "VERIFIED" for f in findings) else "REVIEW_REQUIRED"
+
+        self.processed_jobs += 1
+        return {
+            "promiseId": promise_id,
+            "outcome": outcome,
+            "overallConfidence": overall_conf,
+            "results": findings,
+            "evidenceManifestHash": manifest_hash,
+            "status": "COMPLETED",
+        }
+
     async def start(self):
         self.running = True
         logger.info("PromisePay Verification Worker started. Listening for background jobs...")

@@ -150,3 +150,4 @@ def test_direct_file_upload_and_download(client):
     assert download_res.status_code == 200
     assert download_res.content == file_content
     assert download_res.headers["X-Content-Type-Options"] == "nosniff"
+

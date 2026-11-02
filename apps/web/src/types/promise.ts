@@ -50,6 +50,51 @@ export interface ResolutionSummary {
   reason?: string | null;
 }
 
+export type VerificationStatus =
+  | 'VERIFIED'
+  | 'PARTIALLY_VERIFIED'
+  | 'NOT_VERIFIED'
+  | 'HUMAN_REVIEW_REQUIRED';
+
+export type VerificationOutcome =
+  | 'COMPLETE'
+  | 'REVIEW_REQUIRED'
+  | 'OUTCOME_NOT_VERIFIED';
+
+export interface RequirementFinding {
+  requirementId: string;
+  requirementKey?: string | null;
+  status: VerificationStatus;
+  confidence: number;
+  evidenceIds: string[];
+  reasoning: string;
+  missingInformation: string[];
+  limitations: string[];
+  deterministicChecks?: Record<string, unknown>;
+}
+
+export interface VerificationRun {
+  runId: string;
+  promiseId: string;
+  promiseVersion: number;
+  state: 'QUEUED' | 'RUNNING' | 'COMPLETED' | 'FAILED';
+  outcome?: VerificationOutcome | null;
+  overallConfidence?: number | null;
+  results: RequirementFinding[];
+  evidenceManifestHash: string;
+  modelIdentifier: string;
+  promptVersion: string;
+  startedAt: string;
+  completedAt?: string | null;
+  errorMessage?: string | null;
+}
+
+export interface VerificationListResponse {
+  promiseId: string;
+  runs: VerificationRun[];
+  total: number;
+}
+
 export interface AuditTimelineEvent {
   timestamp: string;
   actor: string;

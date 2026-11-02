@@ -27,3 +27,23 @@ async def test_worker_scan_evidence():
     assert "computedHash" in result
     assert result["matchesExpected"] is True
     assert worker.processed_jobs == 1
+
+
+@pytest.mark.asyncio
+async def test_worker_execute_verification_job():
+    worker = VerificationWorker()
+    reqs = [
+        {"id": "req_1", "key": "REQ-1", "title": "Storefront"},
+        {"id": "req_2", "key": "REQ-2", "title": "Cart"},
+    ]
+    manifest = [
+        {"evidenceId": "ev_1", "requirementIds": ["req_1"]},
+    ]
+    res = await worker.execute_verification_job("PP-TEST-123", reqs, manifest)
+    assert res["promiseId"] == "PP-TEST-123"
+    assert res["status"] == "COMPLETED"
+    assert res["outcome"] == "REVIEW_REQUIRED"
+    assert len(res["results"]) == 2
+    assert res["results"][0]["status"] == "VERIFIED"
+    assert res["results"][1]["status"] == "NOT_VERIFIED"
+    assert worker.processed_jobs == 1

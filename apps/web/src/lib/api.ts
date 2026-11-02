@@ -7,6 +7,8 @@ import {
   PromiseGraphResponse,
   PromiseListResponse,
   PromiseStatus,
+  VerificationListResponse,
+  VerificationRun,
 } from '@/types/promise';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
@@ -191,6 +193,53 @@ export async function uploadEvidenceFile(
   if (!res.ok) {
     const errorData = await res.json().catch(() => ({}));
     throw new Error(errorData.detail || 'Failed to upload evidence file');
+  }
+  return res.json();
+}
+
+// ==========================================
+// Phase 4: AI Verification API Methods
+// ==========================================
+
+export async function triggerVerification(
+  promiseId: string,
+  options?: { evidenceIds?: string[]; forceRerun?: boolean }
+): Promise<VerificationRun> {
+  const res = await fetch(`${API_BASE}/api/promises/${promiseId}/verifications`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(options || {}),
+  });
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.detail || 'Failed to trigger verification run');
+  }
+  return res.json();
+}
+
+export async function fetchVerificationRun(
+  promiseId: string,
+  runId: string
+): Promise<VerificationRun> {
+  const res = await fetch(`${API_BASE}/api/promises/${promiseId}/verifications/${runId}`, {
+    cache: 'no-store',
+  });
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.detail || `Failed to fetch verification run ${runId}`);
+  }
+  return res.json();
+}
+
+export async function listVerificationRuns(
+  promiseId: string
+): Promise<VerificationListResponse> {
+  const res = await fetch(`${API_BASE}/api/promises/${promiseId}/verifications`, {
+    cache: 'no-store',
+  });
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.detail || `Failed to list verifications for ${promiseId}`);
   }
   return res.json();
 }

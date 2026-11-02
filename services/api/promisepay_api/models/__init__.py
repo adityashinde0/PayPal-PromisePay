@@ -12,6 +12,15 @@ from promisepay_api.models.evidence import (
     EvidenceUploadIntentResponse,
     RegisterEvidenceRequest,
 )
+from promisepay_api.models.verification import (
+    CreateVerificationRequest,
+    RequirementFinding,
+    VerificationListResponse,
+    VerificationOutcome,
+    VerificationRunResponse,
+    VerificationRunState,
+    VerificationStatus,
+)
 
 __all__ = [
     "PromiseCategory",
@@ -25,6 +34,13 @@ __all__ = [
     "RegisterEvidenceRequest",
     "EvidenceResponse",
     "EvidenceListResponse",
+    "VerificationStatus",
+    "VerificationOutcome",
+    "VerificationRunState",
+    "RequirementFinding",
+    "CreateVerificationRequest",
+    "VerificationRunResponse",
+    "VerificationListResponse",
 ]
 
 

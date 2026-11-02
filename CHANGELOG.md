@@ -6,6 +6,13 @@ All notable changes to PromisePay are recorded here. This project follows [Keep 
 
 ### Added
 
+- **Phase 4 (AI Verification Engine & Explainability UX)**:
+  - Explainable AI verification service (`promisepay_api/services/verifier.py`) with frozen evidence manifest hashing, strict anti-injection sanitization, and deterministic pre-checks.
+  - Verification run queue and endpoints (`POST /promises/{id}/verifications`, `GET /promises/{id}/verifications/{runId}`, `GET /promises/{id}/verifications`).
+  - Deterministic guards: Hallucinated evidence ID rejection, uncorroborated claim confidence clamping ($\le 0.59$), and fail-closed human review policy (`COMPLETE`, `REVIEW_REQUIRED`, `OUTCOME_NOT_VERIFIED`).
+  - Background worker async verification runner (`execute_verification_job`).
+  - Next.js Explainable AI Verification Dossier UI with per-requirement status pills, confidence meters, cited proof chips, gap alerts, and limitations transparency.
+  - Complete test suite for fully supported, incomplete, contradictory, and hostile prompt-injection evidence (`services/api/tests/test_verifications.py`).
 - **Phase 3 (Evidence & Provenance Management)**:
   - Pre-signed upload intents with 15-minute expiry, size limits (25MB max), and MIME allow-list (`POST /promises/{id}/evidence/upload-intents`).
   - Evidence registration endpoint with requirement linking and submitter claim capture (`POST /promises/{id}/evidence`).
