@@ -16,7 +16,7 @@
     "test:worker": "python -m pytest services/worker",
     "test": "npm run test:api && npm run test:worker",
     "migrate:check": "python infra/scripts/check_migrations.py",
-    "scan:secrets": "python infra/scripts/scan_secrets.py",
+    "scan:secrets": "python infra/scripts/scan_repo.py",
     "audit": "npm audit --audit-level=high",
     "ci": "npm run scan:secrets && npm run migrate:check && npm run lint && npm run test"
   },
