@@ -30,3 +30,9 @@ services:
     envVars:
       - key: NODE_ENV
         value: production
+      - key: NEXT_PUBLIC_API_URL
+        value: https://promisepay-api.onrender.com
+      - key: API_BASE_URL
+        value: https://promisepay-api.onrender.com
+
+
