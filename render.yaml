@@ -1,0 +1,32 @@
+services:
+  # 1. FastAPI Backend API
+  - type: web
+    name: promisepay-api
+    runtime: docker
+    dockerContext: services/api
+    dockerfilePath: services/api/Dockerfile
+    plan: free
+    region: oregon
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: AI_MODEL
+        value: gemini-3.5-flash-lite
+      - key: AI_PROVIDER
+        value: google
+      - key: WEB_ORIGIN
+        value: "*"
+      - key: LOG_LEVEL
+        value: INFO
+
+  # 2. Next.js 15 Frontend
+  - type: web
+    name: promisepay-web
+    runtime: docker
+    dockerContext: apps/web
+    dockerfilePath: apps/web/Dockerfile
+    plan: free
+    region: oregon
+    envVars:
+      - key: NODE_ENV
+        value: production
