@@ -342,6 +342,28 @@ async def _run_ai_model_analysis(
         "   }\n"
     )
 
+    # Pre-filter hostile prompt injections through detect_hostile_input() before sending prompts to the live AI provider
+    if (
+        detect_hostile_input(req.title)
+        or detect_hostile_input(req.description)
+        or any(detect_hostile_input(ev.submitterClaim) for ev in linked_evidence)
+    ):
+        logger.warning(
+            "Hostile prompt injection pattern detected in requirement %s or attached claims.",
+            req.key,
+        )
+        return RequirementFinding(
+            requirementId=req.id or req.key,
+            requirementKey=req.key,
+            status=VerificationStatus.HUMAN_REVIEW_REQUIRED,
+            confidence=0.10,
+            evidenceIds=[ev.evidenceId for ev in linked_evidence if ev.evidenceId in all_evidence_ids],
+            reasoning="Security Guard: Hostile prompt injection pattern detected in requirement specification or evidence claims. Blocked before live AI dispatch.",
+            missingInformation=["Untampered, clean evidence artifacts required."],
+            limitations=["Hostile prompt injection filter triggered."],
+            deterministicChecks={"antiInjectionStatus": "BLOCKED_HOSTILE_INPUT"},
+        )
+
     user_prompt = (
         f"REQUIREMENT:\n"
         f"ID: {req.id or req.key}\n"
@@ -354,13 +376,17 @@ async def _run_ai_model_analysis(
     )
 
     try:
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/{settings.ai_model}:generateContent?key={settings.ai_api_key}"
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/{settings.ai_model}:generateContent"
+        headers = {
+            "x-goog-api-key": settings.ai_api_key,
+            "Content-Type": "application/json",
+        }
         payload = {
             "contents": [{"parts": [{"text": f"{system_prompt}\n\n{user_prompt}"}]}],
             "generationConfig": {"response_mime_type": "application/json"},
         }
         async with httpx.AsyncClient(timeout=12.0) as client:
-            res = await client.post(url, json=payload)
+            res = await client.post(url, headers=headers, json=payload)
             if res.status_code == 200:
                 data = res.json()
                 raw_json = data["candidates"][0]["content"]["parts"][0]["text"]
@@ -406,8 +432,36 @@ async def _run_ai_model_analysis(
                         "evidenceCount": len(valid_ids),
                     },
                 )
+            else:
+                logger.error(
+                    "AI model verification call failed with status %d: %s (model: %s, req: %s)",
+                    res.status_code,
+                    res.text,
+                    settings.ai_model,
+                    req.key,
+                )
+                finding = _evaluate_requirement_rule_based(req, linked_evidence, all_evidence_ids)
+                finding.limitations.append(
+                    f"AI Provider Error: HTTP {res.status_code} on {settings.ai_model}. Evaluated via deterministic fallback."
+                )
+                finding.deterministicChecks["aiError"] = f"HTTP_{res.status_code}"
+                finding.deterministicChecks["aiModel"] = settings.ai_model
+                return finding
     except Exception as exc:
-        logger.warning("AI model verification failed, falling back to rule-based engine: %s", exc)
+        logger.error(
+            "AI model verification exception on model '%s' for req '%s': %s",
+            settings.ai_model,
+            req.key,
+            exc,
+            exc_info=True,
+        )
+        finding = _evaluate_requirement_rule_based(req, linked_evidence, all_evidence_ids)
+        finding.limitations.append(
+            f"AI Call Exception: {str(exc)}. Evaluated via deterministic fallback."
+        )
+        finding.deterministicChecks["aiException"] = str(exc)
+        finding.deterministicChecks["aiModel"] = settings.ai_model
+        return finding
 
     return _evaluate_requirement_rule_based(req, linked_evidence, all_evidence_ids)
 

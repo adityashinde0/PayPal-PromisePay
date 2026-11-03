@@ -5,6 +5,17 @@ import Link from 'next/link';
 import { AgGridReact } from 'ag-grid-react';
 import { ColDef, ICellRendererParams } from 'ag-grid-community';
 import { PromiseSummaryResponse } from '@/types/promise';
+import { PayPalLogo } from './PayPalLogo';
+import {
+  Laptop,
+  FileText,
+  Package,
+  Wrench,
+  CheckCircle2,
+  Clock,
+  AlertTriangle,
+  Eye,
+} from 'lucide-react';
 
 interface PromiseLedgerGridProps {
   rowData: PromiseSummaryResponse[];
@@ -25,8 +36,8 @@ export function PromiseLedgerGrid({ rowData, quickFilterText = '', loading = fal
           <div className="flex items-center h-full">
             <Link
               href={`/promises/${params.data.promiseId}`}
-              className="font-mono text-xs font-bold text-[#0070BA] hover:text-[#003087] hover:underline px-2 py-1 rounded bg-blue-50 border border-blue-200"
-              title="Click to view Promise Graph"
+              className="font-mono text-xs font-bold text-[#0070BA] hover:text-[#003087] hover:underline px-2 py-1 rounded-lg bg-blue-50/90 border border-blue-200/80 shadow-2xs"
+              title="Click to inspect Promise Graph"
             >
               {params.data.promiseId}
             </Link>
@@ -35,20 +46,20 @@ export function PromiseLedgerGrid({ rowData, quickFilterText = '', loading = fal
       },
     },
     {
-      headerName: 'Category',
+      headerName: 'Type',
       field: 'category',
       width: 170,
       cellRenderer: (params: ICellRendererParams<PromiseSummaryResponse>) => {
         if (!params.value) return null;
         const catMap: Record<string, { label: string; color: string; border: string }> = {
-          digital_project: { label: 'Digital Project', color: 'text-indigo-700 bg-indigo-50', border: 'border-indigo-200' },
-          professional_document: { label: 'Pro Document', color: 'text-cyan-700 bg-cyan-50', border: 'border-cyan-200' },
-          delivery: { label: 'Physical Delivery', color: 'text-emerald-700 bg-emerald-50', border: 'border-emerald-200' },
+          digital_project: { label: 'Digital Project', color: 'text-indigo-700 bg-indigo-50/90', border: 'border-indigo-200' },
+          professional_document: { label: 'Document', color: 'text-cyan-800 bg-cyan-50/90', border: 'border-cyan-200' },
+          delivery: { label: 'Delivery', color: 'text-emerald-700 bg-emerald-50/90', border: 'border-emerald-200' },
         };
         const conf = catMap[params.value] || { label: params.value, color: 'text-slate-700 bg-slate-50', border: 'border-slate-200' };
         return (
           <div className="flex items-center h-full">
-            <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium border ${conf.color} ${conf.border}`}>
+            <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-bold border ${conf.color} ${conf.border}`}>
               {conf.label}
             </span>
           </div>
@@ -56,14 +67,14 @@ export function PromiseLedgerGrid({ rowData, quickFilterText = '', loading = fal
       },
     },
     {
-      headerName: 'Agreement Title',
+      headerName: 'Description',
       field: 'title',
       flex: 2,
       minWidth: 240,
       cellRenderer: (params: ICellRendererParams<PromiseSummaryResponse>) => {
         return (
           <div className="flex items-center h-full">
-            <span className="font-medium text-slate-900 truncate" title={params.value}>
+            <span className="font-semibold text-slate-800 truncate" title={params.value}>
               {params.value}
             </span>
           </div>
@@ -78,33 +89,34 @@ export function PromiseLedgerGrid({ rowData, quickFilterText = '', loading = fal
       cellRenderer: (params: ICellRendererParams<PromiseSummaryResponse>) => {
         if (!params.data) return null;
         return (
-          <div className="flex items-center justify-end h-full font-mono text-xs font-bold text-slate-800">
-            ${params.data.amount.value} {params.data.amount.currencyCode}
+          <div className="flex items-center justify-end h-full font-mono text-xs font-black text-slate-900">
+            ${params.data.amount.value} <span className="ml-1 text-[10px] font-medium text-slate-400">{params.data.amount.currencyCode}</span>
           </div>
         );
       },
     },
     {
-      headerName: 'PayPal State',
+      headerName: 'PayPal Status',
       field: 'paymentState',
-      width: 145,
+      width: 155,
       cellRenderer: (params: ICellRendererParams<PromiseSummaryResponse>) => {
         const state = params.value || 'NOT_STARTED';
         const isCaptured = state === 'CAPTURED';
-        const isCreated = state === 'ORDER_CREATED';
         const isRefunded = state === 'REFUNDED';
+        const isCreated = state === 'ORDER_CREATED';
 
         const badgeColor = isCaptured
-          ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+          ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
           : isRefunded
-          ? 'bg-purple-50 text-purple-700 border-purple-200'
+          ? 'bg-purple-50 text-purple-800 border-purple-200'
           : isCreated
-          ? 'bg-blue-50 text-blue-700 border-blue-200'
-          : 'bg-slate-100 text-slate-600 border-slate-200';
+          ? 'bg-blue-50 text-blue-800 border-blue-200'
+          : 'bg-slate-100 text-slate-700 border-slate-200';
 
         return (
-          <div className="flex items-center h-full">
-            <span className={`inline-flex items-center rounded-md px-2 py-0.5 text-xs font-semibold border ${badgeColor}`}>
+          <div className="flex items-center gap-1.5 h-full">
+            <PayPalLogo height={13} variant="monogram" />
+            <span className={`inline-flex items-center rounded-md px-2 py-0.5 text-[11px] font-bold border ${badgeColor}`}>
               {state}
             </span>
           </div>
@@ -112,9 +124,39 @@ export function PromiseLedgerGrid({ rowData, quickFilterText = '', loading = fal
       },
     },
     {
-      headerName: 'Promise Status',
+      headerName: 'AI Verification',
+      field: 'confidence',
+      width: 165,
+      cellRenderer: (params: ICellRendererParams<PromiseSummaryResponse>) => {
+        const val = params.value;
+        if (val === undefined || val === null) {
+          return (
+            <div className="flex items-center h-full text-xs text-slate-400 italic">
+              Pending
+            </div>
+          );
+        }
+
+        const pct = Math.round(val * 100);
+        const barColor =
+          pct >= 85 ? 'bg-emerald-500' : pct >= 65 ? 'bg-amber-500' : 'bg-rose-500';
+
+        return (
+          <div className="flex items-center gap-2 h-full w-full">
+            <div className="flex-1 h-2 bg-slate-200 rounded-full overflow-hidden">
+              <div className={`h-full ${barColor} rounded-full`} style={{ width: `${pct}%` }} />
+            </div>
+            <span className="font-mono text-xs font-bold text-slate-700 w-8 text-right">
+              {pct}%
+            </span>
+          </div>
+        );
+      },
+    },
+    {
+      headerName: 'Status',
       field: 'status',
-      width: 175,
+      width: 160,
       cellRenderer: (params: ICellRendererParams<PromiseSummaryResponse>) => {
         const st = params.value;
         const color =
@@ -130,7 +172,7 @@ export function PromiseLedgerGrid({ rowData, quickFilterText = '', loading = fal
 
         return (
           <div className="flex items-center h-full">
-            <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold border ${color}`}>
+            <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-bold border ${color}`}>
               {st}
             </span>
           </div>
@@ -138,69 +180,9 @@ export function PromiseLedgerGrid({ rowData, quickFilterText = '', loading = fal
       },
     },
     {
-      headerName: 'AI Outcome',
-      field: 'outcome',
-      width: 165,
-      cellRenderer: (params: ICellRendererParams<PromiseSummaryResponse>) => {
-        const outcome = params.value;
-        if (!outcome) {
-          return (
-            <div className="flex items-center h-full">
-              <span className="text-xs text-slate-400 font-medium italic">Pending Verification</span>
-            </div>
-          );
-        }
-
-        const color =
-          outcome === 'COMPLETE'
-            ? 'bg-emerald-100 text-emerald-800'
-            : outcome === 'REVIEW_REQUIRED'
-            ? 'bg-amber-100 text-amber-900'
-            : 'bg-rose-100 text-rose-800';
-
-        return (
-          <div className="flex items-center h-full">
-            <span className={`inline-flex items-center rounded px-2 py-0.5 text-xs font-bold ${color}`}>
-              {outcome}
-            </span>
-          </div>
-        );
-      },
-    },
-    {
-      headerName: 'Confidence',
-      field: 'confidence',
-      width: 155,
-      cellRenderer: (params: ICellRendererParams<PromiseSummaryResponse>) => {
-        const val = params.value;
-        if (val === undefined || val === null) {
-          return (
-            <div className="flex items-center h-full text-xs text-slate-400">
-              —
-            </div>
-          );
-        }
-
-        const pct = Math.round(val * 100);
-        const barColor =
-          pct >= 80 ? 'bg-emerald-500' : pct >= 60 ? 'bg-amber-500' : 'bg-rose-500';
-
-        return (
-          <div className="flex items-center gap-2 h-full w-full">
-            <div className="flex-1 h-2 bg-slate-200 rounded-full overflow-hidden">
-              <div className={`h-full ${barColor}`} style={{ width: `${pct}%` }} />
-            </div>
-            <span className="font-mono text-xs font-bold text-slate-700 w-8 text-right">
-              {pct}%
-            </span>
-          </div>
-        );
-      },
-    },
-    {
-      headerName: 'Drill-Down',
+      headerName: 'Actions',
       field: 'promiseId',
-      width: 135,
+      width: 100,
       sortable: false,
       filter: false,
       pinned: 'right',
@@ -210,9 +192,10 @@ export function PromiseLedgerGrid({ rowData, quickFilterText = '', loading = fal
           <div className="flex items-center justify-center h-full">
             <Link
               href={`/promises/${params.data.promiseId}`}
-              className="inline-flex items-center text-xs font-semibold text-[#0070BA] hover:text-[#003087] transition-colors"
+              className="inline-flex items-center justify-center h-7 w-7 rounded-lg text-slate-500 hover:text-[#0070BA] hover:bg-blue-50 transition-colors"
+              title="View verification report"
             >
-              View Graph &rarr;
+              <Eye className="h-4 w-4" />
             </Link>
           </div>
         );
@@ -228,7 +211,7 @@ export function PromiseLedgerGrid({ rowData, quickFilterText = '', loading = fal
 
   return (
     <div
-      className="w-full ag-theme-quartz rounded-xl overflow-hidden border border-slate-200 shadow-sm"
+      className="w-full ag-theme-quartz rounded-2xl overflow-hidden border border-slate-200/90 shadow-sm"
       style={{ height: '520px' }}
       aria-label="PromisePay Enterprise Ledger"
     >

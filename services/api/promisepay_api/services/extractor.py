@@ -10,6 +10,7 @@ import httpx
 from promisepay_api.config import settings
 from promisepay_api.models.promise import AtomicRequirement, PromiseCategory
 from promisepay_api.services.templates import get_template_requirements
+from promisepay_api.services.verifier import detect_hostile_input
 
 logger = logging.getLogger("promisepay-extractor")
 
@@ -116,6 +117,16 @@ async def extract_requirements(
     category: PromiseCategory, promise_text: str
 ) -> List[AtomicRequirement]:
     """Extracts atomic requirements from agreement text using AI provider or fallback."""
+    # Pre-filter hostile prompt injection before sending to AI provider
+    if detect_hostile_input(promise_text):
+        logger.warning(
+            "Adversarial prompt injection pattern detected in agreement text for category %s.",
+            category.value,
+        )
+        raise ValueError(
+            "Security Violation: Hostile prompt injection pattern detected in agreement text."
+        )
+
     if not settings.ai_api_key or settings.ai_api_key == "disabled":
         logger.info("Using deterministic extractor (no AI API key configured)")
         return _deterministic_rule_based_extract(category, promise_text)
@@ -132,7 +143,11 @@ async def extract_requirements(
     try:
         if settings.ai_provider == "google":
             # Gemini JSON endpoint
-            url = f"https://generativelanguage.googleapis.com/v1beta/models/{settings.ai_model}:generateContent?key={settings.ai_api_key}"
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/{settings.ai_model}:generateContent"
+            headers = {
+                "x-goog-api-key": settings.ai_api_key,
+                "Content-Type": "application/json",
+            }
             payload = {
                 "contents": [
                     {
@@ -146,7 +161,7 @@ async def extract_requirements(
                 "generationConfig": {"response_mime_type": "application/json"},
             }
             async with httpx.AsyncClient(timeout=10.0) as client:
-                res = await client.post(url, json=payload)
+                res = await client.post(url, headers=headers, json=payload)
                 if res.status_code == 200:
                     data = res.json()
                     raw_text = data["candidates"][0]["content"]["parts"][0]["text"]
@@ -168,9 +183,23 @@ async def extract_requirements(
                         )
                     if results:
                         return results
+                else:
+                    logger.error(
+                        "AI requirement extraction HTTP error %d: %s (model: %s)",
+                        res.status_code,
+                        res.text,
+                        settings.ai_model,
+                    )
+                    raise RuntimeError(
+                        f"AI requirement extraction failed with HTTP {res.status_code}: {res.text}"
+                    )
     except Exception as exc:
-        logger.warning(
-            "AI extraction request failed, falling back to deterministic extraction: %s", exc
+        logger.error(
+            "AI requirement extraction failed on model '%s': %s",
+            settings.ai_model,
+            exc,
+            exc_info=True,
         )
+        raise RuntimeError(f"AI requirement extraction failed on {settings.ai_model}: {exc}") from exc
 
     return _deterministic_rule_based_extract(category, promise_text)

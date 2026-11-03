@@ -2,6 +2,7 @@ services:
   postgres:
     image: postgres:16-alpine
     container_name: promisepay-postgres
+    entrypoint: ["sh", "-c", "echo 'CREATE ROLE service_role; CREATE ROLE authenticated; CREATE ROLE anon;' > /docker-entrypoint-initdb.d/00_roles.sql && exec docker-entrypoint.sh postgres"]
     environment:
       POSTGRES_DB: promisepay
       POSTGRES_USER: postgres
@@ -10,12 +11,15 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./supabase/migrations:/docker-entrypoint-initdb.d
+      - ./supabase/migrations/00001_initial_schema.sql:/docker-entrypoint-initdb.d/01_schema.sql:ro
+      - ./supabase/seed.sql:/docker-entrypoint-initdb.d/02_seed.sql:ro
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: ["CMD-SHELL", "pg_isready -U postgres -d promisepay"]
       interval: 5s
       timeout: 5s
       retries: 5
+    networks:
+      - promisepay-network
 
   api:
     build:
@@ -24,6 +28,9 @@ services:
     container_name: promisepay-api
     ports:
       - "8000:8000"
+    env_file:
+      - path: ../.env
+        required: false
     environment:
       - APP_ENV=development
       - PORT=8000
@@ -32,6 +39,14 @@ services:
         condition: service_healthy
     volumes:
       - ../services/api:/app
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - promisepay-network
 
   web:
     build:
@@ -40,16 +55,57 @@ services:
     container_name: promisepay-web
     ports:
       - "3000:3000"
+    env_file:
+      - path: ../.env
+        required: false
     environment:
       - NODE_ENV=development
+      - HOSTNAME=0.0.0.0
+      - PORT=3000
       - NEXT_PUBLIC_API_URL=http://localhost:8000
+      - WATCHPACK_POLLING=true
     depends_on:
-      - api
+      api:
+        condition: service_healthy
     volumes:
       - ../apps/web:/app
       - /app/node_modules
       - /app/.next
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    networks:
+      - promisepay-network
+
+  worker:
+    build:
+      context: ../services/worker
+      dockerfile: Dockerfile
+    container_name: promisepay-worker
+    profiles:
+      - worker
+      - all
+    env_file:
+      - path: ../.env
+        required: false
+    environment:
+      - APP_ENV=development
+      - PYTHONUNBUFFERED=1
+    depends_on:
+      api:
+        condition: service_healthy
+    volumes:
+      - ../services/worker:/app
+    networks:
+      - promisepay-network
+
+networks:
+  promisepay-network:
+    name: promisepay-network
+    driver: bridge
 
 volumes:
   postgres_data:
-

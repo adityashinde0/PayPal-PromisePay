@@ -2,6 +2,7 @@
 
 import json
 import logging
+from pathlib import Path
 from typing import Set
 
 from fastapi import APIRouter, HTTPException, Request, status
@@ -13,8 +14,36 @@ from promisepay_api.services.promise_store import promise_store
 logger = logging.getLogger("promisepay-webhooks")
 router = APIRouter(prefix="/webhooks", tags=["Webhooks"])
 
-# Set of processed PayPal Event IDs for idempotency
+# Durable event deduplication store
 PROCESSED_EVENT_IDS: Set[str] = set()
+_STORAGE_FILE = (
+    Path(__file__).resolve().parent.parent.parent.parent.parent
+    / ".storage"
+    / "processed_paypal_events.txt"
+)
+
+
+def _load_persisted_events():
+    if _STORAGE_FILE.is_file():
+        try:
+            for line in _STORAGE_FILE.read_text(encoding="utf-8").splitlines():
+                if line.strip():
+                    PROCESSED_EVENT_IDS.add(line.strip())
+        except Exception as err:
+            logger.warning("Could not read persisted events file: %s", err)
+
+
+def _persist_event(event_id: str):
+    PROCESSED_EVENT_IDS.add(event_id)
+    try:
+        _STORAGE_FILE.parent.mkdir(parents=True, exist_ok=True)
+        with open(_STORAGE_FILE, "a", encoding="utf-8") as f:
+            f.write(f"{event_id}\n")
+    except Exception as err:
+        logger.warning("Could not persist event ID %s: %s", event_id, err)
+
+
+_load_persisted_events()
 
 
 @router.post("/paypal", status_code=status.HTTP_200_OK)
@@ -57,7 +86,7 @@ async def handle_paypal_webhook(request: Request):
         logger.info("Ignoring duplicate PayPal webhook event: %s (%s)", event_id, event_type)
         return {"status": "already_processed", "eventId": event_id}
 
-    PROCESSED_EVENT_IDS.add(event_id)
+    _persist_event(event_id)
     logger.info("Processing PayPal webhook event %s: %s", event_id, event_type)
 
     # 4. Correlate with Promise
@@ -129,5 +158,26 @@ async def handle_paypal_webhook(request: Request):
                     summary="Payment refunded in PayPal.",
                 )
             )
+
+        elif event_type in ("CUSTOMER.DISPUTE.CREATED", "CUSTOMER.DISPUTE.UPDATED"):
+            dispute_id = resource.get("dispute_id") or resource.get("id")
+            target_promise.status = PromiseStatus.REVIEW_REQUIRED
+            target_promise.timeline.append(
+                AuditTimelineEvent(
+                    timestamp=now,
+                    actor="PayPal Disputes Webhook",
+                    eventType="PAYPAL_DISPUTE_OPENED",
+                    summary=f"PayPal Dispute {dispute_id} opened. Initiating automated Merkle dossier compilation.",
+                )
+            )
+            # Programmatically compile and upload cryptographic evidence dossier
+            if dispute_id:
+                try:
+                    from promisepay_api.routers.resolutions import generate_dispute_defense_dossier
+                    dossier = await generate_dispute_defense_dossier(promise_id=target_promise.promise_id, download=False)
+                    await paypal_client.provide_dispute_evidence(dispute_id, dossier)
+                    logger.info("Automatically provided cryptographic Merkle dossier for dispute %s", dispute_id)
+                except Exception as exc:
+                    logger.warning("Failed to auto-submit dispute dossier for %s: %s", dispute_id, exc)
 
     return {"status": "processed", "eventId": event_id, "eventType": event_type}

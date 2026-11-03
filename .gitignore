@@ -30,3 +30,9 @@ storage/
 
 # Whitelist infra scripts
 !infra/scripts/*
+
+assets/
+*.db
+*.sqlite
+.agents/
+

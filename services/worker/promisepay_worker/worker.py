@@ -2,19 +2,43 @@
 
 import asyncio
 import hashlib
+import json
 import logging
+import os
 import signal
 import sys
-from typing import Any
+from typing import Any, Dict, List, Optional
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s")
 logger = logging.getLogger("promisepay-worker")
 
+try:
+    import redis.asyncio as aioredis
+except ImportError:
+    aioredis = None
+
 
 class VerificationWorker:
-    def __init__(self):
+    def __init__(self, redis_url: Optional[str] = None):
         self.running = False
         self.processed_jobs = 0
+        self.redis_url = redis_url or os.getenv("REDIS_URL", "redis://localhost:6379/0")
+        self._redis_client: Optional[Any] = None
+
+    async def get_redis(self):
+        if self._redis_client is None and aioredis:
+            try:
+                client = aioredis.from_url(
+                    self.redis_url,
+                    socket_connect_timeout=0.5,
+                    decode_responses=True,
+                )
+                await client.ping()
+                self._redis_client = client
+                logger.info("Worker connected to Redis job broker at %s", self.redis_url)
+            except Exception:
+                self._redis_client = False
+        return self._redis_client if self._redis_client else None
 
     async def scan_evidence(
         self, evidence_id: str, kind: str, source: str, expected_hash: str = ""
@@ -100,12 +124,45 @@ class VerificationWorker:
             "status": "COMPLETED",
         }
 
+    async def consume_one_job(self) -> bool:
+        """Pops and executes one job from the queue if present."""
+        redis = await self.get_redis()
+        if not redis:
+            await asyncio.sleep(0.5)
+            return False
+
+        try:
+            item = await redis.blpop("promisepay:verification_jobs", timeout=1)
+            if not item:
+                return False
+
+            _, raw_payload = item
+            job_data = json.loads(raw_payload)
+            promise_id = job_data.get("promiseId")
+            requirements = job_data.get("requirements", [])
+            manifest = job_data.get("evidenceManifest", [])
+            job_id = job_data.get("runId") or job_data.get("jobId")
+
+            logger.info("Worker picked up job %s for promise %s", job_id, promise_id)
+            result = await self.execute_verification_job(promise_id, requirements, manifest)
+
+            # Update status in Redis
+            if job_id:
+                await redis.set(
+                    f"promisepay:job_status:{job_id}",
+                    json.dumps({"status": "COMPLETED", "jobId": job_id, "result": result}),
+                    ex=86400,
+                )
+            return True
+        except Exception as exc:
+            logger.error("Worker error processing queue job: %s", exc)
+            return False
+
     async def start(self):
         self.running = True
-        logger.info("PromisePay Verification Worker started. Listening for background jobs...")
+        logger.info("PromisePay Verification Worker started. Listening for background jobs on queue...")
         while self.running:
-            # Poll or wait for tasks from queue/db
-            await asyncio.sleep(1)
+            await self.consume_one_job()
 
     def stop(self):
         logger.info("Stopping PromisePay Verification Worker...")

@@ -6,8 +6,9 @@ import uuid
 from datetime import datetime, timezone
 from typing import Optional
 
-from fastapi import APIRouter, Header, HTTPException, Response, status
+from fastapi import APIRouter, Depends, Header, HTTPException, Response, status
 
+from promisepay_api.auth import AuthenticatedUser, require_roles
 from promisepay_api.models.resolution import (
     ExecuteRefundRequest,
     OpenResolutionCaseRequest,
@@ -104,6 +105,7 @@ async def get_resolution_case(case_id: str):
 async def record_case_decision(
     case_id: str,
     payload: RecordDecisionRequest,
+    current_user: AuthenticatedUser = Depends(require_roles(["REVIEWER", "ADMIN"])),
 ):
     """Reviewer-only endpoint to record decision with mandatory justification. Does not move money."""
     case = resolution_store.get_case(case_id)
@@ -134,6 +136,7 @@ async def execute_case_refund(
     case_id: str,
     payload: ExecuteRefundRequest,
     idempotency_key: Optional[str] = Header(None, alias="Idempotency-Key"),
+    current_user: AuthenticatedUser = Depends(require_roles(["REVIEWER", "ADMIN"])),
 ):
     """Executes a PayPal Sandbox refund on captured funds. Enforces human gate and idempotency."""
     if not idempotency_key:

@@ -9,11 +9,15 @@ class Settings(BaseSettings):
     api_base_url: str = "http://localhost:8000"
     log_level: str = "INFO"
 
-    # Supabase
+    # Supabase / PostgreSQL Database
+    database_url: str = "sqlite+aiosqlite:///promisepay.db"
     supabase_url: str = ""
     supabase_anon_key: str = ""
     supabase_service_role_key: str = ""
     supabase_storage_bucket: str = "promise-evidence"
+
+    # Redis (Distributed Locking, Caching & Job Queues)
+    redis_url: str = "redis://localhost:6379/0"
 
     # PayPal
     paypal_env: str = "sandbox"
@@ -25,7 +29,7 @@ class Settings(BaseSettings):
     # AI Provider
     ai_provider: str = "google"
     ai_api_key: str = ""
-    ai_model: str = "gemini-1.5-pro"
+    ai_model: str = "gemini-3.5-flash-lite"
 
     # Security
     session_secret: str = "default-dev-secret-change-in-prod"

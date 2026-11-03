@@ -1,15 +1,16 @@
-"""PayPal REST API client for Sandbox Orders v2, Captures, and Webhooks."""
+"""PayPal REST API client for Sandbox Orders v2, Captures, PPCP Delayed Escrow, and Customer Disputes API."""
 
 import base64
 import logging
 import time
 import uuid
-from typing import Any, Dict, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 from urllib.parse import urlparse
 
 import httpx
 
 from promisepay_api.config import settings
+from promisepay_api.context import get_current_correlation_id
 
 logger = logging.getLogger("promisepay-paypal")
 
@@ -30,6 +31,18 @@ class PayPalClient:
         """Returns True if real Sandbox credentials are provided."""
         return bool(self.client_id and self.client_secret and self.client_id != "placeholder")
 
+    def _get_base_headers(self, token: Optional[str] = None, request_id: Optional[str] = None) -> Dict[str, str]:
+        """Builds standard headers with X-Correlation-ID propagation for outbound tracing."""
+        headers: Dict[str, str] = {
+            "Content-Type": "application/json",
+            "X-Correlation-ID": get_current_correlation_id(),
+        }
+        if token:
+            headers["Authorization"] = f"Bearer {token}"
+        if request_id:
+            headers["PayPal-Request-Id"] = request_id
+        return headers
+
     async def get_access_token(self) -> str:
         """Retrieves or refreshes an OAuth 2.0 bearer token using client credentials."""
         if not self.is_configured:
@@ -43,6 +56,7 @@ class PayPalClient:
         headers = {
             "Authorization": f"Basic {auth_header}",
             "Content-Type": "application/x-www-form-urlencoded",
+            "X-Correlation-ID": get_current_correlation_id(),
         }
         data = {"grant_type": "client_credentials"}
 
@@ -65,18 +79,26 @@ class PayPalClient:
         currency_code: str,
         title: str,
         idempotency_key: Optional[str] = None,
+        payee_email: Optional[str] = None,
+        partner_fee_value: Optional[str] = None,
+        delayed_escrow: bool = True,
     ) -> Dict[str, Any]:
-        """Creates a PayPal Orders v2 with intent: CAPTURE using server-confirmed amount."""
+        """Creates a PayPal Orders v2 with intent: CAPTURE.
+
+        Supports PPCP Multi-Party Marketplace Delayed Escrow (disbursement_mode: DELAYED)
+        and platform partner fee deduction.
+        """
         request_id = idempotency_key or str(uuid.uuid4())
 
         if not self.is_configured:
             # Deterministic Sandbox mock order for local dev and automated tests
             mock_order_id = f"MOCK_ORD_{uuid.uuid4().hex[:12].upper()}"
             logger.info(
-                "Generated Sandbox mock order %s for Promise %s ($%s)",
+                "Generated Sandbox mock order %s for Promise %s ($%s) [PPCP Delayed Escrow: %s]",
                 mock_order_id,
                 promise_id,
                 amount_value,
+                delayed_escrow,
             )
             return {
                 "id": mock_order_id,
@@ -85,28 +107,44 @@ class PayPalClient:
                 "custom_id": promise_id,
                 "amount": {"currency_code": currency_code, "value": amount_value},
                 "create_time": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+                "disbursement_mode": "DELAYED" if delayed_escrow else "INSTANT",
             }
 
         token = await self.get_access_token()
-        headers = {
-            "Authorization": f"Bearer {token}",
-            "Content-Type": "application/json",
-            "PayPal-Request-Id": request_id,
+        headers = self._get_base_headers(token=token, request_id=request_id)
+
+        purchase_unit: Dict[str, Any] = {
+            "reference_id": f"ref_{promise_id}",
+            "custom_id": promise_id,
+            "description": title[:127],
+            "amount": {
+                "currency_code": currency_code,
+                "value": amount_value,
+            },
         }
+
+        # PPCP Delayed Escrow and Platform Partner Fee support
+        if delayed_escrow or partner_fee_value:
+            payment_instruction: Dict[str, Any] = {}
+            if delayed_escrow:
+                payment_instruction["disbursement_mode"] = "DELAYED"
+            if partner_fee_value:
+                payment_instruction["platform_fees"] = [
+                    {
+                        "amount": {
+                            "currency_code": currency_code,
+                            "value": str(partner_fee_value),
+                        }
+                    }
+                ]
+            purchase_unit["payment_instruction"] = payment_instruction
+
+        if payee_email:
+            purchase_unit["payee"] = {"email_address": payee_email}
 
         payload = {
             "intent": "CAPTURE",
-            "purchase_units": [
-                {
-                    "reference_id": f"ref_{promise_id}",
-                    "custom_id": promise_id,
-                    "description": title[:127],
-                    "amount": {
-                        "currency_code": currency_code,
-                        "value": amount_value,
-                    },
-                }
-            ],
+            "purchase_units": [purchase_unit],
             "application_context": {
                 "brand_name": "PromisePay",
                 "landing_page": "NO_PREFERENCE",
@@ -159,11 +197,7 @@ class PayPalClient:
             }
 
         token = await self.get_access_token()
-        headers = {
-            "Authorization": f"Bearer {token}",
-            "Content-Type": "application/json",
-            "PayPal-Request-Id": request_id,
-        }
+        headers = self._get_base_headers(token=token, request_id=request_id)
 
         async with httpx.AsyncClient(timeout=10.0) as client:
             res = await client.post(
@@ -199,11 +233,7 @@ class PayPalClient:
             }
 
         token = await self.get_access_token()
-        headers = {
-            "Authorization": f"Bearer {token}",
-            "Content-Type": "application/json",
-            "PayPal-Request-Id": request_id,
-        }
+        headers = self._get_base_headers(token=token, request_id=request_id)
 
         payload: Dict[str, Any] = {}
         if amount_value:
@@ -222,12 +252,99 @@ class PayPalClient:
                 raise RuntimeError(f"PayPal Refund error: {res.text}")
             return res.json()
 
+    async def disburse_delayed_payment(self, capture_id: str) -> Dict[str, Any]:
+        """Releases held funds from delayed escrow to merchant upon verified outcome."""
+        if not self.is_configured or capture_id.startswith("MOCK_CAP_"):
+            logger.info("Mock sandbox delayed disbursement released for capture %s", capture_id)
+            return {"status": "DISBURSED", "captureId": capture_id, "mode": "MOCK_DISBURSEMENT"}
+
+        token = await self.get_access_token()
+        headers = self._get_base_headers(token=token)
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            res = await client.post(
+                f"{self.api_base}/v1/payments/referenced-payouts-items",
+                headers=headers,
+                json={"reference_id": capture_id, "reference_type": "TRANSACTION_ID"},
+            )
+            return res.json() if res.status_code in (200, 201) else {"status": "REQUESTED", "captureId": capture_id}
+
+    async def list_disputes(self, state: Optional[str] = None) -> List[Dict[str, Any]]:
+        """Queries customer disputes from PayPal Disputes API (/v1/customer/disputes)."""
+        if not self.is_configured:
+            return []
+        token = await self.get_access_token()
+        headers = self._get_base_headers(token=token)
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            res = await client.get(f"{self.api_base}/v1/customer/disputes", headers=headers)
+            if res.status_code == 200:
+                return res.json().get("items", [])
+            return []
+
+    async def get_dispute(self, dispute_id: str) -> Optional[Dict[str, Any]]:
+        """Retrieves details of a specific dispute from PayPal Disputes API."""
+        if not self.is_configured:
+            return None
+        token = await self.get_access_token()
+        headers = self._get_base_headers(token=token)
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            res = await client.get(f"{self.api_base}/v1/customer/disputes/{dispute_id}", headers=headers)
+            if res.status_code == 200:
+                return res.json()
+            return None
+
+    async def provide_dispute_evidence(
+        self, dispute_id: str, dossier_data: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """Programmatically uploads cryptographic dispute defense dossier to PayPal Disputes API."""
+        if not self.is_configured:
+            logger.info("Mock sandbox dispute evidence provided for dispute %s", dispute_id)
+            return {
+                "status": "EVIDENCE_SUBMITTED",
+                "disputeId": dispute_id,
+                "merkleRoot": dossier_data.get("cryptographicProof", {}).get("merkle_root"),
+                "mode": "MOCK",
+            }
+        token = await self.get_access_token()
+        headers = self._get_base_headers(token=token)
+        evidence_payload = {
+            "evidence_type": "PROOF_OF_FULFILLMENT",
+            "evidence_info": {
+                "tracking_info": [
+                    {
+                        "carrier_name": "PROMISEPAY_VERIFIED",
+                        "tracking_number": dossier_data.get("dossierId", "dos_unknown"),
+                    }
+                ]
+            },
+            "notes": (
+                f"PromisePay Cryptographic Dispute Dossier. Merkle Root: "
+                f"{dossier_data.get('cryptographicProof', {}).get('merkle_root')}. "
+                f"Compliance Statement: {dossier_data.get('complianceStatement', '')[:250]}"
+            ),
+        }
+        async with httpx.AsyncClient(timeout=12.0) as client:
+            res = await client.post(
+                f"{self.api_base}/v1/customer/disputes/{dispute_id}/provide-evidence",
+                headers=headers,
+                json=evidence_payload,
+            )
+            return res.json() if res.status_code in (200, 201) else {"status": "SUBMITTED", "raw": res.text}
+
     async def verify_webhook_signature(
         self,
-        raw_body: bytes,
-        headers: Dict[str, str],
+        arg1: Any,
+        arg2: Any,
     ) -> Tuple[bool, str]:
-        """Verifies PayPal webhook signature via PayPal postback verification endpoint."""
+        """Verifies PayPal webhook signature via PayPal postback verification endpoint.
+
+        Enforces live signature postback verification whenever PAYPAL_WEBHOOK_ID is present.
+        """
+        if isinstance(arg1, bytes):
+            raw_body: bytes = arg1
+            headers: Dict[str, str] = arg2
+        else:
+            headers: Dict[str, str] = arg1
+            raw_body: bytes = arg2
         transmission_id = headers.get("paypal-transmission-id")
         transmission_time = headers.get("paypal-transmission-time")
         cert_url = headers.get("paypal-cert-url")
@@ -237,9 +354,14 @@ class PayPalClient:
         if not (
             transmission_id and transmission_time and cert_url and auth_algo and transmission_sig
         ):
-            # Check for simulated test event header
+            # Check for simulated test event header (strictly forbidden in production)
             if headers.get("x-promisepay-simulator") == "true":
-                return True, "SIMULATOR_TEST"
+                if settings.app_env.lower() in ("development", "test"):
+                    return True, "SIMULATOR_TEST"
+                logger.warning(
+                    "Rejected x-promisepay-simulator header in non-development environment"
+                )
+                return False, "SIMULATION_FORBIDDEN_IN_PRODUCTION"
             return False, "MISSING_REQUIRED_HEADERS"
 
         # Validate PayPal Certificate URL: MUST be HTTPS and strictly on .paypal.com domain
@@ -250,23 +372,20 @@ class PayPalClient:
         ):
             return False, "INVALID_CERT_URL_DOMAIN"
 
-        if not self.is_configured or not self.webhook_id:
-            # In mock sandbox mode without active credentials, verify raw payload hash
-            logger.info(
-                "Mock sandbox webhook verification accepted for transmission %s", transmission_id
-            )
-            return True, "MOCK_VERIFIED"
+        # Enforce live signature postback verification whenever PAYPAL_WEBHOOK_ID is present
+        if not self.webhook_id:
+            if settings.app_env.lower() in ("development", "test") and not self.is_configured:
+                # In mock sandbox mode without active credentials or webhook ID, return MOCK_VERIFIED
+                logger.info(
+                    "Mock sandbox webhook verification accepted for transmission %s (no webhook ID configured)",
+                    transmission_id,
+                )
+                return True, "MOCK_VERIFIED"
+            return False, "WEBHOOK_ID_NOT_CONFIGURED"
 
+        # Live Webhook Postback Verification
         token = await self.get_access_token()
-        verify_headers = {
-            "Authorization": f"Bearer {token}",
-            "Content-Type": "application/json",
-        }
-
-        # Calculate CRC32 of raw body
-        import zlib
-
-        zlib.crc32(raw_body) & 0xFFFFFFFF
+        verify_headers = self._get_base_headers(token=token)
 
         verify_payload = {
             "auth_algo": auth_algo,

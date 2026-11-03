@@ -335,3 +335,75 @@ CREATE INDEX IF NOT EXISTS idx_resolution_cases_promise_id ON resolution_cases(p
 CREATE INDEX IF NOT EXISTS idx_audit_logs_promise_id ON audit_logs(promise_id);
 CREATE INDEX IF NOT EXISTS idx_audit_logs_created_at ON audit_logs(created_at DESC);
 
+-- ==============================================================================
+-- 17. Row-Level Security (RLS) Policies
+-- Enforces strict multi-tenant isolation across all tables.
+-- ==============================================================================
+
+-- Enable RLS on all tables
+ALTER TABLE organizations ENABLE ROW LEVEL SECURITY;
+ALTER TABLE users ENABLE ROW LEVEL SECURITY;
+ALTER TABLE organization_members ENABLE ROW LEVEL SECURITY;
+ALTER TABLE promises ENABLE ROW LEVEL SECURITY;
+ALTER TABLE promise_versions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE promise_requirements ENABLE ROW LEVEL SECURITY;
+ALTER TABLE verification_plans ENABLE ROW LEVEL SECURITY;
+ALTER TABLE evidence ENABLE ROW LEVEL SECURITY;
+ALTER TABLE evidence_requirements ENABLE ROW LEVEL SECURITY;
+ALTER TABLE payments ENABLE ROW LEVEL SECURITY;
+ALTER TABLE paypal_events ENABLE ROW LEVEL SECURITY;
+ALTER TABLE verification_runs ENABLE ROW LEVEL SECURITY;
+ALTER TABLE verification_results ENABLE ROW LEVEL SECURITY;
+ALTER TABLE resolution_cases ENABLE ROW LEVEL SECURITY;
+ALTER TABLE resolution_decisions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE audit_logs ENABLE ROW LEVEL SECURITY;
+
+-- Service-role full access policy (server-side secure execution)
+CREATE POLICY service_role_bypass_orgs ON organizations FOR ALL TO service_role USING (true) WITH CHECK (true);
+CREATE POLICY service_role_bypass_users ON users FOR ALL TO service_role USING (true) WITH CHECK (true);
+CREATE POLICY service_role_bypass_members ON organization_members FOR ALL TO service_role USING (true) WITH CHECK (true);
+CREATE POLICY service_role_bypass_promises ON promises FOR ALL TO service_role USING (true) WITH CHECK (true);
+CREATE POLICY service_role_bypass_versions ON promise_versions FOR ALL TO service_role USING (true) WITH CHECK (true);
+CREATE POLICY service_role_bypass_reqs ON promise_requirements FOR ALL TO service_role USING (true) WITH CHECK (true);
+CREATE POLICY service_role_bypass_plans ON verification_plans FOR ALL TO service_role USING (true) WITH CHECK (true);
+CREATE POLICY service_role_bypass_evidence ON evidence FOR ALL TO service_role USING (true) WITH CHECK (true);
+CREATE POLICY service_role_bypass_ev_reqs ON evidence_requirements FOR ALL TO service_role USING (true) WITH CHECK (true);
+CREATE POLICY service_role_bypass_payments ON payments FOR ALL TO service_role USING (true) WITH CHECK (true);
+CREATE POLICY service_role_bypass_paypal_events ON paypal_events FOR ALL TO service_role USING (true) WITH CHECK (true);
+CREATE POLICY service_role_bypass_runs ON verification_runs FOR ALL TO service_role USING (true) WITH CHECK (true);
+CREATE POLICY service_role_bypass_results ON verification_results FOR ALL TO service_role USING (true) WITH CHECK (true);
+CREATE POLICY service_role_bypass_cases ON resolution_cases FOR ALL TO service_role USING (true) WITH CHECK (true);
+CREATE POLICY service_role_bypass_decisions ON resolution_decisions FOR ALL TO service_role USING (true) WITH CHECK (true);
+CREATE POLICY service_role_bypass_audit ON audit_logs FOR ALL TO service_role USING (true) WITH CHECK (true);
+
+-- Authenticated tenant policies (Scoped to organization via JWT claim org_id)
+CREATE POLICY org_members_isolation ON organization_members
+    FOR SELECT
+    USING (organization_id = NULLIF(current_setting('request.jwt.claims', true)::jsonb ->> 'org_id', '')::uuid);
+
+CREATE POLICY org_promises_isolation ON promises
+    FOR ALL
+    USING (organization_id = NULLIF(current_setting('request.jwt.claims', true)::jsonb ->> 'org_id', '')::uuid)
+    WITH CHECK (organization_id = NULLIF(current_setting('request.jwt.claims', true)::jsonb ->> 'org_id', '')::uuid);
+
+CREATE POLICY org_payments_isolation ON payments
+    FOR SELECT
+    USING (promise_id IN (
+        SELECT id FROM promises WHERE organization_id = NULLIF(current_setting('request.jwt.claims', true)::jsonb ->> 'org_id', '')::uuid
+    ));
+
+CREATE POLICY org_evidence_isolation ON evidence
+    FOR ALL
+    USING (promise_id IN (
+        SELECT id FROM promises WHERE organization_id = NULLIF(current_setting('request.jwt.claims', true)::jsonb ->> 'org_id', '')::uuid
+    ));
+
+CREATE POLICY org_resolution_cases_isolation ON resolution_cases
+    FOR ALL
+    USING (promise_id IN (
+        SELECT id FROM promises WHERE organization_id = NULLIF(current_setting('request.jwt.claims', true)::jsonb ->> 'org_id', '')::uuid
+    ));
+
+CREATE POLICY org_audit_logs_isolation ON audit_logs
+    FOR SELECT
+    USING (organization_id = NULLIF(current_setting('request.jwt.claims', true)::jsonb ->> 'org_id', '')::uuid);

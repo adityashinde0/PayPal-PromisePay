@@ -13,6 +13,7 @@ from promisepay_api.models.resolution import (
     ResolutionCaseStatus,
     ResolutionDecision,
 )
+from promisepay_api.services.lock import lock_manager
 from promisepay_api.services.paypal_client import paypal_client
 from promisepay_api.services.promise_store import promise_store
 
@@ -23,6 +24,30 @@ class ResolutionStore:
     def __init__(self):
         self._cases: Dict[str, ResolutionCaseResponse] = {}
         self._idempotency_cache: Dict[str, RefundResultResponse] = {}
+        self._seed_initial_data()
+
+    def _seed_initial_data(self):
+        """Seed initial dispute resolution cases for demonstration."""
+        now = datetime.now(timezone.utc).isoformat()
+        demo_case = ResolutionCaseResponse(
+            caseId="case_demo1_initial",
+            promiseId="PP-DEMO1-2026",
+            status=ResolutionCaseStatus.OPEN,
+            reason="Initial demo resolution case registered for milestone compliance verification.",
+            submitter="buyer@example.com",
+            submitterRole="BUYER",
+            timeline=[
+                CaseTimelineEvent(
+                    timestamp=now,
+                    actor="buyer@example.com",
+                    action="CASE_OPENED",
+                    notes="Resolution case opened for human compliance adjudication.",
+                )
+            ],
+            createdAt=now,
+            updatedAt=now,
+        )
+        self._cases[demo_case.caseId] = demo_case
 
     def get_case(self, case_id: str) -> Optional[ResolutionCaseResponse]:
         return self._cases.get(case_id)
@@ -51,7 +76,7 @@ class ResolutionStore:
                 timestamp=now,
                 actor=submitter,
                 action="CASE_OPENED",
-                notes=f"Review case opened (requested: {requested_outcome}). Reason: {reason}",
+                notes=f"Resolution case opened with reason: {reason}",
             )
         ]
 
@@ -69,18 +94,18 @@ class ResolutionStore:
 
         self._cases[case_id] = case
 
-        # Update promise resolution state
-        promise.resolution.caseId = case_id
-        promise.resolution.status = "OPEN"
-        promise.resolution.reason = reason
+        # Update promise resolution projections
         promise.status = PromiseStatus.REVIEW_REQUIRED
+        promise.resolution.status = "OPEN"
+        promise.resolution.caseId = case_id
+        promise.updated_at = now
 
         promise.timeline.append(
             AuditTimelineEvent(
                 timestamp=now,
                 actor=submitter,
                 eventType="RESOLUTION_CASE_OPENED",
-                summary=f"Resolution case {case_id} opened ({role}). Reason: {reason}",
+                summary=f"Resolution case {case_id} opened. Status shifted to REVIEW_REQUIRED.",
             )
         )
 
@@ -91,24 +116,21 @@ class ResolutionStore:
         case_id: str,
         decision: ResolutionDecision,
         reason: str,
-        reviewer: str = "reviewer@example.com",
+        reviewer: str = "reviewer@promisepay.example",
     ) -> ResolutionCaseResponse:
-        """Records human-gated reviewer decision with mandatory justification notes."""
+        """Records human reviewer decision with mandatory justification."""
         case = self._cases.get(case_id)
         if not case:
             raise ValueError(f"Resolution case '{case_id}' was not found.")
 
         if not reason or len(reason.strip()) < 5:
-            raise ValueError(
-                "Mandatory human reviewer justification reason must be provided (min 5 characters)."
-            )
+            raise ValueError("Justification reason must be at least 5 characters long.")
 
         promise = promise_store.get(case.promiseId)
         if not promise:
             raise ValueError(f"Promise '{case.promiseId}' was not found.")
 
         now = datetime.now(timezone.utc).isoformat()
-
         case.decision = decision
         case.decisionReason = reason
         case.decisionBy = reviewer
@@ -120,52 +142,58 @@ class ResolutionStore:
             promise.status = PromiseStatus.COMPLETE
         elif decision == ResolutionDecision.RECOMMEND_REFUND:
             case.status = ResolutionCaseStatus.DECISION_RECORDED
+            promise.resolution.status = "DECISION_RECORDED"
         elif decision == ResolutionDecision.REQUEST_EVIDENCE:
             case.status = ResolutionCaseStatus.EVIDENCE_REQUESTED
-            promise.status = PromiseStatus.FULFILLMENT
+            promise.resolution.status = "EVIDENCE_REQUESTED"
         elif decision == ResolutionDecision.OPEN_REVIEW:
             case.status = ResolutionCaseStatus.UNDER_REVIEW
-            promise.status = PromiseStatus.REVIEW_REQUIRED
+            promise.resolution.status = "UNDER_REVIEW"
+
+        promise.resolution.decision = decision.value if hasattr(decision, "value") else str(decision)
+        promise.resolution.reason = reason
+        promise.updated_at = now
 
         case.timeline.append(
             CaseTimelineEvent(
                 timestamp=now,
                 actor=reviewer,
-                action=f"DECISION_{decision.value}",
-                notes=reason,
+                action="DECISION_RECORDED",
+                notes=f"Decision recorded: {decision}. Reason: {reason}",
             )
         )
 
-        # Update promise resolution state
-        promise.resolution.decision = decision.value
-        promise.resolution.reason = reason
-        promise.resolution.status = case.status.value
-
-        promise.timeline.append(
-            AuditTimelineEvent(
-                timestamp=now,
-                actor=reviewer,
-                eventType="CASE_DECISION_RECORDED",
-                summary=f"Reviewer recorded decision '{decision.value}' on case {case_id}: {reason}",
+        if decision == ResolutionDecision.MARK_COMPLETE:
+            promise.timeline.append(
+                AuditTimelineEvent(
+                    timestamp=now,
+                    actor=reviewer,
+                    eventType="DECISION_MARK_COMPLETE",
+                    summary=f"Human reviewer confirmed completion on case {case_id}: {reason}",
+                )
             )
-        )
 
         return case
 
     async def execute_refund(
         self,
         case_id: str,
-        idempotency_key: str,
         reason: str,
+        idempotency_key: str,
         amount_value: Optional[str] = None,
         actor: str = "admin@promisepay.example",
     ) -> RefundResultResponse:
-        """Executes a PayPal Sandbox refund with strict human gates and idempotency protection."""
+        """Executes a PayPal Sandbox refund with distributed locking, strict human gates, and idempotency protection."""
         if not idempotency_key:
             raise ValueError("Idempotency-Key header is strictly required to execute refunds.")
 
-        # Idempotency cache hit check
-        cache_key = f"{case_id}:{idempotency_key}"
+        # Idempotency cache hit check (24-hour TTL)
+        cache_key = f"refund:{case_id}:{idempotency_key}"
+        cached = await lock_manager.get_idempotency_result(cache_key)
+        if cached:
+            logger.info("Returning cached refund result from distributed cache for key %s", idempotency_key)
+            return RefundResultResponse(**cached)
+
         if cache_key in self._idempotency_cache:
             logger.info("Returning cached refund result for idempotency key %s", idempotency_key)
             return self._idempotency_cache[cache_key]
@@ -178,90 +206,101 @@ class ResolutionStore:
         if not promise:
             raise ValueError(f"Promise '{case.promiseId}' was not found.")
 
-        # Human gate check: Money cannot move without a confirmed RECOMMEND_REFUND decision
-        if case.decision != ResolutionDecision.RECOMMEND_REFUND:
-            raise ValueError(
-                f"Refund gate violation: Case '{case_id}' does not have a confirmed 'RECOMMEND_REFUND' decision. "
-                f"Current decision is '{case.decision}'. Reviewer sign-off is mandatory before initiating payment returns."
+        # Distributed Lock: Prevent concurrent double-refund race conditions
+        lock_key = f"lock:refund:{promise.promise_id}"
+        acquired = await lock_manager.acquire_lock(lock_key, ttl_seconds=15)
+        if not acquired:
+            raise ValueError("Refund operation currently in progress for this agreement. Please retry shortly.")
+
+        try:
+            # Human gate check: Money cannot move without a confirmed RECOMMEND_REFUND decision
+            if case.decision != ResolutionDecision.RECOMMEND_REFUND:
+                raise ValueError(
+                    f"Refund gate violation: Case '{case_id}' does not have a confirmed 'RECOMMEND_REFUND' decision. "
+                    f"Current decision is '{case.decision}'. Reviewer sign-off is mandatory before initiating payment returns."
+                )
+
+            if case.status == ResolutionCaseStatus.RESOLVED_REFUNDED:
+                raise ValueError(f"Case '{case_id}' has already been refunded.")
+
+            # Payment state check
+            if promise.payment.state != "CAPTURED" or not promise.payment.paypalCaptureId:
+                raise ValueError(
+                    f"Cannot refund promise '{promise.promise_id}': payment state is '{promise.payment.state}', "
+                    "not CAPTURED, or PayPal capture ID is missing."
+                )
+
+            refund_val = amount_value or promise.payment.amount.value
+            currency = promise.payment.amount.currencyCode
+            capture_id = promise.payment.paypalCaptureId
+
+            # Execute refund with PayPal client
+            paypal_res = await paypal_client.refund_capture(
+                paypal_capture_id=capture_id,
+                amount_value=refund_val,
+                currency_code=currency,
+                reason=reason,
+                idempotency_key=idempotency_key,
             )
 
-        if case.status == ResolutionCaseStatus.RESOLVED_REFUNDED:
-            raise ValueError(f"Case '{case_id}' has already been refunded.")
+            now = datetime.now(timezone.utc).isoformat()
+            refund_id = f"ref_{uuid.uuid4().hex[:10]}"
+            paypal_ref_id = paypal_res.get("id", f"PAYPAL_REF_{uuid.uuid4().hex[:8]}")
 
-        # Payment state check
-        if promise.payment.state != "CAPTURED" or not promise.payment.paypalCaptureId:
-            raise ValueError(
-                f"Cannot refund promise '{promise.promise_id}': payment state is '{promise.payment.state}', "
-                "not CAPTURED, or PayPal capture ID is missing."
+            # Update case
+            case.status = ResolutionCaseStatus.RESOLVED_REFUNDED
+            case.refundId = refund_id
+            case.paypalRefundId = paypal_ref_id
+            case.refundedAmount = refund_val
+            case.refundedAt = now
+            case.updatedAt = now
+
+            case.timeline.append(
+                CaseTimelineEvent(
+                    timestamp=now,
+                    actor=actor,
+                    action="PAYPAL_REFUND_EXECUTED",
+                    notes=f"PayPal refund {paypal_ref_id} successfully executed for ${refund_val} {currency}. Reason: {reason}",
+                )
             )
 
-        refund_val = amount_value or promise.payment.amount.value
-        currency = promise.payment.amount.currencyCode
-        capture_id = promise.payment.paypalCaptureId
+            # Update promise payment & resolution projections
+            promise.payment.state = "REFUNDED"
+            promise.status = PromiseStatus.RESOLVED
+            promise.resolution.status = "RESOLVED_REFUNDED"
 
-        # Execute refund with PayPal client
-        paypal_res = await paypal_client.refund_capture(
-            paypal_capture_id=capture_id,
-            amount_value=refund_val,
-            currency_code=currency,
-            reason=reason,
-            idempotency_key=idempotency_key,
-        )
-
-        now = datetime.now(timezone.utc).isoformat()
-        refund_id = f"ref_{uuid.uuid4().hex[:10]}"
-        paypal_ref_id = paypal_res.get("id", f"PAYPAL_REF_{uuid.uuid4().hex[:8]}")
-
-        # Update case
-        case.status = ResolutionCaseStatus.RESOLVED_REFUNDED
-        case.refundId = refund_id
-        case.paypalRefundId = paypal_ref_id
-        case.refundedAmount = refund_val
-        case.refundedAt = now
-        case.updatedAt = now
-
-        case.timeline.append(
-            CaseTimelineEvent(
-                timestamp=now,
-                actor=actor,
-                action="PAYPAL_REFUND_EXECUTED",
-                notes=f"PayPal refund {paypal_ref_id} successfully executed for ${refund_val} {currency}. Reason: {reason}",
+            promise.timeline.append(
+                AuditTimelineEvent(
+                    timestamp=now,
+                    actor=actor,
+                    eventType="PAYPAL_REFUND_EXECUTED",
+                    summary=f"PayPal Sandbox refund {paypal_ref_id} completed for ${refund_val} {currency} on case {case_id}.",
+                )
             )
-        )
 
-        # Update promise payment & resolution projections
-        promise.payment.state = "REFUNDED"
-        promise.status = PromiseStatus.RESOLVED
-        promise.resolution.status = "RESOLVED_REFUNDED"
-
-        promise.timeline.append(
-            AuditTimelineEvent(
-                timestamp=now,
-                actor=actor,
-                eventType="PAYPAL_REFUND_EXECUTED",
-                summary=f"PayPal Sandbox refund {paypal_ref_id} completed for ${refund_val} {currency} on case {case_id}.",
+            result = RefundResultResponse(
+                caseId=case_id,
+                promiseId=promise.promise_id,
+                refundId=refund_id,
+                paypalRefundId=paypal_ref_id,
+                amount=refund_val,
+                currency=currency,
+                status=paypal_res.get("status", "COMPLETED"),
+                idempotencyKey=idempotency_key,
+                executedAt=now,
             )
-        )
 
-        result = RefundResultResponse(
-            caseId=case_id,
-            promiseId=promise.promise_id,
-            refundId=refund_id,
-            paypalRefundId=paypal_ref_id,
-            amount=refund_val,
-            currency=currency,
-            status=paypal_res.get("status", "COMPLETED"),
-            idempotencyKey=idempotency_key,
-            executedAt=now,
-        )
-
-        self._idempotency_cache[cache_key] = result
-        return result
+            self._idempotency_cache[cache_key] = result
+            await lock_manager.set_idempotency_result(cache_key, result.model_dump(), ttl_seconds=86400)
+            return result
+        finally:
+            await lock_manager.release_lock(lock_key)
 
     def reset(self):
         """Reset resolution cases and idempotency cache for demo replayability."""
         self._cases.clear()
         self._idempotency_cache.clear()
+        self._seed_initial_data()
 
 
 resolution_store = ResolutionStore()

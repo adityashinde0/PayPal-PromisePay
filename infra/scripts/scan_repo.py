@@ -29,6 +29,7 @@ IGNORED_DIRS = {
     ".next",
     "__pycache__",
     ".pytest_cache",
+    "target",
 }
 ROOT_DIR = Path(__file__).resolve().parent.parent.parent
 
