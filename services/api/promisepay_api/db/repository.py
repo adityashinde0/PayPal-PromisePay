@@ -101,7 +101,9 @@ class DatabaseRepository:
                                     title=req.get("title", ""),
                                     description=req.get("description", ""),
                                     priority=req.get("priority", 1),
-                                    verification_method=req.get("verificationMethod", "URL_SCREENSHOT_ANALYSIS"),
+                                    verification_method=req.get(
+                                        "verificationMethod", "URL_SCREENSHOT_ANALYSIS"
+                                    ),
                                 )
                                 session.add(r_record)
 
@@ -114,7 +116,9 @@ class DatabaseRepository:
             stmt = (
                 select(PromiseModel)
                 .options(
-                    selectinload(PromiseModel.versions).selectinload(PromiseVersionModel.requirements),
+                    selectinload(PromiseModel.versions).selectinload(
+                        PromiseVersionModel.requirements
+                    ),
                     selectinload(PromiseModel.evidence),
                     selectinload(PromiseModel.payments),
                     selectinload(PromiseModel.resolution_cases),
@@ -264,4 +268,3 @@ class DatabaseRepository:
             await session.execute(delete(PromiseVersionModel))
             await session.execute(delete(PromiseModel))
             await session.commit()
-

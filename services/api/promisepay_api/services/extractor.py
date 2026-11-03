@@ -209,6 +209,8 @@ async def extract_requirements(
             exc,
             exc_info=True,
         )
-        raise RuntimeError(f"AI requirement extraction failed on {settings.ai_model}: {exc}") from exc
+        raise RuntimeError(
+            f"AI requirement extraction failed on {settings.ai_model}: {exc}"
+        ) from exc
 
     return _deterministic_rule_based_extract(category, promise_text)

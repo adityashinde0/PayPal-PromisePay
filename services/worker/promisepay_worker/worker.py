@@ -7,7 +7,7 @@ import logging
 import os
 import signal
 import sys
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s")
 logger = logging.getLogger("promisepay-worker")
@@ -19,11 +19,11 @@ except ImportError:
 
 
 class VerificationWorker:
-    def __init__(self, redis_url: Optional[str] = None):
+    def __init__(self, redis_url: str | None = None):
         self.running = False
         self.processed_jobs = 0
         self.redis_url = redis_url or os.getenv("REDIS_URL", "redis://localhost:6379/0")
-        self._redis_client: Optional[Any] = None
+        self._redis_client: Any | None = None
 
     async def get_redis(self):
         if self._redis_client is None and aioredis:
@@ -36,7 +36,7 @@ class VerificationWorker:
                 await client.ping()
                 self._redis_client = client
                 logger.info("Worker connected to Redis job broker at %s", self.redis_url)
-            except Exception:
+            except Exception:  # noqa: BLE001
                 self._redis_client = False
         return self._redis_client if self._redis_client else None
 
@@ -154,13 +154,15 @@ class VerificationWorker:
                     ex=86400,
                 )
             return True
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.error("Worker error processing queue job: %s", exc)
             return False
 
     async def start(self):
         self.running = True
-        logger.info("PromisePay Verification Worker started. Listening for background jobs on queue...")
+        logger.info(
+            "PromisePay Verification Worker started. Listening for background jobs on queue..."
+        )
         while self.running:
             await self.consume_one_job()
 

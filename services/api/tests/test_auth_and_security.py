@@ -82,7 +82,9 @@ async def test_webhook_enforces_live_postback_when_id_present(monkeypatch):
 
 def test_async_verification_queue_202(client):
     """Test that POST /api/promises/{id}/verifications?sync=false returns 202 Accepted with polling Location."""
-    res = client.post("/api/promises/PP-DEMO1-2026/verifications?sync=false", json={"forceRerun": True})
+    res = client.post(
+        "/api/promises/PP-DEMO1-2026/verifications?sync=false", json={"forceRerun": True}
+    )
     assert res.status_code == 202
     assert "Location" in res.headers
     data = res.json()

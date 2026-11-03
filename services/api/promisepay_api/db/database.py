@@ -63,4 +63,3 @@ async def init_db() -> None:
         logger.info("Database schema synchronized successfully with %s", db_url.split("@")[-1])
     except Exception as exc:
         logger.warning("Database schema initialization encountered error: %s", exc)
-

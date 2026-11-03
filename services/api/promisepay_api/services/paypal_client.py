@@ -31,7 +31,9 @@ class PayPalClient:
         """Returns True if real Sandbox credentials are provided."""
         return bool(self.client_id and self.client_secret and self.client_id != "placeholder")
 
-    def _get_base_headers(self, token: Optional[str] = None, request_id: Optional[str] = None) -> Dict[str, str]:
+    def _get_base_headers(
+        self, token: Optional[str] = None, request_id: Optional[str] = None
+    ) -> Dict[str, str]:
         """Builds standard headers with X-Correlation-ID propagation for outbound tracing."""
         headers: Dict[str, str] = {
             "Content-Type": "application/json",
@@ -266,7 +268,11 @@ class PayPalClient:
                 headers=headers,
                 json={"reference_id": capture_id, "reference_type": "TRANSACTION_ID"},
             )
-            return res.json() if res.status_code in (200, 201) else {"status": "REQUESTED", "captureId": capture_id}
+            return (
+                res.json()
+                if res.status_code in (200, 201)
+                else {"status": "REQUESTED", "captureId": capture_id}
+            )
 
     async def list_disputes(self, state: Optional[str] = None) -> List[Dict[str, Any]]:
         """Queries customer disputes from PayPal Disputes API (/v1/customer/disputes)."""
@@ -287,7 +293,9 @@ class PayPalClient:
         token = await self.get_access_token()
         headers = self._get_base_headers(token=token)
         async with httpx.AsyncClient(timeout=10.0) as client:
-            res = await client.get(f"{self.api_base}/v1/customer/disputes/{dispute_id}", headers=headers)
+            res = await client.get(
+                f"{self.api_base}/v1/customer/disputes/{dispute_id}", headers=headers
+            )
             if res.status_code == 200:
                 return res.json()
             return None
@@ -328,7 +336,11 @@ class PayPalClient:
                 headers=headers,
                 json=evidence_payload,
             )
-            return res.json() if res.status_code in (200, 201) else {"status": "SUBMITTED", "raw": res.text}
+            return (
+                res.json()
+                if res.status_code in (200, 201)
+                else {"status": "SUBMITTED", "raw": res.text}
+            )
 
     async def verify_webhook_signature(
         self,
@@ -456,7 +468,9 @@ class PayPalClient:
         }
 
         async with httpx.AsyncClient(timeout=15.0) as client:
-            res = await client.post(f"{self.api_base}/v1/payments/payouts", headers=headers, json=payload)
+            res = await client.post(
+                f"{self.api_base}/v1/payments/payouts", headers=headers, json=payload
+            )
             if res.status_code in (200, 201):
                 return res.json()
             logger.error("PayPal Payouts failed: status %d payload %s", res.status_code, res.text)
@@ -475,7 +489,9 @@ class PayPalClient:
         token = await self.get_access_token()
         headers = self._get_base_headers(token=token)
         async with httpx.AsyncClient(timeout=10.0) as client:
-            res = await client.get(f"{self.api_base}/v1/payments/payouts/{payout_batch_id}", headers=headers)
+            res = await client.get(
+                f"{self.api_base}/v1/payments/payouts/{payout_batch_id}", headers=headers
+            )
             if res.status_code == 200:
                 return res.json()
             raise RuntimeError(f"PayPal Query Payouts failed ({res.status_code}): {res.text}")

@@ -27,7 +27,11 @@ class VerificationJobQueue:
         self._job_statuses: Dict[str, Dict[str, Any]] = {}
 
     async def get_redis(self):
-        if settings.app_env.lower() in ("test",) or not settings.redis_url or settings.redis_url == "disabled":
+        if (
+            settings.app_env.lower() in ("test",)
+            or not settings.redis_url
+            or settings.redis_url == "disabled"
+        ):
             return None
         if self._redis is None and aioredis:
             try:
@@ -84,7 +88,9 @@ class VerificationJobQueue:
         except (asyncio.TimeoutError, TimeoutError):
             return None
 
-    async def update_job_status(self, job_id: str, status: str, result: Optional[Dict[str, Any]] = None) -> None:
+    async def update_job_status(
+        self, job_id: str, status: str, result: Optional[Dict[str, Any]] = None
+    ) -> None:
         """Updates status of a job in Redis/memory."""
         record = {"status": status, "jobId": job_id, "result": result}
         redis = await self.get_redis()
@@ -115,4 +121,3 @@ job_queue = VerificationJobQueue()
 async def get_redis_client():
     """Returns an active Redis client or None if unavailable/in test mode."""
     return await job_queue.get_redis()
-

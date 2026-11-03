@@ -174,10 +174,18 @@ async def handle_paypal_webhook(request: Request):
             if dispute_id:
                 try:
                     from promisepay_api.routers.resolutions import generate_dispute_defense_dossier
-                    dossier = await generate_dispute_defense_dossier(promise_id=target_promise.promise_id, download=False)
+
+                    dossier = await generate_dispute_defense_dossier(
+                        promise_id=target_promise.promise_id, download=False
+                    )
                     await paypal_client.provide_dispute_evidence(dispute_id, dossier)
-                    logger.info("Automatically provided cryptographic Merkle dossier for dispute %s", dispute_id)
+                    logger.info(
+                        "Automatically provided cryptographic Merkle dossier for dispute %s",
+                        dispute_id,
+                    )
                 except Exception as exc:
-                    logger.warning("Failed to auto-submit dispute dossier for %s: %s", dispute_id, exc)
+                    logger.warning(
+                        "Failed to auto-submit dispute dossier for %s: %s", dispute_id, exc
+                    )
 
     return {"status": "processed", "eventId": event_id, "eventType": event_type}

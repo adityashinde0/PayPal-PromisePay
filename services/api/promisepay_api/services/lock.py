@@ -28,7 +28,11 @@ class DistributedLockManager:
         self._idempotency_cache: Dict[str, Dict[str, Any]] = {}
 
     async def get_redis(self):
-        if settings.app_env.lower() in ("test",) or not settings.redis_url or settings.redis_url == "disabled":
+        if (
+            settings.app_env.lower() in ("test",)
+            or not settings.redis_url
+            or settings.redis_url == "disabled"
+        ):
             return None
         if self._redis_client is None and aioredis:
             try:
@@ -85,6 +89,7 @@ class DistributedLockManager:
         if redis:
             try:
                 import json
+
                 val = await redis.get(f"idempotency:{key}")
                 if val:
                     return json.loads(val)
@@ -104,6 +109,7 @@ class DistributedLockManager:
         if redis:
             try:
                 import json
+
                 await redis.set(f"idempotency:{key}", json.dumps(data), ex=ttl_seconds)
                 return
             except Exception:

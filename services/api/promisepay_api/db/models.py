@@ -2,7 +2,6 @@
 
 import uuid
 from datetime import datetime, timezone
-from typing import Any, List, Optional
 
 from sqlalchemy import (
     Boolean,
@@ -15,7 +14,6 @@ from sqlalchemy import (
     String,
     Text,
 )
-from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import relationship
 from sqlalchemy.types import JSON
 
@@ -59,7 +57,9 @@ class OrganizationMemberModel(Base):
     __tablename__ = "organization_members"
 
     id = Column(String(36), primary_key=True, default=gen_uuid)
-    organization_id = Column(String(36), ForeignKey("organizations.id", ondelete="CASCADE"), nullable=False)
+    organization_id = Column(
+        String(36), ForeignKey("organizations.id", ondelete="CASCADE"), nullable=False
+    )
     user_id = Column(String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     role = Column(String(32), default="BUYER", nullable=False)
     created_at = Column(DateTime(timezone=True), default=now_utc)
@@ -71,7 +71,9 @@ class PromiseModel(Base):
 
     id = Column(String(36), primary_key=True, default=gen_uuid)
     promise_id = Column(String(64), unique=True, nullable=False, index=True)
-    organization_id = Column(String(36), nullable=False, default="00000000-0000-0000-0000-000000000001")
+    organization_id = Column(
+        String(36), nullable=False, default="00000000-0000-0000-0000-000000000001"
+    )
     buyer_id = Column(String(36), nullable=True)
     seller_id = Column(String(36), nullable=True)
     title = Column(String(255), nullable=False)
@@ -84,10 +86,24 @@ class PromiseModel(Base):
     updated_at = Column(DateTime(timezone=True), default=now_utc, onupdate=now_utc)
 
     # Relationships
-    versions = relationship("PromiseVersionModel", back_populates="promise", cascade="all, delete-orphan", lazy="selectin")
-    evidence = relationship("EvidenceModel", back_populates="promise", cascade="all, delete-orphan", lazy="selectin")
-    payments = relationship("PaymentModel", back_populates="promise", cascade="all, delete-orphan", lazy="selectin")
-    resolution_cases = relationship("ResolutionCaseModel", back_populates="promise", cascade="all, delete-orphan", lazy="selectin")
+    versions = relationship(
+        "PromiseVersionModel",
+        back_populates="promise",
+        cascade="all, delete-orphan",
+        lazy="selectin",
+    )
+    evidence = relationship(
+        "EvidenceModel", back_populates="promise", cascade="all, delete-orphan", lazy="selectin"
+    )
+    payments = relationship(
+        "PaymentModel", back_populates="promise", cascade="all, delete-orphan", lazy="selectin"
+    )
+    resolution_cases = relationship(
+        "ResolutionCaseModel",
+        back_populates="promise",
+        cascade="all, delete-orphan",
+        lazy="selectin",
+    )
 
 
 # 5. Promise Versions Table
@@ -95,7 +111,9 @@ class PromiseVersionModel(Base):
     __tablename__ = "promise_versions"
 
     id = Column(String(36), primary_key=True, default=gen_uuid)
-    promise_id = Column(String(36), ForeignKey("promises.id", ondelete="CASCADE"), nullable=False, index=True)
+    promise_id = Column(
+        String(36), ForeignKey("promises.id", ondelete="CASCADE"), nullable=False, index=True
+    )
     version = Column(Integer, default=1, nullable=False)
     source_text = Column(Text, nullable=False)
     structured_promise = Column(JSON, default=dict, nullable=False)
@@ -104,7 +122,12 @@ class PromiseVersionModel(Base):
     created_at = Column(DateTime(timezone=True), default=now_utc)
 
     promise = relationship("PromiseModel", back_populates="versions")
-    requirements = relationship("PromiseRequirementModel", back_populates="version_rel", cascade="all, delete-orphan", lazy="selectin")
+    requirements = relationship(
+        "PromiseRequirementModel",
+        back_populates="version_rel",
+        cascade="all, delete-orphan",
+        lazy="selectin",
+    )
 
 
 # 6. Promise Requirements Table
@@ -112,7 +135,12 @@ class PromiseRequirementModel(Base):
     __tablename__ = "promise_requirements"
 
     id = Column(String(36), primary_key=True, default=gen_uuid)
-    promise_version_id = Column(String(36), ForeignKey("promise_versions.id", ondelete="CASCADE"), nullable=False, index=True)
+    promise_version_id = Column(
+        String(36),
+        ForeignKey("promise_versions.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
     key = Column(String(32), nullable=False)
     title = Column(String(255), nullable=False)
     description = Column(Text, nullable=False)
@@ -128,7 +156,9 @@ class VerificationPlanModel(Base):
     __tablename__ = "verification_plans"
 
     id = Column(String(36), primary_key=True, default=gen_uuid)
-    promise_version_id = Column(String(36), ForeignKey("promise_versions.id", ondelete="CASCADE"), nullable=False)
+    promise_version_id = Column(
+        String(36), ForeignKey("promise_versions.id", ondelete="CASCADE"), nullable=False
+    )
     status = Column(String(32), default="APPROVED", nullable=False)
     plan_json = Column(JSON, default=dict, nullable=False)
     model_metadata = Column(JSON, default=dict, nullable=False)
@@ -140,7 +170,9 @@ class EvidenceModel(Base):
     __tablename__ = "evidence"
 
     id = Column(String(36), primary_key=True, default=gen_uuid)
-    promise_id = Column(String(36), ForeignKey("promises.id", ondelete="CASCADE"), nullable=False, index=True)
+    promise_id = Column(
+        String(36), ForeignKey("promises.id", ondelete="CASCADE"), nullable=False, index=True
+    )
     uploader_id = Column(String(36), nullable=True)
     evidence_id = Column(String(64), unique=True, nullable=False, index=True)
     kind = Column(String(64), nullable=False)
@@ -163,7 +195,9 @@ class EvidenceRequirementModel(Base):
 
     id = Column(String(36), primary_key=True, default=gen_uuid)
     evidence_id = Column(String(36), ForeignKey("evidence.id", ondelete="CASCADE"), nullable=False)
-    requirement_id = Column(String(36), ForeignKey("promise_requirements.id", ondelete="CASCADE"), nullable=False)
+    requirement_id = Column(
+        String(36), ForeignKey("promise_requirements.id", ondelete="CASCADE"), nullable=False
+    )
     declared_by_submitter = Column(Boolean, default=True, nullable=False)
     created_at = Column(DateTime(timezone=True), default=now_utc)
 
@@ -173,7 +207,9 @@ class PaymentModel(Base):
     __tablename__ = "payments"
 
     id = Column(String(36), primary_key=True, default=gen_uuid)
-    promise_id = Column(String(36), ForeignKey("promises.id", ondelete="CASCADE"), nullable=False, index=True)
+    promise_id = Column(
+        String(36), ForeignKey("promises.id", ondelete="CASCADE"), nullable=False, index=True
+    )
     paypal_order_id = Column(String(64), unique=True, nullable=False, index=True)
     paypal_capture_id = Column(String(64), unique=True, nullable=True)
     state = Column(String(32), default="ORDER_CREATED", nullable=False)
@@ -223,7 +259,9 @@ class VerificationResultModel(Base):
     __tablename__ = "verification_results"
 
     id = Column(String(36), primary_key=True, default=gen_uuid)
-    run_id = Column(String(36), ForeignKey("verification_runs.id", ondelete="CASCADE"), nullable=False)
+    run_id = Column(
+        String(36), ForeignKey("verification_runs.id", ondelete="CASCADE"), nullable=False
+    )
     requirement_id = Column(String(64), nullable=False)
     status = Column(String(32), default="PENDING", nullable=False)
     confidence = Column(Float, default=0.0, nullable=False)
@@ -239,7 +277,9 @@ class ResolutionCaseModel(Base):
 
     id = Column(String(36), primary_key=True, default=gen_uuid)
     case_id = Column(String(64), unique=True, nullable=False, index=True)
-    promise_id = Column(String(36), ForeignKey("promises.id", ondelete="CASCADE"), nullable=False, index=True)
+    promise_id = Column(
+        String(36), ForeignKey("promises.id", ondelete="CASCADE"), nullable=False, index=True
+    )
     status = Column(String(32), default="OPEN", nullable=False)
     opened_by = Column(String(255), nullable=True)
     role = Column(String(32), default="BUYER", nullable=False)
@@ -262,7 +302,9 @@ class ResolutionDecisionModel(Base):
     __tablename__ = "resolution_decisions"
 
     id = Column(String(36), primary_key=True, default=gen_uuid)
-    case_id = Column(String(36), ForeignKey("resolution_cases.id", ondelete="CASCADE"), nullable=False)
+    case_id = Column(
+        String(36), ForeignKey("resolution_cases.id", ondelete="CASCADE"), nullable=False
+    )
     decision = Column(String(64), nullable=False)
     reason = Column(Text, nullable=False)
     refund_amount = Column(Numeric(15, 2), nullable=True)
@@ -276,7 +318,9 @@ class AuditLogModel(Base):
     __tablename__ = "audit_logs"
 
     id = Column(String(36), primary_key=True, default=gen_uuid)
-    organization_id = Column(String(36), nullable=False, default="00000000-0000-0000-0000-000000000001")
+    organization_id = Column(
+        String(36), nullable=False, default="00000000-0000-0000-0000-000000000001"
+    )
     promise_id = Column(String(64), nullable=True, index=True)
     actor_type = Column(String(64), nullable=False)
     actor_id = Column(String(255), nullable=False)
@@ -286,4 +330,3 @@ class AuditLogModel(Base):
     after_hash = Column(String(64), nullable=True)
     metadata_json = Column(JSON, default=dict, nullable=False)
     created_at = Column(DateTime(timezone=True), default=now_utc)
-

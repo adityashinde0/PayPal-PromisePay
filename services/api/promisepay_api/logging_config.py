@@ -2,6 +2,7 @@
 
 import logging
 import sys
+
 import structlog
 
 from promisepay_api.context import get_current_correlation_id
@@ -40,4 +41,3 @@ def setup_structured_logging(log_level: str = "INFO"):
         logger_factory=structlog.PrintLoggerFactory(),
         cache_logger_on_first_use=True,
     )
-

@@ -141,7 +141,11 @@ async def get_verification_run(promise_id: str, run_id: str):
 
     # Check if job completed in queue
     job_status = await job_queue.get_job_status(run_id)
-    if job_status and job_status.get("status") == "COMPLETED" and run.state != VerificationRunState.COMPLETED:
+    if (
+        job_status
+        and job_status.get("status") == "COMPLETED"
+        and run.state != VerificationRunState.COMPLETED
+    ):
         res = job_status.get("result", {})
         run.state = VerificationRunState.COMPLETED
         run.outcome = VerificationOutcome(res.get("outcome", "REVIEW_REQUIRED"))

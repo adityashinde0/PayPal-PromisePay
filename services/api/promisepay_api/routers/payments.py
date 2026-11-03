@@ -142,7 +142,9 @@ async def capture_payment_order(
     try:
         # Check idempotency cache (24h TTL)
         if idempotency_key:
-            cached = await lock_manager.get_idempotency_result(f"capture:{promise_id}:{idempotency_key}")
+            cached = await lock_manager.get_idempotency_result(
+                f"capture:{promise_id}:{idempotency_key}"
+            )
             if cached:
                 return CapturePaymentOrderResponse(**cached)
 
@@ -253,4 +255,3 @@ async def disburse_payout(
         amount=record.amount.value,
         currency=record.amount.currencyCode,
     )
-

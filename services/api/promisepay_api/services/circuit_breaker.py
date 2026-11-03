@@ -22,6 +22,7 @@ class CircuitState(str, Enum):
 
 class CircuitBreakerOpenException(Exception):
     """Raised when an operation is attempted while the circuit breaker is OPEN."""
+
     pass
 
 
@@ -63,8 +64,13 @@ class AsyncCircuitBreaker:
         async with self._lock:
             now = time.monotonic()
             if self.state == CircuitState.OPEN:
-                if self.last_failure_time and (now - self.last_failure_time) >= self.recovery_timeout:
-                    logger.info("Circuit breaker '%s' entering HALF_OPEN state for probe", self.name)
+                if (
+                    self.last_failure_time
+                    and (now - self.last_failure_time) >= self.recovery_timeout
+                ):
+                    logger.info(
+                        "Circuit breaker '%s' entering HALF_OPEN state for probe", self.name
+                    )
                     self.state = CircuitState.HALF_OPEN
                     self.success_count = 0
                 else:
@@ -102,7 +108,10 @@ class AsyncCircuitBreaker:
                     self.failure_threshold,
                     exc,
                 )
-                if self.failure_count >= self.failure_threshold or self.state == CircuitState.HALF_OPEN:
+                if (
+                    self.failure_count >= self.failure_threshold
+                    or self.state == CircuitState.HALF_OPEN
+                ):
                     logger.warning("Circuit breaker '%s' TRIPPED to OPEN state", self.name)
                     self.state = CircuitState.OPEN
 
@@ -113,5 +122,9 @@ class AsyncCircuitBreaker:
 
 
 # Pre-configured circuit breakers for the platform
-ai_circuit_breaker = AsyncCircuitBreaker("google-gemini-ai", failure_threshold=3, recovery_timeout_seconds=20.0)
-paypal_circuit_breaker = AsyncCircuitBreaker("paypal-api", failure_threshold=5, recovery_timeout_seconds=30.0)
+ai_circuit_breaker = AsyncCircuitBreaker(
+    "google-gemini-ai", failure_threshold=3, recovery_timeout_seconds=20.0
+)
+paypal_circuit_breaker = AsyncCircuitBreaker(
+    "paypal-api", failure_threshold=5, recovery_timeout_seconds=30.0
+)

@@ -358,7 +358,9 @@ async def _run_ai_model_analysis(
             requirementKey=req.key,
             status=VerificationStatus.HUMAN_REVIEW_REQUIRED,
             confidence=0.10,
-            evidenceIds=[ev.evidenceId for ev in linked_evidence if ev.evidenceId in all_evidence_ids],
+            evidenceIds=[
+                ev.evidenceId for ev in linked_evidence if ev.evidenceId in all_evidence_ids
+            ],
             reasoning="Security Guard: Hostile prompt injection pattern detected in requirement specification or evidence claims. Blocked before live AI dispatch.",
             missingInformation=["Untampered, clean evidence artifacts required."],
             limitations=["Hostile prompt injection filter triggered."],

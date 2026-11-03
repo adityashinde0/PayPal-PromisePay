@@ -1,14 +1,13 @@
 """PayPal Customer Disputes API Router (Phase 3 Enterprise Integration)."""
 
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 
 from promisepay_api.auth import AuthenticatedUser, require_roles
 from promisepay_api.services.paypal_client import paypal_client
 from promisepay_api.services.promise_store import promise_store
-from promisepay_api.services.rust_verifier import seal_dispute_dossier
 
 logger = logging.getLogger("promisepay-disputes")
 router = APIRouter(prefix="/disputes", tags=["PayPal Disputes"])
@@ -68,4 +67,3 @@ async def submit_dossier_to_paypal_dispute(
         "merkleRoot": dossier.get("cryptographicProof", {}).get("merkle_root"),
         "paypalResult": res,
     }
-

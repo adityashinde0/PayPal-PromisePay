@@ -25,18 +25,10 @@ def luhn_checksum_valid(card_number: str) -> bool:
 
 
 # Compiled regex patterns for PII detection
-_EMAIL_REGEX = re.compile(
-    r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b"
-)
-_SSN_REGEX = re.compile(
-    r"\b\d{3}[- ]?\d{2}[- ]?\d{4}\b"
-)
-_PHONE_REGEX = re.compile(
-    r"(?:\+?\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}\b"
-)
-_CC_CANDIDATE_REGEX = re.compile(
-    r"\b(?:\d{4}[-\s]?){3,4}\d{1,4}\b|\b\d{13,19}\b"
-)
+_EMAIL_REGEX = re.compile(r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b")
+_SSN_REGEX = re.compile(r"\b\d{3}[- ]?\d{2}[- ]?\d{4}\b")
+_PHONE_REGEX = re.compile(r"(?:\+?\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}\b")
+_CC_CANDIDATE_REGEX = re.compile(r"\b(?:\d{4}[-\s]?){3,4}\d{1,4}\b|\b\d{13,19}\b")
 _API_KEY_REGEX = re.compile(
     r"\b(?:AIzaSy[0-9A-Za-z-_]{25,45}|ghp_[0-9A-Za-z]{36}|sk-[0-9A-Za-z]{25,})\b"
 )

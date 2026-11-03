@@ -8,10 +8,13 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 
 from promisepay_api.config import settings
-from promisepay_api.context import get_current_traceparent, set_current_correlation_id, set_trace_context
+from promisepay_api.context import (
+    get_current_traceparent,
+    set_current_correlation_id,
+    set_trace_context,
+)
 from promisepay_api.db.database import init_db
 from promisepay_api.logging_config import setup_structured_logging
-from promisepay_api.services.rate_limiter import rate_limiter
 from promisepay_api.routers import (
     disputes,
     evidence,
@@ -22,6 +25,7 @@ from promisepay_api.routers import (
     verifications,
     webhooks,
 )
+from promisepay_api.services.rate_limiter import rate_limiter
 
 # Initialize structured JSON logging
 setup_structured_logging(settings.log_level)
@@ -75,13 +79,20 @@ async def correlation_id_and_timing_middleware(request: Request, call_next):
 
     # Rate Limiting check per client host
     client_ip = request.client.host if request.client else "127.0.0.1"
-    allowed, remaining, window = await rate_limiter.is_allowed(key=client_ip, max_requests=240, window_seconds=60)
+    allowed, remaining, window = await rate_limiter.is_allowed(
+        key=client_ip, max_requests=240, window_seconds=60
+    )
     if not allowed:
         from fastapi.responses import JSONResponse
+
         return JSONResponse(
             status_code=429,
             content={"detail": "Too Many Requests: Rate limit exceeded. Please retry shortly."},
-            headers={"Retry-After": str(window), "X-RateLimit-Limit": "240", "X-RateLimit-Remaining": "0"},
+            headers={
+                "Retry-After": str(window),
+                "X-RateLimit-Limit": "240",
+                "X-RateLimit-Remaining": "0",
+            },
         )
 
     start_time = time.time()

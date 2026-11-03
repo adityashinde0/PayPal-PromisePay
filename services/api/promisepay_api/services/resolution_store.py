@@ -150,7 +150,9 @@ class ResolutionStore:
             case.status = ResolutionCaseStatus.UNDER_REVIEW
             promise.resolution.status = "UNDER_REVIEW"
 
-        promise.resolution.decision = decision.value if hasattr(decision, "value") else str(decision)
+        promise.resolution.decision = (
+            decision.value if hasattr(decision, "value") else str(decision)
+        )
         promise.resolution.reason = reason
         promise.updated_at = now
 
@@ -191,7 +193,9 @@ class ResolutionStore:
         cache_key = f"refund:{case_id}:{idempotency_key}"
         cached = await lock_manager.get_idempotency_result(cache_key)
         if cached:
-            logger.info("Returning cached refund result from distributed cache for key %s", idempotency_key)
+            logger.info(
+                "Returning cached refund result from distributed cache for key %s", idempotency_key
+            )
             return RefundResultResponse(**cached)
 
         if cache_key in self._idempotency_cache:
@@ -210,7 +214,9 @@ class ResolutionStore:
         lock_key = f"lock:refund:{promise.promise_id}"
         acquired = await lock_manager.acquire_lock(lock_key, ttl_seconds=15)
         if not acquired:
-            raise ValueError("Refund operation currently in progress for this agreement. Please retry shortly.")
+            raise ValueError(
+                "Refund operation currently in progress for this agreement. Please retry shortly."
+            )
 
         try:
             # Human gate check: Money cannot move without a confirmed RECOMMEND_REFUND decision
@@ -291,7 +297,9 @@ class ResolutionStore:
             )
 
             self._idempotency_cache[cache_key] = result
-            await lock_manager.set_idempotency_result(cache_key, result.model_dump(), ttl_seconds=86400)
+            await lock_manager.set_idempotency_result(
+                cache_key, result.model_dump(), ttl_seconds=86400
+            )
             return result
         finally:
             await lock_manager.release_lock(lock_key)

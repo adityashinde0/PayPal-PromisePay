@@ -10,7 +10,10 @@ Validates:
 
 import pytest
 
-from promisepay_api.services.circuit_breaker import AsyncCircuitBreaker, CircuitBreakerOpenException, CircuitState
+from promisepay_api.services.circuit_breaker import (
+    AsyncCircuitBreaker,
+    CircuitState,
+)
 from promisepay_api.services.dlp import luhn_checksum_valid, scrub_pii
 from promisepay_api.services.paypal_client import paypal_client
 from promisepay_api.services.rate_limiter import RateLimiter
@@ -73,7 +76,7 @@ async def test_rate_limiter():
     key = "client-test-rate"
 
     # First 3 allowed
-    for i in range(3):
+    for _ in range(3):
         allowed, remaining, _ = await limiter.is_allowed(key, max_requests=3, window_seconds=10)
         assert allowed is True
 
