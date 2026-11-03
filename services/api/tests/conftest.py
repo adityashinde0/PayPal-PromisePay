@@ -17,6 +17,7 @@ def isolate_test_environment(monkeypatch, tmp_path):
     """Ensure tests always use deterministic sandbox mocks, never hitting live external APIs, with clean per-test state."""
     monkeypatch.setattr(paypal_client, "client_id", "")
     monkeypatch.setattr(paypal_client, "client_secret", "")
+    monkeypatch.setattr(paypal_client, "webhook_id", "")
     monkeypatch.setattr("promisepay_api.config.settings.ai_api_key", "")
     monkeypatch.setattr("promisepay_api.config.settings.app_env", "test")
     monkeypatch.setattr(

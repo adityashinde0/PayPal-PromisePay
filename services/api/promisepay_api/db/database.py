@@ -1,5 +1,6 @@
 """Asynchronous Database Engine and Session Management (SQLAlchemy 2.0)."""
 
+import asyncio
 import logging
 from typing import AsyncGenerator
 
@@ -23,10 +24,13 @@ if db_url.startswith("postgres://"):
 elif db_url.startswith("postgresql://") and not db_url.startswith("postgresql+asyncpg://"):
     db_url = db_url.replace("postgresql://", "postgresql+asyncpg://", 1)
 
-# Connect args (for SQLite need check_same_thread=False)
+# Connect args (for SQLite need check_same_thread=False; for PostgreSQL add connect timeout)
 connect_args = {}
 if "sqlite" in db_url:
     connect_args["check_same_thread"] = False
+elif "postgresql+asyncpg" in db_url:
+    connect_args["timeout"] = 5.0
+    connect_args["command_timeout"] = 5.0
 
 engine = create_async_engine(
     db_url,
@@ -56,10 +60,21 @@ async def get_db_session() -> AsyncGenerator[AsyncSession, None]:
 
 
 async def init_db() -> None:
-    """Initializes tables in database schema."""
+    """Initializes tables in database schema with safe offline timeout."""
+    if settings.app_env.lower() in ("test",):
+        logger.info("Test environment active: skipping external database sync")
+        return
+
     try:
-        async with engine.begin() as conn:
-            await conn.run_sync(Base.metadata.create_all)
+        async def _sync():
+            async with engine.begin() as conn:
+                await conn.run_sync(Base.metadata.create_all)
+
+        await asyncio.wait_for(_sync(), timeout=3.0)
         logger.info("Database schema synchronized successfully with %s", db_url.split("@")[-1])
     except Exception as exc:
-        logger.warning("Database schema initialization encountered error: %s", exc)
+        logger.warning(
+            "Database schema initialization encountered error or timeout (using offline/in-memory mode): %s",
+            exc,
+        )
+

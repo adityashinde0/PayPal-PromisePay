@@ -18,6 +18,10 @@ services:
         value: "*"
       - key: LOG_LEVEL
         value: INFO
+      - key: PAYPAL_ENV
+        value: sandbox
+      - key: PAYPAL_API_BASE
+        value: https://api-m.sandbox.paypal.com
 
   # 2. Next.js 15 Frontend
   - type: web
@@ -34,5 +38,8 @@ services:
         value: https://promisepay-api.onrender.com
       - key: API_BASE_URL
         value: https://promisepay-api.onrender.com
+      - key: NEXT_PUBLIC_PAYPAL_CLIENT_ID
+        value: BAAcPbc0EPk7_mH3sIOg_D9T0NInRRl5CYvLSrmVcIxSF0VxALdJ4NEL6iDjTQzXOZpFJwZ1hCbCaOUHvc
+
 
 

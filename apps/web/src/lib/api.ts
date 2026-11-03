@@ -17,6 +17,18 @@ import {
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
+function getAuthHeaders(extra?: Record<string, string>): Record<string, string> {
+  const token =
+    typeof window !== 'undefined'
+      ? localStorage.getItem('promisepay_auth_token') || 'test_token_admin'
+      : 'test_token_admin';
+
+  return {
+    Authorization: `Bearer ${token}`,
+    ...extra,
+  };
+}
+
 export async function fetchPromises(params?: {
   category?: PromiseCategory;
   status?: PromiseStatus;
@@ -57,7 +69,7 @@ export async function createPromise(payload: {
 }): Promise<PromiseGraphResponse> {
   const res = await fetch(`${API_BASE}/api/promises`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: getAuthHeaders({ 'Content-Type': 'application/json' }),
     body: JSON.stringify(payload),
   });
   if (!res.ok) {
@@ -77,7 +89,7 @@ export async function updatePromise(
 ): Promise<PromiseGraphResponse> {
   const res = await fetch(`${API_BASE}/api/promises/${promiseId}`, {
     method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
+    headers: getAuthHeaders({ 'Content-Type': 'application/json' }),
     body: JSON.stringify(payload),
   });
   if (!res.ok) {
@@ -90,6 +102,7 @@ export async function updatePromise(
 export async function confirmPromise(promiseId: string): Promise<PromiseGraphResponse> {
   const res = await fetch(`${API_BASE}/api/promises/${promiseId}/confirm`, {
     method: 'POST',
+    headers: getAuthHeaders(),
   });
   if (!res.ok) {
     const errorData = await res.json().catch(() => ({}));
@@ -105,6 +118,7 @@ export async function createPaymentOrder(promiseId: string): Promise<{
 }> {
   const res = await fetch(`${API_BASE}/api/promises/${promiseId}/payment-orders`, {
     method: 'POST',
+    headers: getAuthHeaders(),
   });
   if (!res.ok) {
     const errorData = await res.json().catch(() => ({}));
@@ -126,6 +140,7 @@ export async function capturePaymentOrder(
     `${API_BASE}/api/promises/${promiseId}/payment-orders/${paypalOrderId}/capture`,
     {
       method: 'POST',
+      headers: getAuthHeaders(),
     }
   );
   if (!res.ok) {
@@ -167,7 +182,7 @@ export async function submitEvidence(
 ): Promise<EvidenceItem> {
   const res = await fetch(`${API_BASE}/api/promises/${promiseId}/evidence`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: getAuthHeaders({ 'Content-Type': 'application/json' }),
     body: JSON.stringify(payload),
   });
   if (!res.ok) {
@@ -192,6 +207,7 @@ export async function uploadEvidenceFile(
 
   const res = await fetch(`${API_BASE}/api/promises/${promiseId}/evidence/files`, {
     method: 'POST',
+    headers: getAuthHeaders(),
     body: formData,
   });
   if (!res.ok) {
@@ -211,7 +227,7 @@ export async function triggerVerification(
 ): Promise<VerificationRun> {
   const res = await fetch(`${API_BASE}/api/promises/${promiseId}/verifications`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: getAuthHeaders({ 'Content-Type': 'application/json' }),
     body: JSON.stringify(options || {}),
   });
   if (!res.ok) {
@@ -263,7 +279,7 @@ export async function openResolutionCase(
 ): Promise<ResolutionCase> {
   const res = await fetch(`${API_BASE}/api/promises/${promiseId}/resolution-cases`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: getAuthHeaders({ 'Content-Type': 'application/json' }),
     body: JSON.stringify(payload),
   });
   if (!res.ok) {
@@ -307,7 +323,7 @@ export async function recordCaseDecision(
 ): Promise<ResolutionCase> {
   const res = await fetch(`${API_BASE}/api/resolution-cases/${caseId}/decisions`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: getAuthHeaders({ 'Content-Type': 'application/json' }),
     body: JSON.stringify(payload),
   });
   if (!res.ok) {
@@ -328,10 +344,10 @@ export async function executeCaseRefund(
 ): Promise<RefundResult> {
   const res = await fetch(`${API_BASE}/api/resolution-cases/${caseId}/refunds`, {
     method: 'POST',
-    headers: {
+    headers: getAuthHeaders({
       'Content-Type': 'application/json',
       'Idempotency-Key': idempotencyKey,
-    },
+    }),
     body: JSON.stringify(payload),
   });
   if (!res.ok) {

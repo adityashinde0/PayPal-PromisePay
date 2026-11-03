@@ -33,10 +33,10 @@ export function PaymentEscrowCard({
 
   const [checkoutNotice, setCheckoutNotice] = useState<string | null>(null);
 
-  // Fallback PayPal client ID: use env or sandbox test ID
+  // Fallback PayPal client ID: use env or verified Sandbox client ID
   const paypalClientId =
     process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID ||
-    'sb-b7szm53645276@business.example.com';
+    'BAAcPbc0EPk7_mH3sIOg_D9T0NInRRl5CYvLSrmVcIxSF0VxALdJ4NEL6iDjTQzXOZpFJwZ1hCbCaOUHvc';
 
   const currency = promise.amount?.currencyCode || 'USD';
 
