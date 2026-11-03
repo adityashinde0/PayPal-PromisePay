@@ -413,5 +413,72 @@ class PayPalClient:
             logger.warning("Error during PayPal webhook signature postback: %s", exc)
             return False, "VERIFICATION_EXCEPTION"
 
+    async def create_batch_payout(
+        self,
+        recipient_email: str,
+        amount_value: str,
+        currency_code: str = "USD",
+        note: str = "PromisePay Milestone Payout",
+        sender_batch_id: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """Disburses milestone funds via PayPal Payouts API (/v1/payments/payouts)."""
+        if not sender_batch_id:
+            sender_batch_id = f"PAYOUT_{uuid.uuid4().hex[:16]}"
+
+        if not self.is_configured:
+            logger.info("Using mock PayPal Payouts API for recipient %s", recipient_email)
+            return {
+                "batch_header": {
+                    "payout_batch_id": f"MOCK_BATCH_{uuid.uuid4().hex[:12].upper()}",
+                    "batch_status": "SUCCESS",
+                    "time_created": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+                    "sender_batch_header": {"sender_batch_id": sender_batch_id},
+                    "amount": {"currency": currency_code, "value": amount_value},
+                }
+            }
+
+        token = await self.get_access_token()
+        headers = self._get_base_headers(token=token, request_id=str(uuid.uuid4()))
+        payload = {
+            "sender_batch_header": {
+                "sender_batch_id": sender_batch_id,
+                "email_subject": "You received a payout from PromisePay Escrow",
+                "email_message": note,
+            },
+            "items": [
+                {
+                    "recipient_type": "EMAIL",
+                    "amount": {"value": amount_value, "currency": currency_code},
+                    "note": note,
+                    "receiver": recipient_email,
+                }
+            ],
+        }
+
+        async with httpx.AsyncClient(timeout=15.0) as client:
+            res = await client.post(f"{self.api_base}/v1/payments/payouts", headers=headers, json=payload)
+            if res.status_code in (200, 201):
+                return res.json()
+            logger.error("PayPal Payouts failed: status %d payload %s", res.status_code, res.text)
+            raise RuntimeError(f"PayPal Payouts failed ({res.status_code}): {res.text}")
+
+    async def get_payout_batch(self, payout_batch_id: str) -> Dict[str, Any]:
+        """Queries status of a payout batch."""
+        if not self.is_configured:
+            return {
+                "batch_header": {
+                    "payout_batch_id": payout_batch_id,
+                    "batch_status": "SUCCESS",
+                }
+            }
+
+        token = await self.get_access_token()
+        headers = self._get_base_headers(token=token)
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            res = await client.get(f"{self.api_base}/v1/payments/payouts/{payout_batch_id}", headers=headers)
+            if res.status_code == 200:
+                return res.json()
+            raise RuntimeError(f"PayPal Query Payouts failed ({res.status_code}): {res.text}")
+
 
 paypal_client = PayPalClient()

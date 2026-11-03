@@ -193,3 +193,64 @@ async def capture_payment_order(
         return res
     finally:
         await lock_manager.release_lock(lock_key)
+
+
+class PayoutRequest(BaseModel):
+    recipientEmail: str
+    note: Optional[str] = "Milestone fulfillment payout"
+
+
+class PayoutResponse(BaseModel):
+    promiseId: str
+    payoutBatchId: str
+    status: str
+    recipientEmail: str
+    amount: str
+    currency: str
+
+
+@router.post(
+    "/{promise_id}/payout",
+    response_model=PayoutResponse,
+    status_code=status.HTTP_200_OK,
+)
+async def disburse_payout(
+    promise_id: str,
+    payload: PayoutRequest,
+    current_user: AuthenticatedUser = Depends(require_roles(["ADMIN", "BUYER"])),
+):
+    """Triggers PayPal Payouts API release to the seller upon verified outcome."""
+    record = promise_store.get(promise_id)
+    if not record:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Promise with ID '{promise_id}' was not found.",
+        )
+
+    res = await paypal_client.create_batch_payout(
+        recipient_email=payload.recipientEmail,
+        amount_value=record.amount.value,
+        currency_code=record.amount.currencyCode,
+        note=payload.note or "Milestone payout",
+    )
+    batch_header = res.get("batch_header", {})
+    payout_batch_id = batch_header.get("payout_batch_id", "UNKNOWN")
+
+    record.timeline.append(
+        AuditTimelineEvent(
+            timestamp=datetime.now(timezone.utc).isoformat(),
+            actor=current_user.user_id,
+            eventType="PAYOUT_DISBURSED",
+            summary=f"Milestone funds of {record.amount.currencyCode} ${record.amount.value} released to {payload.recipientEmail} (Payout Batch: {payout_batch_id}).",
+        )
+    )
+
+    return PayoutResponse(
+        promiseId=promise_id,
+        payoutBatchId=payout_batch_id,
+        status=batch_header.get("batch_status", "SUCCESS"),
+        recipientEmail=payload.recipientEmail,
+        amount=record.amount.value,
+        currency=record.amount.currencyCode,
+    )
+

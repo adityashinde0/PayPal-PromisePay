@@ -110,3 +110,9 @@ class VerificationJobQueue:
 
 
 job_queue = VerificationJobQueue()
+
+
+async def get_redis_client():
+    """Returns an active Redis client or None if unavailable/in test mode."""
+    return await job_queue.get_redis()
+

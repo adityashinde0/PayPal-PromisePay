@@ -24,6 +24,7 @@ from promisepay_api.models.verification import (
     VerificationRunState,
     VerificationStatus,
 )
+from promisepay_api.services.dlp import scrub_pii
 from promisepay_api.services.evidence_store import evidence_store
 from promisepay_api.services.promise_store import promise_store
 
@@ -374,6 +375,14 @@ async def _run_ai_model_analysis(
         f"SUBMITTED EVIDENCE EXCERPTS:\n"
         f"{joined_evidence}\n"
     )
+
+    # DLP / PII Sanitization (PCI-DSS & GDPR compliance)
+    user_prompt, dlp_count = scrub_pii(user_prompt)
+    if dlp_count > 0:
+        logger.info(
+            "dlp_pii_sanitized_verifier",
+            extra={"redacted_count": dlp_count, "requirement_key": req.key},
+        )
 
     try:
         url = f"https://generativelanguage.googleapis.com/v1beta/models/{settings.ai_model}:generateContent"

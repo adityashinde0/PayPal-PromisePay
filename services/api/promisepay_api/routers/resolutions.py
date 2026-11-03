@@ -22,6 +22,7 @@ from promisepay_api.services.evidence_store import evidence_store
 from promisepay_api.services.promise_store import promise_store
 from promisepay_api.services.resolution_store import resolution_store
 from promisepay_api.services.rust_verifier import seal_dispute_dossier
+from promisepay_api.services.transparency_log import generate_transparency_log_proof
 from promisepay_api.services.verifier import verification_store
 
 logger = logging.getLogger("promisepay-api.resolutions")
@@ -235,6 +236,11 @@ async def get_dispute_defense_dossier(
         ),
         "paypalDefenseReady": True,
         "cryptographicProof": crypto_proof,
+        "transparencyLogProof": generate_transparency_log_proof(
+            merkle_root=crypto_proof.get("merkle_root", ""),
+            promise_id=promise.promise_id,
+            timestamp=now,
+        ),
         "agreement": {
             "title": promise.title,
             "category": promise.category.value

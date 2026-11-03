@@ -9,6 +9,7 @@ import httpx
 
 from promisepay_api.config import settings
 from promisepay_api.models.promise import AtomicRequirement, PromiseCategory
+from promisepay_api.services.dlp import scrub_pii
 from promisepay_api.services.templates import get_template_requirements
 from promisepay_api.services.verifier import detect_hostile_input
 
@@ -125,6 +126,14 @@ async def extract_requirements(
         )
         raise ValueError(
             "Security Violation: Hostile prompt injection pattern detected in agreement text."
+        )
+
+    # DLP / PII Sanitization (PCI-DSS 4.0 & GDPR compliance)
+    promise_text, redacted_count = scrub_pii(promise_text)
+    if redacted_count > 0:
+        logger.info(
+            "dlp_pii_sanitized",
+            extra={"redacted_count": redacted_count, "category": category.value},
         )
 
     if not settings.ai_api_key or settings.ai_api_key == "disabled":
