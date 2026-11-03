@@ -66,6 +66,7 @@ async def init_db() -> None:
         return
 
     try:
+
         async def _sync():
             async with engine.begin() as conn:
                 await conn.run_sync(Base.metadata.create_all)
@@ -77,4 +78,3 @@ async def init_db() -> None:
             "Database schema initialization encountered error or timeout (using offline/in-memory mode): %s",
             exc,
         )
-

@@ -64,9 +64,15 @@ class PayPalClient:
 
         async with httpx.AsyncClient(timeout=10.0) as client:
             try:
-                res = await client.post(f"{self.api_base}/v1/oauth2/token", headers=headers, data=data)
+                res = await client.post(
+                    f"{self.api_base}/v1/oauth2/token", headers=headers, data=data
+                )
                 if res.status_code != 200:
-                    logger.warning("PayPal OAuth returned %s: %s. Using Sandbox mock token.", res.status_code, res.text)
+                    logger.warning(
+                        "PayPal OAuth returned %s: %s. Using Sandbox mock token.",
+                        res.status_code,
+                        res.text,
+                    )
                     return "mock_oauth_sandbox_token"
 
                 json_data = res.json()
@@ -168,7 +174,9 @@ class PayPalClient:
 
                 # If delayed escrow is rejected (e.g., account not PPCP marketplace-approved), retry with standard capture
                 if delayed_escrow and "payment_instruction" in purchase_unit:
-                    logger.info("Retrying PayPal order creation with standard capture (without delayed escrow)...")
+                    logger.info(
+                        "Retrying PayPal order creation with standard capture (without delayed escrow)..."
+                    )
                     purchase_unit.pop("payment_instruction", None)
                     payload["purchase_units"] = [purchase_unit]
                     retry_res = await client.post(
@@ -176,11 +184,20 @@ class PayPalClient:
                     )
                     if retry_res.status_code in (200, 201):
                         return retry_res.json()
-                    logger.warning("PayPal standard capture retry returned %s: %s", retry_res.status_code, retry_res.text)
+                    logger.warning(
+                        "PayPal standard capture retry returned %s: %s",
+                        retry_res.status_code,
+                        retry_res.text,
+                    )
 
-                logger.warning("PayPal live order creation rejected (%s). Falling back to deterministic Sandbox mock order.", res.status_code)
+                logger.warning(
+                    "PayPal live order creation rejected (%s). Falling back to deterministic Sandbox mock order.",
+                    res.status_code,
+                )
             except Exception as exc:
-                logger.warning("PayPal order request connection error: %s. Using Sandbox mock order.", exc)
+                logger.warning(
+                    "PayPal order request connection error: %s. Using Sandbox mock order.", exc
+                )
 
             # Deterministic Sandbox mock order fallback
             mock_order_id = f"MOCK_ORD_{uuid.uuid4().hex[:12].upper()}"
@@ -241,9 +258,16 @@ class PayPalClient:
                 )
                 if res.status_code in (200, 201):
                     return res.json()
-                logger.warning("PayPal Capture Order returned %s: %s. Using Sandbox capture fallback.", res.status_code, res.text)
+                logger.warning(
+                    "PayPal Capture Order returned %s: %s. Using Sandbox capture fallback.",
+                    res.status_code,
+                    res.text,
+                )
             except Exception as exc:
-                logger.warning("PayPal Capture Order connection error: %s. Using Sandbox capture fallback.", exc)
+                logger.warning(
+                    "PayPal Capture Order connection error: %s. Using Sandbox capture fallback.",
+                    exc,
+                )
 
             # Fallback capture for sandbox simulation
             mock_capture_id = f"MOCK_CAP_{uuid.uuid4().hex[:12].upper()}"
@@ -258,7 +282,9 @@ class PayPalClient:
                                     "id": mock_capture_id,
                                     "status": "COMPLETED",
                                     "amount": {"currency_code": "USD", "value": "100.00"},
-                                    "create_time": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+                                    "create_time": time.strftime(
+                                        "%Y-%m-%dT%H:%M:%SZ", time.gmtime()
+                                    ),
                                 }
                             ]
                         }
@@ -421,9 +447,7 @@ class PayPalClient:
         if headers.get("x-promisepay-simulator") == "true":
             if settings.app_env.lower() in ("development", "test"):
                 return True, "SIMULATOR_TEST"
-            logger.warning(
-                "Rejected x-promisepay-simulator header in non-development environment"
-            )
+            logger.warning("Rejected x-promisepay-simulator header in non-development environment")
             return False, "SIMULATION_FORBIDDEN_IN_PRODUCTION"
 
         if not (
