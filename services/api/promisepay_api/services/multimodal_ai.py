@@ -26,15 +26,25 @@ logger = logging.getLogger("promisepay-vision-ai")
 
 class MultimodalAiService:
     def __init__(self):
-        self.api_key = settings.ai_api_key
-        self.model = settings.ai_model or "gemini-2.5-flash"
-        self.endpoint = (
+        self.default_model = "gemini-2.5-flash"
+
+    @property
+    def api_key(self) -> str:
+        return settings.ai_api_key or ""
+
+    @property
+    def model(self) -> str:
+        return settings.ai_model or self.default_model
+
+    @property
+    def endpoint(self) -> str:
+        return (
             f"https://generativelanguage.googleapis.com/v1beta/models/{self.model}:generateContent"
         )
 
     @property
     def is_live_configured(self) -> bool:
-        return bool(self.api_key and len(self.api_key) > 8)
+        return bool(self.api_key and len(self.api_key) > 8 and self.api_key != "disabled")
 
     async def extract_document_ocr(
         self,

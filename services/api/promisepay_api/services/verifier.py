@@ -321,9 +321,20 @@ async def _run_ai_model_analysis(
     for ev in linked_evidence:
         # Reject instruction injection inside evidence
         clean_claim = ev.submitterClaim.replace("\n", " ")[:500]
+        meta = ev.provenance.metadata or {}
+        crawler_sample = ""
+        if "crawler" in meta and isinstance(meta["crawler"], dict):
+            c_info = meta["crawler"]
+            crawler_sample = f" crawlerStatus={c_info.get('statusCode')} crawlerSample='{str(c_info.get('domTextSample', ''))[:150]}'"
+        ocr_sample = ""
+        if "multimodalAi" in meta and isinstance(meta["multimodalAi"], dict):
+            ocr_info = meta["multimodalAi"]
+            ocr_sample = f" ocrDocType='{ocr_info.get('documentType')}' ocrSummary='{str(ocr_info.get('extractedText', ''))[:150]}'"
+
         evidence_excerpts.append(
             f"EVIDENCE_ITEM id='{ev.evidenceId}' kind='{ev.kind}' uri='{ev.canonicalUri or ev.sourceUri}' "
             f"claim='{clean_claim}' scanner='{ev.provenance.scannerStatus}' isClaimOnly={ev.provenance.isClaimOnly}"
+            f"{crawler_sample}{ocr_sample}"
         )
 
     joined_evidence = "\n".join(evidence_excerpts) if evidence_excerpts else "NO_EVIDENCE_PROVIDED"
@@ -416,6 +427,11 @@ async def _run_ai_model_analysis(
 
                 raw_conf = float(parsed.get("confidence", 0.5))
 
+                # Multi-Judge Consensus: Evaluate deterministic rule-based engine in parallel
+                rule_finding = _evaluate_requirement_rule_based(req, linked_evidence, all_evidence_ids)
+                consensus_status = "CONSENSUS_AGREED"
+                limitations = list(parsed.get("limitations", []))
+
                 # Confidence Clamping
                 # Cap at 0.59 when lacking evidence, claim-only, or suspicious
                 cap = 1.0
@@ -428,6 +444,19 @@ async def _run_ai_model_analysis(
                     if ev.provenance.isClaimOnly or ev.provenance.scannerStatus != "SCAN_CLEAN":
                         cap = min(cap, 0.59)
 
+                # Flag divergence between AI model and deterministic rule engine
+                if status == VerificationStatus.VERIFIED and rule_finding.status in (
+                    VerificationStatus.PARTIALLY_VERIFIED,
+                    VerificationStatus.NOT_VERIFIED,
+                    VerificationStatus.HUMAN_REVIEW_REQUIRED,
+                ):
+                    consensus_status = "DIVERGENT"
+                    status = VerificationStatus.HUMAN_REVIEW_REQUIRED
+                    cap = min(cap, 0.59)
+                    limitations.append(
+                        f"Multi-Judge Consensus Divergence: AI model proposed VERIFIED but deterministic rule engine found {rule_finding.status.value}. Quarantined for human adjudication."
+                    )
+
                 clamped_conf = _clamp_confidence(raw_conf, cap=cap)
 
                 return RequirementFinding(
@@ -438,10 +467,12 @@ async def _run_ai_model_analysis(
                     evidenceIds=valid_ids,
                     reasoning=parsed.get("reasoning", "Evidence evaluated by AI verifier."),
                     missingInformation=parsed.get("missingInformation", []),
-                    limitations=parsed.get("limitations", []),
+                    limitations=limitations,
                     deterministicChecks={
                         "aiModel": settings.ai_model,
                         "evidenceCount": len(valid_ids),
+                        "multiJudgeConsensus": consensus_status,
+                        "ruleEngineOutcome": rule_finding.status.value,
                     },
                 )
             else:

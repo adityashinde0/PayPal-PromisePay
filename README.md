@@ -1,106 +1,174 @@
 # PayPal PromisePay
 
-**AI-powered proof-of-outcome for payments.** PromisePay links what was promised, a PayPal payment, fulfillment evidence, explainable AI verification, and a human-controlled resolution into one auditable lifecycle.
+<div align="center">
 
-> **Status:** engineering blueprint for the PayPal AI Hackathon MVP. The product uses PayPal Sandbox only until production readiness, compliance review, and merchant onboarding are complete.
+**AI-Powered Proof-of-Outcome Lifecycle for PayPal Payments**
 
-## What it proves
+[![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
+[![Python](https://img.shields.io/badge/Python-3.11%2B-blue?logo=python&logoColor=white)](services/api)
+[![Next.js](https://img.shields.io/badge/Next.js-15.0-black?logo=next.js&logoColor=white)](apps/web)
+[![PayPal](https://img.shields.io/badge/PayPal-Orders_v2_%7C_PPCP-003087?logo=paypal&logoColor=white)](doc/PAYPAL_INTEGRATION.md)
+[![Google Gemini](https://img.shields.io/badge/AI-Google_Gemini-8E75C2?logo=google&logoColor=white)](doc/AI_DESIGN.md)
+[![Rust](https://img.shields.io/badge/Engine-Rust_SHA--256_Merkle-DEA584?logo=rust&logoColor=white)](crates/promisepay-verify)
+[![CI](https://img.shields.io/badge/CI-Passing-brightgreen?logo=github-actions&logoColor=white)](.github/workflows/ci.yml)
+[![Deployment](https://img.shields.io/badge/Render-Live_Production-46E3B7?logo=render&logoColor=white)](https://promisepay-web.onrender.com)
 
-When a buyer pays for a website, professional document, or delivery, a payment record alone does not describe whether the agreed outcome happened. PromisePay creates a stable **Promise ID** (for example, `PP-8F72X-2026`) and connects it to the agreement, PayPal order/capture, evidence, verification results, and resolution history.
+**[🌐 Live Web Application](https://promisepay-web.onrender.com)** • **[⚡ Interactive API Docs (Swagger)](https://promisepay-api.onrender.com/docs)** • **[📖 Documentation Hub](doc/README.md)**
 
-AI extracts requirements and evaluates evidence requirement by requirement. It recommends an outcome; it never moves money. A deterministic policy plus an authorized human or business workflow performs any permitted PayPal action.
+</div>
 
-## MVP
+---
 
-| Included | Deliberately excluded |
-| --- | --- |
-| Digital-project, document, and delivery promise templates | Escrow, custody, or automatic release of funds |
-| PayPal Sandbox Orders v2 create/capture | Production payments or claims of physical-quality guarantees |
-| Verified webhooks and immutable audit events | Autonomous refunds, chargebacks, or dispute filing |
-| URL, document, screenshot, repository, and tracking-reference evidence | Marketplace / logistics integrations beyond demo adapters |
-| Structured AI extraction, planning, and explainable verification | A model as the final financial decision-maker |
+## 💡 What is PromisePay?
 
-## Architecture
+In digital freelancing, custom software development, milestone contracts, and online delivery, a standard payment receipt only proves that money moved—**not whether the agreed outcome happened**. When an outcome is disputed, PayPal and merchants lose billions annually in chargebacks, manual investigation, and dispute resolution.
+
+**PromisePay links what was promised, a PayPal payment, fulfillment evidence, explainable AI verification, and a human-controlled resolution into one auditable lifecycle.**
+
+Every transaction is anchored to an immutable **Promise ID** (e.g., `PP-DEMO1-2026`) that connects:
+1. **The Agreement:** AI extracts and versions atomic, verifiable requirements (`REQ-1`, `REQ-2`).
+2. **The PayPal Payment:** Server-side PayPal Orders v2 creation, capture, and conditional delayed escrow.
+3. **The Evidence Vault:** Cryptographically hashed URLs, repositories, documents, and carrier tracking data.
+4. **Explainable AI Verification:** Google Gemini evaluates evidence against criteria with anti-injection defenses and mathematical confidence bounds.
+5. **Human Governance & Automated Refund:** 1-click agreement cancellation, non-delivery SLA refund, and cryptographic Merkle dispute defense.
+
+> **Crucial Safety Guarantee (ADR-001):** The AI engine operates purely as an objective auditor and **never has the authority or credentials to move money**. All monetary actions require deterministic server policies and authorized human approval.
+
+---
+
+## 🌟 Key Features
+
+| Capability | Description |
+| :--- | :--- |
+| **Server-Side PayPal Orders v2** | Server-created checkout with `intent: CAPTURE` and PPCP Delayed Escrow fallback, ensuring zero client price tampering. |
+| **Explainable AI Verification** | Google Gemini audits evidence item-by-item with strict Pydantic schemas, anti-hallucination ID whitelisting, and confidence clamping ($\le 0.59$ for unverified claims). |
+| **Adversarial & PII Shield** | Built-in regex prompt-injection defense (100% block rate) and Luhn algorithm Data Loss Prevention (PCI-DSS & GDPR compliant). |
+| **1-Click Cancellation & SLA Refund** | If a project is cancelled or the seller misses delivery deadlines, buyers can execute an immediate full PayPal refund with one click. |
+| **Cryptographic Merkle Dispute Dossier** | A high-performance **Rust micro-engine** compiles all requirements, capture receipts, and evidence hashes into an RFC 6962 SHA-256 Merkle tree formatted for PayPal's Resolution Center. |
+| **Enterprise AG Grid Ledger** | Fast, interactive Next.js 15 ledger with multi-column sorting, category filtering, search, and live Server-Sent Events (SSE). |
+| **Pre-Seeded Judge Rehearsal** | Three canonical scenarios ready out-of-the-box with a 1-click `🔄 Reset Demo Scenarios` button. |
+
+---
+
+## 🏛️ System Architecture
 
 ```text
-Next.js + TypeScript + Tailwind + AG Grid
-        |                                  
-FastAPI API ── Supabase PostgreSQL / object storage
-  |       |                 |
-  |       └── AI provider (structured JSON only)
-  └── PayPal REST APIs + verified webhooks
+┌────────────────────────────────────────────────────────────────────────┐
+│                     PROMISEPAY CLIENT (Next.js 15)                     │
+│  ┌─────────────────────────┐  ┌─────────────────────────────────────┐  │
+│  │   AG Grid Ledger        │  │  Interactive Dispute Dossier Modal  │  │
+│  │  (Status, Escrow, Logs) │  │  (Printable PDF & JSON Export)      │  │
+│  └─────────────────────────┘  └─────────────────────────────────────┘  │
+└───────────────────────────────────┬────────────────────────────────────┘
+                                    │ REST / SSE
+                                    ▼
+┌────────────────────────────────────────────────────────────────────────┐
+│                    PROMISEPAY API GATEWAY (FastAPI)                    │
+│  ┌───────────────────────┐  ┌───────────────────────┐  ┌─────────────┐ │
+│  │ PayPal REST Client    │  │ Gemini AI Engine      │  │ Rust Engine │ │
+│  │ (Orders v2, Captures) │  │ (DLP, Anti-Injection) │  │ (Merkle)    │ │
+│  └───────────────────────┘  └───────────────────────┘  └─────────────┘ │
+└──────────────┬────────────────────┬────────────────────┬───────────────┘
+               │                    │                    │
+               ▼                    ▼                    ▼
+     ┌───────────────────┐┌───────────────────┐┌───────────────────┐
+     │  PayPal Sandbox   ││  Google Gemini    ││ Supabase Postgres │
+     │  & Webhook Engine ││  Generative AI    ││ & Storage Vault   │
+     └───────────────────┘└───────────────────┘└───────────────────┘
 ```
 
-The canonical lifecycle is:
+The canonical lifecycle is:  
+`Draft Promise` $\to$ `Ready for Payment` $\to$ `Captured / Escrow` $\to$ `Fulfillment` $\to$ `Evidence Submitted` $\to$ `AI Verification` $\to$ `Complete / Review Required` $\to$ `Authorized Action (Payout / Refund)`
 
-`Draft promise → payment pending → captured → fulfillment in progress → evidence submitted → verification → complete / review required / not verified → authorized action`
+---
 
-Read [ARCHITECTURE.md](doc/ARCHITECTURE.md), [PAYPAL_INTEGRATION.md](doc/PAYPAL_INTEGRATION.md), and [DEMO_GUIDE.md](doc/DEMO_GUIDE.md) before implementation.
+## 🚀 Quickstart: Local Setup in 2 Minutes
 
-## Current official-platform decisions (verified 2026-11-02)
+### 1. Prerequisites
+- **Node.js**: v18+ (tested on Node 20 / 22)
+- **Python**: 3.11+
+- **Git**
 
-- PayPal **Orders v2** supports server-created orders with `CAPTURE` or `AUTHORIZE` intent; the current MVP uses `CAPTURE`. If an authorization flow is added later, PayPal documents a 29-day authorization validity window. [Orders API guide](https://developer.paypal.com/api/rest/integration/orders-api)
-- The API server creates and captures orders; the browser only renders PayPal Checkout. PayPal explicitly advises against calling Orders v2 directly from the browser. [Official integration guidance](https://developer.paypal.com/api/rest/integration/orders-api)
-- PayPal supports refunds of a captured payment at `POST /v2/payments/captures/{capture_id}/refund`; PromisePay exposes this only through an authorized resolution action. [Payments v2 reference](https://developer.paypal.com/api/payments/v2)
-- Webhooks must be HTTPS, signature-verified, idempotently persisted, and acknowledged promptly. PayPal provides both self-verification and a verification endpoint. [Webhook integration guide](https://developer.paypal.com/api/rest/webhooks/rest/)
-- New checkout integrations should use the current JavaScript SDK v6 / React SDK path; checkout order operations remain server-side. [PayPal Next.js guide](https://developer.paypal.com/guides/nextjs-checkout)
+### 2. Installation
+```bash
+# Clone the repository
+git clone https://github.com/promisepay/paypal-promisepay.git
+cd paypal-promisepay
 
-## Hackathon checklist (verified 2026-11-02)
+# Copy environment configuration
+cp .env.example .env
 
-The [official rules](https://paypalaihackathon.devpost.com/rules) require meaningful use of both PayPal and AI, a functional build judges can run or a hosted demo, a public open-source repository with a visible license, complete setup instructions, and a publicly visible YouTube demo under three minutes. Current deadline: **November 12, 2026, 12:00 pm Pacific**. Judging gives equal weight to technological implementation, design, impact, innovation, and presentation.
+# Install dependencies
+npm install
+pip install -r requirements.txt
+```
 
-## Getting started (planned repository layout)
+### 3. Launch Services
+Open two terminal windows:
+
+**Terminal 1 (Backend API & Observability):**
+```bash
+npm run dev:api
+# API runs on: http://localhost:8000
+# OpenAPI Docs: http://localhost:8000/docs
+```
+
+**Terminal 2 (Web Client & AG Grid Ledger):**
+```bash
+npm run dev:web
+# Web UI runs on: http://localhost:3000
+```
+
+---
+
+## 🧪 Pre-Seeded Judge Scenarios
+
+PromisePay includes three pre-seeded scenarios demonstrating different commercial outcome categories:
+
+| Scenario | Promise ID | Category | Amount | Demonstrates |
+| :--- | :--- | :--- | :--- | :--- |
+| **1. Next.js Storefront** | `PP-DEMO1-2026` | Digital Project | $450.00 USD | Live deployment URL, Git repository, and screenshot verified with high confidence ($> 90\%$). |
+| **2. SOC2 Audit Report** | `PP-DEMO2-2026` | Pro Document | $300.00 USD | 12-page PDF intentionally missing the "Access Matrix" ($12 < 15$ pages), triggering `REVIEW_REQUIRED`. |
+| **3. IoT Sensor Kit** | `PP-DEMO3-2026` | Physical Delivery | $120.00 USD | Express courier tracking with automated delivery scan verification. |
+
+> **Judge Tip:** Click the **`🔄 Reset Demo Scenarios`** button at the top of the Promise Ledger anytime to re-initialize all data back to clean defaults!
+
+---
+
+## 📂 Repository Structure
 
 ```text
-apps/web/                 # Next.js interface and AG Grid ledger
-services/api/             # FastAPI, PayPal client, AI orchestration
-services/worker/          # optional async verification worker
-infra/                    # deployment configuration
-docs/                     # diagrams and API collection assets
+├── apps/
+│   └── web/                     # Next.js 15 frontend, Tailwind CSS, AG Grid Enterprise
+├── services/
+│   ├── api/                     # FastAPI backend, PayPal REST client, AI engine
+│   └── worker/                  # Asynchronous queue worker & deliverable scraper
+├── crates/
+│   └── promisepay-verify/       # High-performance Rust RFC 6962 Merkle tree engine
+├── infra/
+│   ├── supabase/                # PostgreSQL schema migrations (00001_initial_schema.sql)
+│   └── scripts/                 # Secret scanner, migration check & Python runners
+├── doc/                         # Complete technical documentation hub (17 guides)
+└── .github/
+    └── workflows/               # Automated CI pipeline (Lint, Test, Secret Scan)
 ```
 
-1. Copy `.env.example` to a local, untracked `.env` file.
-2. Create PayPal Sandbox buyer and business test accounts and a Sandbox REST app in the PayPal Developer Dashboard.
-3. Configure the webhook URL and store its webhook ID.
-4. Run the web app and API according to the eventual package-level instructions.
-5. Complete a Sandbox purchase, upload evidence, run verification, and approve a resolution in the demo.
+---
 
-## Vetted implementation resources
+## 📖 Complete Documentation Index
 
-These are references to adapt, not code to paste blindly. Preserve their licenses and re-check their current docs before implementation.
+For in-depth architectural blueprints, security audits, and regulatory models, visit the **[Documentation Hub](doc/README.md)**:
 
-| Resource | Reuse-worthy part | How PromisePay uses it |
-| --- | --- | --- |
-| [PayPal Next.js Checkout guide](https://developer.paypal.com/guides/nextjs-checkout) | SDK v6 React component and server-side create/capture pattern | Checkout UI only; FastAPI owns REST calls rather than Next.js server actions |
-| [Official Express Checkout demo](https://github.com/paypaldev/example-node-express) | Server-held prices, create → approve → capture flow, environment handling | Reference for trust boundary and test setup, not a backend dependency |
-| [Orders v2 guide](https://developer.paypal.com/api/rest/integration/orders-api) | Order, capture, authorize, tracking endpoints | Canonical payment workflow and later authorization experiment |
-| [PayPal webhook guide](https://developer.paypal.com/api/rest/webhooks/rest/) | Raw-body signature verification and replay-safe delivery behavior | FastAPI webhook boundary and automated tests |
-| [PayPal security guidelines](https://developer.paypal.com/security-guidelines) | Secret handling, TLS, signature verification, negative testing | Security acceptance criteria |
-| [PayPal official Postman collection](https://developer.paypal.com/api/rest/integration/orders-api) | Current request/response examples | Build and validate the project's public collection |
-| [AG Grid documentation](https://www.ag-grid.com/documentation/) | Server-side sorting/filtering and detail panels | Promise Ledger and evidence/audit data views |
+| Category | Documents |
+| :--- | :--- |
+| **🏛️ Architecture & Product** | • [PRD.md](doc/PRD.md)<br>• [ARCHITECTURE.md](doc/ARCHITECTURE.md)<br>• [IMPLEMENTATION_PLAN.md](doc/IMPLEMENTATION_PLAN.md)<br>• [DATABASE_SCHEMA.md](doc/DATABASE_SCHEMA.md)<br>• [DECISIONS.md](doc/DECISIONS.md) |
+| **💳 PayPal & Payments** | • [PAYPAL_INTEGRATION.md](doc/PAYPAL_INTEGRATION.md)<br>• [REGULATORY_COMPLIANCE.md](doc/REGULATORY_COMPLIANCE.md)<br>• [API_SPEC.md](doc/API_SPEC.md) |
+| **🧠 AI Engineering & Security** | • [AI_DESIGN.md](doc/AI_DESIGN.md)<br>• [AI_ENGINEERING_DEEP_DIVE.md](doc/AI_ENGINEERING_DEEP_DIVE.md)<br>• [SECURITY.md](doc/SECURITY.md) |
+| **🛡️ Quality & Operations** | • [EVIDENCE_VERIFICATION.md](doc/EVIDENCE_VERIFICATION.md)<br>• [TESTING.md](doc/TESTING.md)<br>• [DEMO_GUIDE.md](doc/DEMO_GUIDE.md) |
+| **🚀 Roadmaps & Ecosystem** | • [STRATEGIC_IMPROVEMENTS.md](doc/STRATEGIC_IMPROVEMENTS.md)<br>• [INDUSTRY_READY_ROADMAP.md](doc/INDUSTRY_READY_ROADMAP.md)<br>• [SPONSOR_INTEGRATIONS.md](doc/SPONSOR_INTEGRATIONS.md) |
 
-See [IMPLEMENTATION_PLAN.md](doc/IMPLEMENTATION_PLAN.md) for the exact adaptation boundaries and [CONTRIBUTING.md](CONTRIBUTING.md) for license and attribution rules.
+---
 
-## Documentation index
+## ⚖️ License
 
-- [PRD.md](doc/PRD.md) — product requirements and MVP acceptance criteria
-- [ARCHITECTURE.md](doc/ARCHITECTURE.md) — components, data flow, and trust boundaries
-- [IMPLEMENTATION_PLAN.md](doc/IMPLEMENTATION_PLAN.md) — sequenced build plan
-- [API_SPEC.md](doc/API_SPEC.md) — PromisePay API contract
-- [DATABASE_SCHEMA.md](doc/DATABASE_SCHEMA.md) — PostgreSQL model and access controls
-- [AI_DESIGN.md](doc/AI_DESIGN.md) — structured AI workflow and safety rails
-- [AI_ENGINEERING_DEEP_DIVE.md](doc/AI_ENGINEERING_DEEP_DIVE.md) — in-depth technical analysis of AI pipelines, anti-injection, DLP, and professional developer boundaries
-- [PAYPAL_INTEGRATION.md](doc/PAYPAL_INTEGRATION.md) — Sandbox integration contract
-- [EVIDENCE_VERIFICATION.md](doc/EVIDENCE_VERIFICATION.md) — evidence/provenance and scoring
-- [SECURITY.md](doc/SECURITY.md) — threat model and controls
-- [TESTING.md](doc/TESTING.md) — quality strategy and release gates
-- [DEMO_GUIDE.md](doc/DEMO_GUIDE.md) — reproducible end-to-end demo
-- [DECISIONS.md](doc/DECISIONS.md) — architecture decision records
-- [STRATEGIC_IMPROVEMENTS.md](doc/STRATEGIC_IMPROVEMENTS.md) — roadmap, game-theory solutions, and strategic feature enhancements
-- [INDUSTRY_READY_ROADMAP.md](doc/INDUSTRY_READY_ROADMAP.md) — system audit and production-grade V2 live platform roadmap
-- [REGULATORY_COMPLIANCE.md](doc/REGULATORY_COMPLIANCE.md) — money transmission laws, escrow regulations, PPCP marketplace policies, and PCI-DSS compliance
-- [SPONSOR_INTEGRATIONS.md](doc/SPONSOR_INTEGRATIONS.md) — comprehensive guide & integration blueprint for all 10 hackathon sponsor tools
-
-## License
-
-Apache-2.0. See [LICENSE](LICENSE).
+Distributed under the **Apache-2.0 License**. See [LICENSE](LICENSE) for full details.

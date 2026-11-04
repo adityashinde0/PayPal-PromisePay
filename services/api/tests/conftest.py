@@ -27,7 +27,23 @@ def isolate_test_environment(monkeypatch, tmp_path):
     monkeypatch.setattr("promisepay_api.config.settings.app_env", "test")
     monkeypatch.setattr("promisepay_api.config.settings.redis_url", "disabled")
     from promisepay_api.services.queue import job_queue
+    from promisepay_api.services.scraper import scraper
 
+    async def mock_scrape_deliverable(url: str):
+        return {
+            "url": url,
+            "domain": "example.com",
+            "statusCode": 200,
+            "latencyMs": 10.0,
+            "title": "Mock Deliverable",
+            "domTextSample": "Mock DOM deliverable text",
+            "sections": [{"type": "h1", "text": "Mock Deliverable", "sectionIndex": 0}],
+            "screenshotBase64": "data:image/png;base64,mock",
+            "crawledAt": "2026-11-04T00:00:00Z",
+            "status": "VERIFIED_ACTIVE",
+        }
+
+    monkeypatch.setattr(scraper, "scrape_deliverable", mock_scrape_deliverable)
     monkeypatch.setattr(job_queue, "_redis", False)
     monkeypatch.setattr(
         "promisepay_api.routers.webhooks._STORAGE_FILE", tmp_path / "test_events.txt"
