@@ -10,8 +10,14 @@ Verifies:
 7. Fail-closed outcome mapping & 100% deterministic fallback uptime
 """
 
-import pytest
+import io
+import json
 
+import httpx
+import pytest
+from PIL import Image
+
+from promisepay_api.config import settings
 from promisepay_api.models.evidence import (
     EvidenceKind,
     EvidenceProvenance,
@@ -19,13 +25,12 @@ from promisepay_api.models.evidence import (
     EvidenceStatus,
 )
 from promisepay_api.models.promise import AtomicRequirement, PromiseCategory
-from promisepay_api.models.verification import RequirementFinding, VerificationStatus
+from promisepay_api.models.verification import VerificationStatus
 from promisepay_api.services.dlp import luhn_checksum_valid, scrub_pii
 from promisepay_api.services.extractor import extract_requirements
 from promisepay_api.services.multimodal_ai import multimodal_ai
 from promisepay_api.services.scraper import scraper
 from promisepay_api.services.verifier import (
-    HOSTILE_PATTERNS,
     _clamp_confidence,
     _evaluate_requirement_rule_based,
     _run_ai_model_analysis,
@@ -212,10 +217,6 @@ async def test_multi_judge_consensus_divergence_defense(monkeypatch):
     the Multi-Judge Consensus cross-check catches the divergence, overrides the verdict to
     HUMAN_REVIEW_REQUIRED, clamps confidence, and flags consensusStatus as DIVERGENT.
     """
-    import json
-    import httpx
-    from promisepay_api.config import settings
-
     # Configure a mock live API key
     monkeypatch.setattr(settings, "ai_api_key", "test_mock_gemini_key_12345")
     monkeypatch.setattr(settings, "ai_model", "gemini-3.5-flash")
@@ -297,9 +298,6 @@ async def test_multi_judge_consensus_divergence_defense(monkeypatch):
 async def test_multimodal_document_ai_deterministic_ocr():
     """Verifies that multimodal document AI extracts dimensions, signatures, and requirement mappings."""
     # Create a dummy 100x100 PNG
-    import io
-    from PIL import Image
-
     img = Image.new("RGB", (640, 480), color=(73, 109, 137))
     buffer = io.BytesIO()
     img.save(buffer, format="PNG")

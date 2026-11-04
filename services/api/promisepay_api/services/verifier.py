@@ -428,7 +428,9 @@ async def _run_ai_model_analysis(
                 raw_conf = float(parsed.get("confidence", 0.5))
 
                 # Multi-Judge Consensus: Evaluate deterministic rule-based engine in parallel
-                rule_finding = _evaluate_requirement_rule_based(req, linked_evidence, all_evidence_ids)
+                rule_finding = _evaluate_requirement_rule_based(
+                    req, linked_evidence, all_evidence_ids
+                )
                 consensus_status = "CONSENSUS_AGREED"
                 limitations = list(parsed.get("limitations", []))
 
