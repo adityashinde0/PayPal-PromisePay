@@ -12,3 +12,5 @@ structlog>=24.0.0
 pytest>=8.3.0
 pytest-asyncio>=0.23.0
 ruff>=0.5.0
+pillow>=10.0.0
+beautifulsoup4>=4.12.0

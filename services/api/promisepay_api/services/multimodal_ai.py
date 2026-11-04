@@ -13,7 +13,11 @@ import time
 from typing import Any, Dict, List, Optional
 
 import httpx
-from PIL import Image
+
+try:
+    from PIL import Image
+except ImportError:
+    Image = None
 
 from promisepay_api.config import settings
 

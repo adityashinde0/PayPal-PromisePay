@@ -14,8 +14,17 @@ from typing import Any
 from urllib.parse import urlparse
 
 import httpx
-from bs4 import BeautifulSoup
-from PIL import Image, ImageDraw
+
+try:
+    from bs4 import BeautifulSoup
+except ImportError:
+    BeautifulSoup = None
+
+try:
+    from PIL import Image, ImageDraw
+except ImportError:
+    Image = None
+    ImageDraw = None
 
 logger = logging.getLogger("promisepay-scraper")
 
@@ -116,6 +125,9 @@ class DeliverableScraper:
         sections: list[dict[str, str]],
     ) -> str:
         """Renders a high-resolution 800x480 viewport preview image of the live website deliverable."""
+        if Image is None or ImageDraw is None:
+            return ""
+
         width, height = 800, 480
         img = Image.new("RGB", (width, height), color=(248, 250, 252))
         draw = ImageDraw.Draw(img)
