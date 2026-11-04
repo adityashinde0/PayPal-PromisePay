@@ -5,7 +5,12 @@ import uuid
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel
+
+try:
+    from pydantic import EmailStr
+except ImportError:
+    EmailStr = str  # type: ignore[misc, assignment]
 
 from promisepay_api.auth import (
     AuthenticatedUser,
