@@ -43,17 +43,27 @@ class VerificationWorker:
     async def scan_evidence(
         self, evidence_id: str, kind: str, source: str, expected_hash: str = ""
     ) -> dict[str, Any]:
-        """Scans evidence item for provenance integrity and safety."""
+        """Scans evidence item for provenance integrity and safety (with live web crawler integration)."""
         logger.info("Scanning evidence %s (%s) from source %s...", evidence_id, kind, source)
         computed_hash = hashlib.sha256(source.encode("utf-8")).hexdigest()
         self.processed_jobs += 1
+
+        crawl_result = None
+        if kind.lower() in ("live_url", "url_snapshot", "repository", "git_repository") and source.startswith("http"):
+            try:
+                from promisepay_worker.scraper import scraper
+                crawl_result = await scraper.scrape_deliverable(source)
+            except Exception as exc:  # noqa: BLE001
+                logger.warning("Worker scraper fallback for %s: %s", source, exc)
+
         return {
             "evidenceId": evidence_id,
             "kind": kind,
             "status": "SCAN_CLEAN",
             "computedHash": computed_hash,
             "matchesExpected": (computed_hash == expected_hash) if expected_hash else True,
-            "scannerVersion": "promisepay-guard-v1",
+            "scannerVersion": "promisepay-guard-v2",
+            "crawler": crawl_result,
         }
 
     async def execute_verification_job(

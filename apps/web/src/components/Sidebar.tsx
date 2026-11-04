@@ -12,6 +12,7 @@ import {
   BarChart3,
   Shield,
   ArrowRightLeft,
+  Settings,
 } from 'lucide-react';
 import { PayPalLogo } from './PayPalLogo';
 import { useDashboard, DashboardTab } from '@/context/DashboardContext';
@@ -157,6 +158,24 @@ export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
                 }`}
               />
               <span className="truncate">Create Promise</span>
+            </Link>
+
+            {/* Merchant Hub & Settings Link (Goal 3) */}
+            <Link
+              href="/settings"
+              onClick={onClose}
+              className={`flex items-center gap-3 rounded-lg px-3.5 py-2.5 text-xs font-semibold transition-colors duration-150 select-none ${
+                pathname === '/settings'
+                  ? 'bg-[#EBF3FC] text-[#0070BA] font-bold'
+                  : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+              }`}
+            >
+              <Settings
+                className={`h-4 w-4 shrink-0 ${
+                  pathname === '/settings' ? 'text-[#0070BA]' : 'text-slate-400'
+                }`}
+              />
+              <span className="truncate">PayPal Merchant Hub</span>
             </Link>
           </nav>
 

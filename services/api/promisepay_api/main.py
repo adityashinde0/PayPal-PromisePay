@@ -16,7 +16,9 @@ from promisepay_api.context import (
 from promisepay_api.db.database import init_db
 from promisepay_api.logging_config import setup_structured_logging
 from promisepay_api.routers import (
+    auth,
     disputes,
+    events,
     evidence,
     health,
     payments,
@@ -34,7 +36,8 @@ setup_structured_logging(settings.log_level)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Lifecycle manager: initializes database tables and resources."""
-    await init_db()
+    if settings.app_env.lower() not in ("test", "testing"):
+        await init_db()
     yield
 
 
@@ -118,6 +121,10 @@ async def correlation_id_and_timing_middleware(request: Request, call_next):
 app.include_router(health.router)
 app.include_router(health.router, prefix="/api")
 
+# Identity & RBAC Router
+app.include_router(auth.router)
+app.include_router(auth.router, prefix="/api")
+
 # Promise Core Routers
 app.include_router(promises.router)
 app.include_router(promises.router, prefix="/api")
@@ -139,6 +146,10 @@ app.include_router(verifications.router, prefix="/api")
 # Resolution Routers
 app.include_router(resolutions.router)
 app.include_router(resolutions.router, prefix="/api")
+
+# Real-Time Event Streaming Router (Goal 4)
+app.include_router(events.router)
+app.include_router(events.router, prefix="/api")
 
 # PayPal Customer Disputes Routers (Phase 3)
 app.include_router(disputes.router)

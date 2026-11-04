@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import {
@@ -61,7 +61,7 @@ export default function Home() {
   const [resetting, setResetting] = useState(false);
   const [resetSuccess, setResetSuccess] = useState<string | null>(null);
 
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     try {
       setLoading(true);
       const res = await fetchPromises({
@@ -76,11 +76,11 @@ export default function Home() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [categoryFilter, statusFilter, search, globalSearch]);
 
   useEffect(() => {
     loadData();
-  }, [categoryFilter, statusFilter, globalSearch]);
+  }, [loadData]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();

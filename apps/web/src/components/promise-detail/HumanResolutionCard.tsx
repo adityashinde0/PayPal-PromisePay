@@ -1,7 +1,9 @@
 'use client';
 
 import React, { useState } from 'react';
+import { Lock, ShieldAlert } from 'lucide-react';
 import { ResolutionCase, ResolutionDecision } from '@/types/promise';
+import { useAuth } from '@/context/AuthContext';
 
 interface HumanResolutionCardProps {
   resolutionCase: ResolutionCase | null;
@@ -18,8 +20,12 @@ export function HumanResolutionCard({
   onExecuteRefund,
   submittingDecision,
 }: HumanResolutionCardProps) {
+  const { role } = useAuth();
   const [selectedDecision, setSelectedDecision] = useState<ResolutionDecision>('RECOMMEND_REFUND');
   const [decisionReason, setDecisionReason] = useState('');
+
+  const canOpenCase = role === 'BUYER' || role === 'ADMIN';
+  const canAdjudicate = role === 'REVIEWER' || role === 'ADMIN';
 
   const handleDecisionSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -57,13 +63,18 @@ export function HumanResolutionCard({
           >
             Case: {resolutionCase.status.replace(/_/g, ' ')}
           </span>
-        ) : (
+        ) : canOpenCase ? (
           <button
             onClick={onOpenCase}
             className="rounded-lg bg-slate-900 hover:bg-slate-800 text-white px-3.5 py-1.5 text-xs font-semibold shadow-sm transition"
           >
             + Open Review Case
           </button>
+        ) : (
+          <div className="flex items-center gap-1.5 rounded-lg bg-slate-100 border border-slate-200 px-3 py-1.5 text-[11px] font-medium text-slate-500">
+            <Lock className="h-3 w-3" />
+            <span>Buyer Case Action (Role: {role})</span>
+          </div>
         )}
       </div>
 
@@ -151,12 +162,18 @@ export function HumanResolutionCard({
                       Preconditions validated: Human decision signed off. Ready for PayPal Sandbox settlement.
                     </p>
                   </div>
-                  <button
-                    onClick={onExecuteRefund}
-                    className="rounded-lg bg-rose-600 hover:bg-rose-700 text-white px-4 py-2 text-xs font-bold shadow-sm transition whitespace-nowrap"
-                  >
-                    Execute PayPal Refund &rarr;
-                  </button>
+                  {canAdjudicate ? (
+                    <button
+                      onClick={onExecuteRefund}
+                      className="rounded-lg bg-rose-600 hover:bg-rose-700 text-white px-4 py-2 text-xs font-bold shadow-sm transition whitespace-nowrap"
+                    >
+                      Execute PayPal Refund &rarr;
+                    </button>
+                  ) : (
+                    <span className="text-xs font-semibold text-rose-700 bg-rose-50 px-3 py-1.5 rounded-lg border border-rose-200">
+                      Arbitrator Role Required to Refund
+                    </span>
+                  )}
                 </div>
               )}
             </div>
@@ -217,9 +234,16 @@ export function HumanResolutionCard({
                 />
               </div>
 
+              {!canAdjudicate && (
+                <div className="flex items-center gap-2 p-2.5 rounded-lg bg-amber-50 border border-amber-200 text-xs text-amber-800">
+                  <ShieldAlert className="h-4 w-4 shrink-0 text-amber-600" />
+                  <span>Only Arbitrators / Reviewers can record binding decisions. Switch persona in top menu to test.</span>
+                </div>
+              )}
+
               <button
                 type="submit"
-                disabled={submittingDecision}
+                disabled={submittingDecision || !canAdjudicate}
                 className="rounded-lg bg-slate-900 hover:bg-slate-800 text-white px-4 py-2 text-xs font-bold shadow-sm transition disabled:opacity-50"
               >
                 {submittingDecision ? 'Persisting Decision...' : 'Confirm Reviewer Decision'}

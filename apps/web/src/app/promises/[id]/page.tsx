@@ -1,8 +1,9 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
+import { Activity, Bell, Radio, ShieldAlert, CheckCircle2 } from 'lucide-react';
 import {
   EvidenceItem,
   PromiseGraphResponse,
@@ -25,7 +26,10 @@ import {
 import { SubmitEvidenceModal } from '@/components/modals/SubmitEvidenceModal';
 import { OpenCaseModal } from '@/components/modals/OpenCaseModal';
 import { RefundModal } from '@/components/modals/RefundModal';
+import { DisputeDossierModal } from '@/components/modals/DisputeDossierModal';
+import { CancelRefundModal } from '@/components/modals/CancelRefundModal';
 import { AtomicRequirementsCard } from '@/components/promise-detail/AtomicRequirementsCard';
+import { BryntumScheduleCard } from '@/components/promise-detail/BryntumScheduleCard';
 import { EvidenceVaultCard } from '@/components/promise-detail/EvidenceVaultCard';
 import { VerificationReportCard } from '@/components/promise-detail/VerificationReportCard';
 import { HumanResolutionCard } from '@/components/promise-detail/HumanResolutionCard';
@@ -65,10 +69,19 @@ export default function PromiseDetailPage() {
   // Resolution Case State
   const [resolutionCase, setResolutionCase] = useState<ResolutionCase | null>(null);
 
+  // Real-Time Event Streaming (Goal 4)
+  const [streamConnected, setStreamConnected] = useState(false);
+  const [realtimeEvents, setRealtimeEvents] = useState<
+    Array<{ type: string; message: string; timestamp: string }>
+  >([]);
+  const [liveToast, setLiveToast] = useState<{ title: string; message: string } | null>(null);
+
   // Modal States
   const [showEvidenceModal, setShowEvidenceModal] = useState(false);
   const [showOpenCaseModal, setShowOpenCaseModal] = useState(false);
   const [showRefundModal, setShowRefundModal] = useState(false);
+  const [showDossierModal, setShowDossierModal] = useState(false);
+  const [showCancelModal, setShowCancelModal] = useState(false);
 
   // Dispute Dossier Export
   const [downloadingDossier, setDownloadingDossier] = useState(false);
@@ -91,7 +104,7 @@ export default function PromiseDetailPage() {
     }
   };
 
-  const loadPromise = async () => {
+  const loadPromise = useCallback(async () => {
     try {
       setLoading(true);
       const data = await fetchPromise(promiseId);
@@ -126,11 +139,68 @@ export default function PromiseDetailPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [promiseId]);
 
   useEffect(() => {
     if (promiseId) loadPromise();
-  }, [promiseId]);
+  }, [promiseId, loadPromise]);
+
+  // Real-Time Event Streaming SSE Client (Goal 4)
+  useEffect(() => {
+    if (!promiseId) return;
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+    let eventSource: EventSource | null = null;
+
+    try {
+      eventSource = new EventSource(`${API_URL}/api/promises/${promiseId}/events`);
+
+      eventSource.onopen = () => {
+        setStreamConnected(true);
+      };
+
+      eventSource.onerror = () => {
+        setStreamConnected(false);
+      };
+
+      const handleIncomingEvent = (eventType: string, displayTitle: string) => (e: MessageEvent) => {
+        try {
+          const parsed = JSON.parse(e.data);
+          const detailMsg =
+            parsed.data?.summary ||
+            parsed.data?.message ||
+            parsed.message ||
+            `Event: ${eventType.replace(/_/g, ' ')}`;
+
+          setRealtimeEvents((prev) => [
+            { type: eventType, message: detailMsg, timestamp: new Date().toLocaleTimeString() },
+            ...prev.slice(0, 9),
+          ]);
+
+          setLiveToast({ title: displayTitle, message: detailMsg });
+          setTimeout(() => setLiveToast(null), 4500);
+
+          if (
+            ['MERKLE_TREE_SEALED', 'PAYMENT_CAPTURED', 'PAYPAL_DISPUTE_SYNCED', 'PAYPAL_DISPUTE_RESOLVED'].includes(
+              eventType
+            )
+          ) {
+            loadPromise();
+          }
+        } catch {}
+      };
+
+      eventSource.addEventListener('CONNECTED', handleIncomingEvent('CONNECTED', 'Stream Connected'));
+      eventSource.addEventListener('EVIDENCE_SCANNING', handleIncomingEvent('EVIDENCE_SCANNING', 'Evidence Scanning'));
+      eventSource.addEventListener('OCR_EXTRACTING', handleIncomingEvent('OCR_EXTRACTING', 'Multimodal Vision OCR'));
+      eventSource.addEventListener('MERKLE_TREE_SEALED', handleIncomingEvent('MERKLE_TREE_SEALED', 'Merkle Tree Sealed'));
+      eventSource.addEventListener('PAYMENT_CAPTURED', handleIncomingEvent('PAYMENT_CAPTURED', 'Payment Captured'));
+      eventSource.addEventListener('PAYPAL_DISPUTE_SYNCED', handleIncomingEvent('PAYPAL_DISPUTE_SYNCED', 'PayPal Dispute Synced'));
+    } catch {}
+
+    return () => {
+      eventSource?.close();
+    };
+  }, [promiseId, loadPromise]);
 
   const handleCreatePaymentOrder = async (): Promise<string> => {
     if (!promise) throw new Error('Promise is not loaded');
@@ -375,6 +445,67 @@ export default function PromiseDetailPage() {
         </div>
       )}
 
+      {/* Floating Real-Time Event Notification Toast (Goal 4) */}
+      {liveToast && (
+        <div className="fixed bottom-6 right-6 z-50 flex items-start gap-3 rounded-xl border border-blue-200 bg-white p-4 shadow-xl ring-1 ring-black/5 max-w-sm">
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-[#0070BA]">
+            <Radio className="h-4 w-4 animate-pulse" />
+          </div>
+          <div className="flex-1 overflow-hidden">
+            <h4 className="text-xs font-bold text-slate-900">{liveToast.title}</h4>
+            <p className="mt-0.5 text-[11px] text-slate-600 truncate">{liveToast.message}</p>
+          </div>
+          <button
+            onClick={() => setLiveToast(null)}
+            className="text-slate-400 hover:text-slate-600 text-sm font-bold"
+          >
+            &times;
+          </button>
+        </div>
+      )}
+
+      {/* Active PayPal Dispute Badge (Goal 5) */}
+      {(promise.resolution?.status === 'DISPUTED' ||
+        resolutionCase?.caseId?.startsWith('paypal_') ||
+        promise.status === 'REVIEW_REQUIRED') && (
+        <div className="rounded-xl border border-rose-300 bg-rose-50 p-4 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-rose-100 text-rose-700">
+              <ShieldAlert className="h-5 w-5" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="font-bold text-xs text-rose-900">
+                  PayPal Resolution Center Dispute Case
+                </span>
+                <span className="font-mono text-[10px] bg-rose-200 text-rose-800 px-1.5 py-0.5 rounded font-bold">
+                  {promise.resolution?.caseId || resolutionCase?.caseId || 'PP-DISPUTE-ACTIVE'}
+                </span>
+              </div>
+              <p className="text-[11px] text-rose-700 mt-0.5">
+                Dispute Reason: {promise.resolution?.reason || resolutionCase?.reason || 'Deliverable dispute open'}. Cryptographic Merkle dossier ready for PayPal defense.
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setShowDossierModal(true)}
+              className="rounded-lg bg-rose-700 hover:bg-rose-800 text-white px-3.5 py-1.5 text-xs font-bold shadow-xs transition whitespace-nowrap inline-flex items-center gap-1.5"
+            >
+              <span>🛡️</span>
+              <span>View Defense Dossier</span>
+            </button>
+            <button
+              onClick={handleDownloadDossier}
+              disabled={downloadingDossier}
+              className="rounded-lg border border-rose-300 bg-white hover:bg-rose-100 text-rose-800 px-3 py-1.5 text-xs font-semibold shadow-xs transition whitespace-nowrap"
+            >
+              {downloadingDossier ? 'Generating...' : 'Download JSON'}
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Main Header Card */}
       <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -389,13 +520,12 @@ export default function PromiseDetailPage() {
           </div>
           <div className="flex flex-col sm:flex-row sm:items-center gap-4 text-left md:text-right">
             <button
-              onClick={handleDownloadDossier}
-              disabled={downloadingDossier}
+              onClick={() => setShowDossierModal(true)}
               className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-blue-300 bg-blue-50 px-3.5 py-2 text-xs font-semibold text-[#0070BA] hover:bg-blue-100 transition-colors shadow-2xs"
-              title="Download cryptographic package ready for PayPal Resolution Center"
+              title="View and print official cryptographic dossier for PayPal Resolution Center"
             >
               <span>🛡️</span>
-              <span>{downloadingDossier ? 'Generating...' : 'Export Dispute Dossier'}</span>
+              <span>View Dispute Dossier</span>
             </button>
             <div>
               <span className="text-xs uppercase tracking-wider text-slate-400 font-medium">Locked Amount</span>
@@ -431,12 +561,72 @@ export default function PromiseDetailPage() {
             })}
           </div>
         </div>
+
+        {/* Real-Time Agent Verification Stepper & Event Feed (Goal 4) */}
+        <div className="mt-6 border-t border-slate-100 pt-5">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                Live Verification Activity Stream (SSE)
+              </span>
+              <span
+                className={`inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                  streamConnected
+                    ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                    : 'bg-slate-100 text-slate-500'
+                }`}
+              >
+                <span
+                  className={`h-1.5 w-1.5 rounded-full ${
+                    streamConnected ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400'
+                  }`}
+                />
+                {streamConnected ? 'Connected on SSE / Redis' : 'Listening...'}
+              </span>
+            </div>
+            {realtimeEvents.length > 0 && (
+              <span className="text-[10px] text-slate-400">
+                Latest: {realtimeEvents[0].timestamp}
+              </span>
+            )}
+          </div>
+
+          {realtimeEvents.length === 0 ? (
+            <div className="rounded-lg bg-slate-50/80 p-3 border border-slate-200/60 text-xs text-slate-500 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Activity className="h-4 w-4 text-[#0070BA]" />
+                <span>Ready for agent verification events (EVIDENCE_SCANNING, OCR_EXTRACTING, MERKLE_TREE_SEALED)...</span>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-1.5 max-h-40 overflow-y-auto">
+              {realtimeEvents.slice(0, 4).map((ev, i) => (
+                <div
+                  key={i}
+                  className="rounded-lg bg-slate-50 p-2 text-xs border border-slate-200 flex items-center justify-between gap-2"
+                >
+                  <div className="flex items-center gap-2 truncate">
+                    <span className="rounded bg-blue-100 text-[#0070BA] px-1.5 py-0.5 text-[10px] font-bold">
+                      {ev.type}
+                    </span>
+                    <span className="text-slate-700 truncate">{ev.message}</span>
+                  </div>
+                  <span className="text-[10px] text-slate-400 font-mono shrink-0">
+                    {ev.timestamp}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Grid: Requirements, Evidence, Reports, and Actions */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
         {/* Left 2 Cols */}
         <div className="lg:col-span-2 space-y-6">
+          <BryntumScheduleCard promise={promise} />
+
           <AtomicRequirementsCard
             requirements={promise.requirements}
             evidenceList={evidenceList}
@@ -473,6 +663,7 @@ export default function PromiseDetailPage() {
             paying={paying}
             onAddEvidence={() => setShowEvidenceModal(true)}
             onDirectPaySandbox={handleDirectSandboxPayment}
+            onOpenCancelModal={() => setShowCancelModal(true)}
           />
 
           <AuditTimelineCard timeline={promise.timeline} />
@@ -508,6 +699,34 @@ export default function PromiseDetailPage() {
             setRefundSuccessMessage(
               `PayPal Sandbox Refund Successful! Transaction ID: ${result.paypalRefundId} ($${result.amount} ${result.currency})`
             );
+            await loadPromise();
+          }}
+        />
+      )}
+
+      {promise && (
+        <DisputeDossierModal
+          isOpen={showDossierModal}
+          onClose={() => setShowDossierModal(false)}
+          promiseId={promise.promiseId}
+        />
+      )}
+
+      {promise && (
+        <CancelRefundModal
+          isOpen={showCancelModal}
+          onClose={() => setShowCancelModal(false)}
+          promise={promise}
+          onSuccess={async (result) => {
+            if (result.refundExecuted) {
+              setRefundSuccessMessage(
+                `Agreement Cancelled & Fully Refunded via PayPal! Refund ID: ${result.paypalRefundId} ($${result.amount} ${result.currency})`
+              );
+            } else {
+              setRefundSuccessMessage(
+                `Agreement Cancelled successfully before payment execution.`
+              );
+            }
             await loadPromise();
           }}
         />

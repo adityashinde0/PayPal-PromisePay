@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { AuthProvider } from '@/context/AuthContext';
 import { DashboardProvider, useDashboard } from '@/context/DashboardContext';
 import { Sidebar } from './Sidebar';
 import { TopNavbar } from './TopNavbar';
@@ -36,8 +37,10 @@ function AppShellInner({ children }: AppShellProps) {
 
 export function AppShell({ children }: AppShellProps) {
   return (
-    <DashboardProvider>
-      <AppShellInner>{children}</AppShellInner>
-    </DashboardProvider>
+    <AuthProvider>
+      <DashboardProvider>
+        <AppShellInner>{children}</AppShellInner>
+      </DashboardProvider>
+    </AuthProvider>
   );
 }

@@ -190,7 +190,7 @@ export interface EvidenceProvenance {
   scannerStatus: string;
   scannerVersion: string;
   isClaimOnly: boolean;
-  metadata?: Record<string, unknown>;
+  metadata?: Record<string, any>;
 }
 
 export interface EvidenceItem {

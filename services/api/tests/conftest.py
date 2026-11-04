@@ -1,5 +1,9 @@
 """Pytest configuration and test client fixtures."""
 
+import os
+os.environ["APP_ENV"] = "test"
+os.environ["REDIS_URL"] = "disabled"
+
 import pytest
 from fastapi.testclient import TestClient
 
@@ -20,6 +24,9 @@ def isolate_test_environment(monkeypatch, tmp_path):
     monkeypatch.setattr(paypal_client, "webhook_id", "")
     monkeypatch.setattr("promisepay_api.config.settings.ai_api_key", "")
     monkeypatch.setattr("promisepay_api.config.settings.app_env", "test")
+    monkeypatch.setattr("promisepay_api.config.settings.redis_url", "disabled")
+    from promisepay_api.services.queue import job_queue
+    monkeypatch.setattr(job_queue, "_redis", False)
     monkeypatch.setattr(
         "promisepay_api.routers.webhooks._STORAGE_FILE", tmp_path / "test_events.txt"
     )

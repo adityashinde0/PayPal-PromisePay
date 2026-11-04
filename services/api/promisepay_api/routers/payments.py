@@ -8,6 +8,7 @@ from pydantic import BaseModel
 
 from promisepay_api.auth import AuthenticatedUser, require_roles
 from promisepay_api.models.promise import AuditTimelineEvent, PromiseStatus
+from promisepay_api.services.event_broadcaster import event_broadcaster
 from promisepay_api.services.lock import lock_manager
 from promisepay_api.services.paypal_client import paypal_client
 from promisepay_api.services.promise_store import promise_store
@@ -180,6 +181,18 @@ async def capture_payment_order(
             )
         )
 
+        # Broadcast payment captured event (Goal 4)
+        await event_broadcaster.broadcast_event(
+            promise_id=promise_id,
+            event_type="PAYMENT_CAPTURED",
+            payload={
+                "paypalCaptureId": capture_id,
+                "amount": record.amount.value,
+                "currency": record.amount.currencyCode,
+                "status": "PAID",
+            },
+        )
+
         res = CapturePaymentOrderResponse(
             promiseId=promise_id,
             paypalOrderId=paypal_order_id,
@@ -209,6 +222,40 @@ class PayoutResponse(BaseModel):
     recipientEmail: str
     amount: str
     currency: str
+
+
+class PartnerReferralRequest(BaseModel):
+    trackingId: Optional[str] = None
+    returnUrl: Optional[str] = "http://localhost:3000/settings"
+
+
+@router.post(
+    "/partner-referrals",
+    summary="Create PayPal Partner Referral onboarding URL (Goal 3)",
+)
+async def create_partner_referral(
+    payload: PartnerReferralRequest,
+    current_user: AuthenticatedUser = Depends(require_roles(["SELLER", "ADMIN"])),
+):
+    """Generates automated onboarding link for merchants to connect PayPal business accounts."""
+    tracking_id = payload.trackingId or f"track_{current_user.userId}"
+    referral = await paypal_client.create_partner_referral(
+        tracking_id=tracking_id,
+        return_url=payload.returnUrl or "http://localhost:3000/settings",
+    )
+    return referral
+
+
+@router.get(
+    "/merchants/{merchant_id}/status",
+    summary="Query PayPal merchant account onboarding status (Goal 3)",
+)
+async def get_merchant_status(
+    merchant_id: str,
+    current_user: AuthenticatedUser = Depends(require_roles(["BUYER", "SELLER", "REVIEWER", "ADMIN"])),
+):
+    """Returns real-time PayPal onboarding and PPCP capability readiness."""
+    return await paypal_client.get_merchant_status(merchant_id=merchant_id)
 
 
 @router.post(

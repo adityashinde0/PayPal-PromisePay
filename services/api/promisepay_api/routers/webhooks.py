@@ -8,6 +8,7 @@ from typing import Set
 from fastapi import APIRouter, HTTPException, Request, status
 
 from promisepay_api.models.promise import AuditTimelineEvent, PromiseStatus
+from promisepay_api.services.event_broadcaster import event_broadcaster
 from promisepay_api.services.paypal_client import paypal_client
 from promisepay_api.services.promise_store import promise_store
 
@@ -161,16 +162,21 @@ async def handle_paypal_webhook(request: Request):
 
         elif event_type in ("CUSTOMER.DISPUTE.CREATED", "CUSTOMER.DISPUTE.UPDATED"):
             dispute_id = resource.get("dispute_id") or resource.get("id")
+            dispute_reason = resource.get("reason") or "Buyer raised issue with deliverable"
             target_promise.status = PromiseStatus.REVIEW_REQUIRED
+            target_promise.resolution.caseId = f"paypal_{dispute_id}"
+            target_promise.resolution.status = "DISPUTED"
+            target_promise.resolution.reason = dispute_reason
+
             target_promise.timeline.append(
                 AuditTimelineEvent(
                     timestamp=now,
                     actor="PayPal Disputes Webhook",
                     eventType="PAYPAL_DISPUTE_OPENED",
-                    summary=f"PayPal Dispute {dispute_id} opened. Initiating automated Merkle dossier compilation.",
+                    summary=f"PayPal Dispute {dispute_id} opened ({dispute_reason}). Auto-compiling sealed Merkle dossier.",
                 )
             )
-            # Programmatically compile and upload cryptographic evidence dossier
+            # Programmatically compile and upload cryptographic evidence dossier (Goal 5)
             if dispute_id:
                 try:
                     from promisepay_api.routers.resolutions import generate_dispute_defense_dossier
@@ -183,9 +189,37 @@ async def handle_paypal_webhook(request: Request):
                         "Automatically provided cryptographic Merkle dossier for dispute %s",
                         dispute_id,
                     )
+                    await event_broadcaster.broadcast_event(
+                        promise_id=target_promise.promise_id,
+                        event_type="PAYPAL_DISPUTE_SYNCED",
+                        payload={
+                            "disputeId": dispute_id,
+                            "disputeReason": dispute_reason,
+                            "merkleRoot": dossier.get("cryptographicProof", {}).get("merkle_root"),
+                            "status": "DOSSIER_AUTO_SUBMITTED",
+                        },
+                    )
                 except Exception as exc:
                     logger.warning(
                         "Failed to auto-submit dispute dossier for %s: %s", dispute_id, exc
                     )
+
+        elif event_type == "CUSTOMER.DISPUTE.RESOLVED":
+            dispute_id = resource.get("dispute_id") or resource.get("id")
+            outcome = resource.get("dispute_outcome", {}).get("outcome_code", "RESOLVED")
+            target_promise.resolution.status = f"RESOLVED_{outcome}"
+            target_promise.timeline.append(
+                AuditTimelineEvent(
+                    timestamp=now,
+                    actor="PayPal Disputes Webhook",
+                    eventType="PAYPAL_DISPUTE_RESOLVED",
+                    summary=f"PayPal Dispute {dispute_id} resolved with outcome: {outcome}.",
+                )
+            )
+            await event_broadcaster.broadcast_event(
+                promise_id=target_promise.promise_id,
+                event_type="PAYPAL_DISPUTE_RESOLVED",
+                payload={"disputeId": dispute_id, "outcome": outcome},
+            )
 
     return {"status": "processed", "eventId": event_id, "eventType": event_type}

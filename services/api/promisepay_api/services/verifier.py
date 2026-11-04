@@ -25,6 +25,7 @@ from promisepay_api.models.verification import (
     VerificationStatus,
 )
 from promisepay_api.services.dlp import scrub_pii
+from promisepay_api.services.event_broadcaster import event_broadcaster
 from promisepay_api.services.evidence_store import evidence_store
 from promisepay_api.services.promise_store import promise_store
 
@@ -522,6 +523,13 @@ async def execute_verification_run(
     )
     verification_store.save_run(run)
 
+    # Broadcast initial scanning event (Goal 4)
+    await event_broadcaster.broadcast_event(
+        promise_id=promise_id,
+        event_type="EVIDENCE_SCANNING",
+        payload={"evidenceCount": len(frozen_evidence), "manifestHash": manifest_hash},
+    )
+
     # Process all requirements
     results: List[RequirementFinding] = []
     manifest_id_set = {e.evidenceId for e in frozen_evidence}
@@ -541,6 +549,18 @@ async def execute_verification_run(
 
         finding = await _run_ai_model_analysis(req, linked, manifest_id_set)
         results.append(finding)
+
+        # Broadcast per-requirement progress (Goal 4)
+        await event_broadcaster.broadcast_event(
+            promise_id=promise_id,
+            event_type=f"AI_ANALYZING_REQUIREMENT_{req.key}",
+            payload={
+                "requirementKey": req.key,
+                "title": req.title,
+                "status": finding.status.value,
+                "confidence": finding.confidence,
+            },
+        )
 
     # Calculate overall confidence and outcome policy
     if results:
@@ -602,6 +622,18 @@ async def execute_verification_run(
             eventType="AI_VERIFICATION_COMPLETED",
             summary=f"Run {run_id} evaluated {len(results)} requirements against evidence manifest {manifest_hash[:8]}. Outcome: {outcome.value} (Confidence: {overall_conf:.0%}).",
         )
+    )
+
+    # Broadcast sealed completion event (Goal 4)
+    await event_broadcaster.broadcast_event(
+        promise_id=promise_id,
+        event_type="MERKLE_TREE_SEALED",
+        payload={
+            "runId": run_id,
+            "outcome": outcome.value,
+            "overallConfidence": overall_conf,
+            "status": promise.status.value,
+        },
     )
 
     return run

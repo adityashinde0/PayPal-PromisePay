@@ -55,3 +55,11 @@
 **Why:** Supabase/Postgres gives durable transactions, tenant policies, and a fast implementation path for the MVP.
 
 **Consequence:** The API creates graph projections for UI; a dedicated graph database is a later optimization, not a prerequisite.
+
+## ADR-008 — Non-custodial compliance & regulatory boundaries
+
+**Decision:** PromisePay remains strictly non-custodial. All payment custody, authorizations, captures, delays, and disbursements reside exclusively with PayPal Inc. under its money transmitter and banking licenses.
+
+**Why:** Under US FinCEN MSB regulations, state escrow statutes, and EU/UK PSD2/FCA directives, holding user funds in custody requires multi-million dollar reserves and statutory licenses.
+
+**Consequence:** PromisePay provides proof-of-outcome auditing, cryptographic Merkle sealing, and structured dispute dossiers. When PayPal Complete Payments (PPCP) for Marketplaces is used, funds are placed on delayed disbursement within PayPal, never in a PromisePay account. Read [REGULATORY_COMPLIANCE.md](REGULATORY_COMPLIANCE.md) for full legal analysis.

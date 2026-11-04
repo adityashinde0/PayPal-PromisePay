@@ -1,6 +1,8 @@
 """Evidence API Router for Phase 3."""
 
+import base64
 import json
+import logging
 from typing import Optional
 
 from fastapi import APIRouter, File, Form, HTTPException, Request, Response, UploadFile, status
@@ -18,7 +20,11 @@ from promisepay_api.services.evidence_guard import (
     validate_file_metadata,
 )
 from promisepay_api.services.evidence_store import evidence_store
+from promisepay_api.services.multimodal_ai import multimodal_ai
 from promisepay_api.services.promise_store import promise_store
+from promisepay_api.services.scraper import scraper
+
+logger = logging.getLogger("promisepay-evidence")
 
 router = APIRouter(prefix="/promises", tags=["Evidence"])
 
@@ -108,6 +114,17 @@ async def register_evidence(
 
     try:
         record = evidence_store.register_evidence(promise, request_data)
+        if request_data.kind in ("live_url", "url_snapshot", "repository", "git_repository") and request_data.source:
+            try:
+                crawl_res = await scraper.scrape_deliverable(request_data.source)
+                if record.provenance:
+                    record.provenance.metadata["crawler"] = crawl_res
+                    record.provenance.metadata["screenshotBase64"] = crawl_res.get("screenshotBase64")
+                    record.provenance.metadata["latencyMs"] = crawl_res.get("latencyMs")
+                    record.provenance.metadata["statusCode"] = crawl_res.get("statusCode")
+            except Exception as exc:
+                logger.warning("Scraper fallback: %s", exc)
+
         base_url = str(request.base_url).rstrip("/")
         return record.to_response(base_url=base_url)
     except ValueError as err:
@@ -192,6 +209,25 @@ async def upload_evidence_file_direct(
 
     try:
         record = evidence_store.register_evidence(promise, reg_req)
+        try:
+            reqs = [
+                {"id": getattr(r, "id", None) or r.key, "key": r.key, "title": r.title}
+                for r in promise.current_requirements
+            ]
+            ocr_result = await multimodal_ai.extract_document_ocr(
+                file_bytes=file_bytes,
+                mime_type=mime_type,
+                requirements=reqs,
+            )
+            if record.provenance:
+                record.provenance.metadata["multimodalAi"] = ocr_result
+                if mime_type.startswith("image/"):
+                    record.provenance.metadata["screenshotBase64"] = (
+                        f"data:{mime_type};base64,{base64.b64encode(file_bytes).decode('utf-8')}"
+                    )
+        except Exception as exc:
+            logger.warning("Multimodal AI extraction fallback: %s", exc)
+
         return record.to_response(base_url=base_url)
     except ValueError as err:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(err)) from err

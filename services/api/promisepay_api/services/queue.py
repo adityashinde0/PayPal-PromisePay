@@ -3,7 +3,9 @@
 import asyncio
 import json
 import logging
+import socket
 from typing import Any, Dict, Optional
+from urllib.parse import urlparse
 
 from promisepay_api.config import settings
 
@@ -35,12 +37,19 @@ class VerificationJobQueue:
             return None
         if self._redis is None and aioredis:
             try:
+                # Fast TCP probe to prevent Windows Proactor socket hanging when Redis is absent
+                parsed = urlparse(settings.redis_url)
+                host = parsed.hostname or "localhost"
+                port = parsed.port or 6379
+                sock = socket.create_connection((host, port), timeout=0.1)
+                sock.close()
+
                 client = aioredis.from_url(
                     settings.redis_url,
-                    socket_connect_timeout=0.1,
+                    socket_connect_timeout=0.2,
                     decode_responses=True,
                 )
-                await asyncio.wait_for(client.ping(), timeout=0.1)
+                await asyncio.wait_for(client.ping(), timeout=0.2)
                 self._redis = client
             except Exception:
                 self._redis = False

@@ -18,13 +18,21 @@ import {
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
 function getAuthHeaders(extra?: Record<string, string>): Record<string, string> {
-  const token =
-    typeof window !== 'undefined'
-      ? localStorage.getItem('promisepay_auth_token') || 'test_token_admin'
-      : 'test_token_admin';
+  let token = 'test_token_admin';
+  let role = 'ADMIN';
+  if (typeof window !== 'undefined') {
+    token = localStorage.getItem('promisepay_auth_token') || 'test_token_admin';
+    try {
+      const stored = localStorage.getItem('promisepay_user');
+      if (stored) {
+        role = JSON.parse(stored).role || 'ADMIN';
+      }
+    } catch {}
+  }
 
   return {
     Authorization: `Bearer ${token}`,
+    'X-User-Role': role,
     ...extra,
   };
 }
@@ -361,5 +369,35 @@ export async function executeCaseRefund(
 export async function fetchDisputeDefenseDossier(promiseId: string): Promise<any> {
   const res = await fetch(`${API_BASE}/api/promises/${promiseId}/dispute-defense-dossier`);
   if (!res.ok) throw new Error(`Failed to fetch dispute defense dossier for ${promiseId}`);
+  return res.json();
+}
+
+export async function cancelPromiseAndRefund(
+  promiseId: string,
+  payload: {
+    reason: string;
+    cancellationType?: 'USER_CANCELLED' | 'SLA_TIMEOUT_NOT_DELIVERED';
+    actor?: string;
+  }
+): Promise<{
+  status: string;
+  promiseId: string;
+  refundExecuted: boolean;
+  paypalRefundId?: string;
+  amount?: string;
+  currency?: string;
+  cancellationType: string;
+  reason: string;
+  promise: PromiseGraphResponse;
+}> {
+  const res = await fetch(`${API_BASE}/api/promises/${promiseId}/cancel`, {
+    method: 'POST',
+    headers: getAuthHeaders({ 'Content-Type': 'application/json' }),
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.detail || 'Failed to cancel and refund promise');
+  }
   return res.json();
 }

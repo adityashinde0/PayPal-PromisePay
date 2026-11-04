@@ -89,6 +89,7 @@ See [IMPLEMENTATION_PLAN.md](doc/IMPLEMENTATION_PLAN.md) for the exact adaptatio
 - [API_SPEC.md](doc/API_SPEC.md) — PromisePay API contract
 - [DATABASE_SCHEMA.md](doc/DATABASE_SCHEMA.md) — PostgreSQL model and access controls
 - [AI_DESIGN.md](doc/AI_DESIGN.md) — structured AI workflow and safety rails
+- [AI_ENGINEERING_DEEP_DIVE.md](doc/AI_ENGINEERING_DEEP_DIVE.md) — in-depth technical analysis of AI pipelines, anti-injection, DLP, and professional developer boundaries
 - [PAYPAL_INTEGRATION.md](doc/PAYPAL_INTEGRATION.md) — Sandbox integration contract
 - [EVIDENCE_VERIFICATION.md](doc/EVIDENCE_VERIFICATION.md) — evidence/provenance and scoring
 - [SECURITY.md](doc/SECURITY.md) — threat model and controls
@@ -96,6 +97,9 @@ See [IMPLEMENTATION_PLAN.md](doc/IMPLEMENTATION_PLAN.md) for the exact adaptatio
 - [DEMO_GUIDE.md](doc/DEMO_GUIDE.md) — reproducible end-to-end demo
 - [DECISIONS.md](doc/DECISIONS.md) — architecture decision records
 - [STRATEGIC_IMPROVEMENTS.md](doc/STRATEGIC_IMPROVEMENTS.md) — roadmap, game-theory solutions, and strategic feature enhancements
+- [INDUSTRY_READY_ROADMAP.md](doc/INDUSTRY_READY_ROADMAP.md) — system audit and production-grade V2 live platform roadmap
+- [REGULATORY_COMPLIANCE.md](doc/REGULATORY_COMPLIANCE.md) — money transmission laws, escrow regulations, PPCP marketplace policies, and PCI-DSS compliance
+- [SPONSOR_INTEGRATIONS.md](doc/SPONSOR_INTEGRATIONS.md) — comprehensive guide & integration blueprint for all 10 hackathon sponsor tools
 
 ## License
 

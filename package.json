@@ -12,7 +12,7 @@
     "build:web": "npm --prefix apps/web run build",
     "lint:python": "node infra/scripts/run_python.js -m ruff check services infra",
     "lint:web": "npm --prefix apps/web run lint",
-    "lint": "npm run lint:python",
+    "lint": "npm run lint:python && npm run lint:web",
     "format:check": "node infra/scripts/run_python.js -m ruff format --check services infra",
     "format": "node infra/scripts/run_python.js -m ruff format services infra",
     "test:api": "node infra/scripts/run_python.js -m pytest services/api",

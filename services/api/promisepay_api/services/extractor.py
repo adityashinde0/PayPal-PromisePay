@@ -118,11 +118,13 @@ async def extract_requirements(
     category: PromiseCategory, promise_text: str
 ) -> List[AtomicRequirement]:
     """Extracts atomic requirements from agreement text using AI provider or fallback."""
+    category_str = category.value if hasattr(category, "value") else str(category)
+
     # Pre-filter hostile prompt injection before sending to AI provider
     if detect_hostile_input(promise_text):
         logger.warning(
             "Adversarial prompt injection pattern detected in agreement text for category %s.",
-            category.value,
+            category_str,
         )
         raise ValueError(
             "Security Violation: Hostile prompt injection pattern detected in agreement text."
@@ -133,7 +135,7 @@ async def extract_requirements(
     if redacted_count > 0:
         logger.info(
             "dlp_pii_sanitized",
-            extra={"redacted_count": redacted_count, "category": category.value},
+            extra={"redacted_count": redacted_count, "category": category_str},
         )
 
     if not settings.ai_api_key or settings.ai_api_key == "disabled":
@@ -162,7 +164,7 @@ async def extract_requirements(
                     {
                         "parts": [
                             {
-                                "text": f"{system_prompt}\n\nCategory: {category.value}\nAgreement: {promise_text}"
+                                "text": f"{system_prompt}\n\nCategory: {category_str}\nAgreement: {promise_text}"
                             }
                         ]
                     }

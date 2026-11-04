@@ -14,6 +14,7 @@ interface PaymentEscrowCardProps {
   paying: boolean;
   onAddEvidence: () => void;
   onDirectPaySandbox?: () => Promise<void>;
+  onOpenCancelModal?: () => void;
 }
 
 export function PaymentEscrowCard({
@@ -25,11 +26,16 @@ export function PaymentEscrowCard({
   paying,
   onAddEvidence,
   onDirectPaySandbox,
+  onOpenCancelModal,
 }: PaymentEscrowCardProps) {
   const isCaptured = promise.payment.state === 'CAPTURED';
+  const isRefunded = promise.payment.state === 'REFUNDED';
+  const isCancelled = promise.status === 'CANCELLED';
   const isReady = promise.status === 'READY_FOR_PAYMENT';
   const canAddEvidence =
-    isCaptured || promise.status === 'PAID' || promise.status === 'EVIDENCE_SUBMITTED';
+    (isCaptured || promise.status === 'PAID' || promise.status === 'EVIDENCE_SUBMITTED') &&
+    !isCancelled &&
+    !isRefunded;
 
   const [checkoutNotice, setCheckoutNotice] = useState<string | null>(null);
 
@@ -52,7 +58,11 @@ export function PaymentEscrowCard({
           <span className="text-slate-400">Payment State:</span>
           <span
             className={`font-semibold ${
-              isCaptured ? 'text-emerald-700' : 'text-slate-800'
+              isRefunded
+                ? 'text-rose-700 font-bold'
+                : isCaptured
+                ? 'text-emerald-700'
+                : 'text-slate-800'
             }`}
           >
             {promise.payment.state}
@@ -84,8 +94,31 @@ export function PaymentEscrowCard({
         </div>
       )}
 
+      {/* Refunded Banner */}
+      {isRefunded && (
+        <div className="rounded-lg bg-rose-50 p-3 border border-rose-200 text-xs text-rose-800 space-y-1">
+          <div className="font-bold flex items-center gap-1.5">
+            <span>↩️</span>
+            <span>Fully Refunded via PayPal</span>
+          </div>
+          <p className="text-[11px] text-rose-700">
+            Funds of ${promise.amount.value} {promise.amount.currencyCode} have been returned to the buyer via PayPal.
+          </p>
+        </div>
+      )}
+
+      {/* Cancelled Unpaid Banner */}
+      {isCancelled && !isRefunded && (
+        <div className="rounded-lg bg-slate-100 p-3 border border-slate-200 text-xs text-slate-700 space-y-1">
+          <div className="font-bold">🚫 Agreement Cancelled</div>
+          <p className="text-[11px] text-slate-600">
+            This agreement was cancelled before payment was captured. No charge was incurred.
+          </p>
+        </div>
+      )}
+
       {/* Action Area based on status */}
-      {isReady && (
+      {isReady && !isCancelled && (
         <div className="pt-2 border-t border-slate-100 space-y-3">
           <div className="rounded-lg bg-blue-50 p-3 border border-blue-200 text-xs text-blue-800">
             Requirements are locked. Buyer must approve checkout via the official PayPal modal to hold funds in conditional escrow.
@@ -170,6 +203,24 @@ export function PaymentEscrowCard({
             className="w-full rounded-lg bg-slate-900 hover:bg-slate-800 text-white py-2 text-xs font-bold shadow transition"
           >
             + Add More Evidence
+          </button>
+        </div>
+      )}
+
+      {/* Cancellation / Non-Delivery Refund Action */}
+      {onOpenCancelModal && !isCancelled && !isRefunded && promise.status !== 'COMPLETE' && (
+        <div className="pt-2 border-t border-slate-100">
+          <button
+            type="button"
+            onClick={onOpenCancelModal}
+            className="w-full inline-flex items-center justify-center gap-1.5 rounded-lg border border-rose-200 bg-rose-50/70 hover:bg-rose-100 py-1.5 text-xs font-semibold text-rose-800 transition shadow-2xs"
+          >
+            <span>⏱️</span>
+            <span>
+              {isCaptured
+                ? 'Cancel Agreement & Refund via PayPal'
+                : 'Cancel Agreement'}
+            </span>
           </button>
         </div>
       )}
