@@ -11,7 +11,9 @@ import json
 import logging
 import time
 from typing import Any, AsyncGenerator, Dict, Set
+
 import httpx
+
 from promisepay_api.config import settings
 
 logger = logging.getLogger("promisepay-events")
@@ -94,7 +96,9 @@ class EventBroadcaster:
             try:
                 q.put_nowait(event_obj)
             except asyncio.QueueFull:
-                logger.warning("Subscriber queue full on promise %s; dropping oldest message", promise_id)
+                logger.warning(
+                    "Subscriber queue full on promise %s; dropping oldest message", promise_id
+                )
                 try:
                     q.get_nowait()
                     q.put_nowait(event_obj)
@@ -112,15 +116,27 @@ class EventBroadcaster:
                 res = await client.post(
                     settings.zapier_webhook_url,
                     json=event_obj,
-                    headers={"Content-Type": "application/json", "User-Agent": "PayPal-PromisePay/1.0"},
+                    headers={
+                        "Content-Type": "application/json",
+                        "User-Agent": "PayPal-PromisePay/1.0",
+                    },
                 )
                 if res.status_code >= 400:
-                    logger.warning("Zapier webhook returned status %s for event %s", res.status_code, event_obj.get("eventType"))
+                    logger.warning(
+                        "Zapier webhook returned status %s for event %s",
+                        res.status_code,
+                        event_obj.get("eventType"),
+                    )
                 else:
-                    logger.info("Successfully delivered event %s to Zapier", event_obj.get("eventType"))
+                    logger.info(
+                        "Successfully delivered event %s to Zapier", event_obj.get("eventType")
+                    )
         except Exception as e:
-            logger.warning("Failed to dispatch Zapier webhook for promise %s: %s", event_obj.get("promiseId"), e)
+            logger.warning(
+                "Failed to dispatch Zapier webhook for promise %s: %s",
+                event_obj.get("promiseId"),
+                e,
+            )
 
 
 event_broadcaster = EventBroadcaster()
-

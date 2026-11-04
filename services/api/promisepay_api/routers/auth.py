@@ -91,7 +91,12 @@ async def login(req: LoginRequest):
     return AuthResponse(token=token, user=user)
 
 
-@router.post("/signup", response_model=AuthResponse, status_code=status.HTTP_201_CREATED, summary="Sign up new tenant user")
+@router.post(
+    "/signup",
+    response_model=AuthResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Sign up new tenant user",
+)
 async def signup(req: SignUpRequest):
     """Registers a new user and organization membership with role claims."""
     email_clean = req.email.lower().strip()
@@ -110,14 +115,20 @@ async def signup(req: SignUpRequest):
     return AuthResponse(token=token, user=user)
 
 
-@router.get("/me", response_model=AuthenticatedUser, summary="Get current authenticated user profile")
+@router.get(
+    "/me", response_model=AuthenticatedUser, summary="Get current authenticated user profile"
+)
 async def get_me(current_user: AuthenticatedUser = Depends(get_current_user)):
     """Returns the verified profile and role claims for the calling session."""
     return current_user
 
 
-@router.post("/switch-role", response_model=AuthResponse, summary="Quick-switch role for demo/testing")
-async def switch_role(req: SwitchRoleRequest, current_user: AuthenticatedUser = Depends(get_current_user)):
+@router.post(
+    "/switch-role", response_model=AuthResponse, summary="Quick-switch role for demo/testing"
+)
+async def switch_role(
+    req: SwitchRoleRequest, current_user: AuthenticatedUser = Depends(get_current_user)
+):
     """Issues a new JWT with updated role claims for seamless role demonstration."""
     target_role = req.targetRole.upper()
     if target_role not in ("BUYER", "SELLER", "REVIEWER", "ADMIN"):
@@ -139,4 +150,3 @@ async def switch_role(req: SwitchRoleRequest, current_user: AuthenticatedUser = 
         organizationId=current_user.organizationId,
     )
     return AuthResponse(token=token, user=user)
-

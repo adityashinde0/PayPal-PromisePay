@@ -46,7 +46,9 @@ class MultimodalAiService:
             try:
                 return await self._call_gemini_vision(file_bytes, mime_type, requirements)
             except Exception as exc:
-                logger.warning("Gemini Vision API invocation error: %s. Using deterministic fallback.", exc)
+                logger.warning(
+                    "Gemini Vision API invocation error: %s. Using deterministic fallback.", exc
+                )
 
         # Deterministic Document AI & Vision OCR Simulation
         return self._simulate_document_ocr(file_bytes, mime_type, requirements)
@@ -59,7 +61,9 @@ class MultimodalAiService:
     ) -> Dict[str, Any]:
         """Calls Google Gemini Vision REST API directly with image payload."""
         b64_data = base64.b64encode(file_bytes).decode("utf-8")
-        req_list_text = "\n".join([f"- {r.get('key', 'REQ')}: {r.get('title')}" for r in requirements])
+        req_list_text = "\n".join(
+            [f"- {r.get('key', 'REQ')}: {r.get('title')}" for r in requirements]
+        )
 
         prompt = f"""You are an enterprise AI document auditor for PayPal PromisePay.
 Analyze this submitted deliverable / invoice / screenshot.
@@ -121,6 +125,7 @@ Respond STRICTLY in valid JSON with format:
         width, height = 1200, 800
         try:
             import io
+
             with Image.open(io.BytesIO(file_bytes)) as img:
                 width, height = img.size
         except Exception:
@@ -128,8 +133,16 @@ Respond STRICTLY in valid JSON with format:
 
         extracted_entities = [
             {"label": "DOCUMENT_DIMENSIONS", "value": f"{width}x{height}px", "confidence": 1.0},
-            {"label": "DIGITAL_SIGNATURE", "value": "Verified Cryptographic Milestone Sign-off", "confidence": 0.98},
-            {"label": "INSPECTION_TIMESTAMP", "value": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()), "confidence": 1.0},
+            {
+                "label": "DIGITAL_SIGNATURE",
+                "value": "Verified Cryptographic Milestone Sign-off",
+                "confidence": 0.98,
+            },
+            {
+                "label": "INSPECTION_TIMESTAMP",
+                "value": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+                "confidence": 1.0,
+            },
         ]
 
         mappings = []
@@ -160,4 +173,3 @@ Respond STRICTLY in valid JSON with format:
 
 
 multimodal_ai = MultimodalAiService()
-

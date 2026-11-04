@@ -75,4 +75,3 @@ async def publish_promise_event(promise_id: str, body: ManualEventRequest):
         payload=body.payload,
     )
     return {"status": "BROADCASTED", "promiseId": promise_id, "eventType": body.eventType}
-

@@ -60,7 +60,11 @@ def create_access_token(
     expires_delta_seconds: int = 86400,
 ) -> str:
     """Generates a cryptographically signed JWT for a user session."""
-    secret = settings.supabase_jwt_secret or settings.session_secret or "promisepay-secret-key-32chars-min!!"
+    secret = (
+        settings.supabase_jwt_secret
+        or settings.session_secret
+        or "promisepay-secret-key-32chars-min!!"
+    )
     payload: Dict[str, Any] = {
         "sub": user_id,
         "email": email,
@@ -90,11 +94,19 @@ def verify_live_jwt(token: str) -> Optional[AuthenticatedUser]:
             )
             return _extract_user_from_payload(payload)
         except Exception as exc:
-            logger.debug("JWKS verification not matched: %s. Trying symmetric secret fallback...", exc)
+            logger.debug(
+                "JWKS verification not matched: %s. Trying symmetric secret fallback...", exc
+            )
 
     # 2. Attempt symmetric verification (HS256) via Supabase JWT secret or session secret
     secrets_to_try = [
-        s for s in [settings.supabase_jwt_secret, settings.session_secret, "promisepay-secret-key-32chars-min!!"] if s
+        s
+        for s in [
+            settings.supabase_jwt_secret,
+            settings.session_secret,
+            "promisepay-secret-key-32chars-min!!",
+        ]
+        if s
     ]
     for secret in secrets_to_try:
         try:
@@ -125,12 +137,7 @@ def _extract_user_from_payload(payload: Dict[str, Any]) -> AuthenticatedUser:
     # Extract role prioritizing app_metadata, user_metadata, then top-level claim
     app_meta = payload.get("app_metadata") or {}
     user_meta = payload.get("user_metadata") or {}
-    role = (
-        app_meta.get("role")
-        or user_meta.get("role")
-        or payload.get("role")
-        or "BUYER"
-    ).upper()
+    role = (app_meta.get("role") or user_meta.get("role") or payload.get("role") or "BUYER").upper()
 
     org_id = (
         app_meta.get("org_id")

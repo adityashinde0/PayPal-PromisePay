@@ -252,7 +252,9 @@ async def create_partner_referral(
 )
 async def get_merchant_status(
     merchant_id: str,
-    current_user: AuthenticatedUser = Depends(require_roles(["BUYER", "SELLER", "REVIEWER", "ADMIN"])),
+    current_user: AuthenticatedUser = Depends(
+        require_roles(["BUYER", "SELLER", "REVIEWER", "ADMIN"])
+    ),
 ):
     """Returns real-time PayPal onboarding and PPCP capability readiness."""
     return await paypal_client.get_merchant_status(merchant_id=merchant_id)

@@ -581,7 +581,6 @@ class PayPalClient:
                 return res.json()
             raise RuntimeError(f"PayPal Query Payouts failed ({res.status_code}): {res.text}")
 
-
     async def create_partner_referral(
         self,
         tracking_id: str,
@@ -593,7 +592,11 @@ class PayPalClient:
                 f"https://www.{'sandbox.' if settings.paypal_env.lower() != 'production' else ''}"
                 f"paypal.com/bizsignup/partner/entry?referralToken=MOCK_REF_{uuid.uuid4().hex[:12]}"
             )
-            logger.info("Generated PayPal Partner Referral URL for tracking %s (%s)", tracking_id, action_url)
+            logger.info(
+                "Generated PayPal Partner Referral URL for tracking %s (%s)",
+                tracking_id,
+                action_url,
+            )
             return {
                 "referralId": f"ref_{uuid.uuid4().hex[:12]}",
                 "actionUrl": action_url,
@@ -615,7 +618,12 @@ class PayPalClient:
                             "integration_method": "PAYPAL",
                             "integration_type": "THIRD_PARTY",
                             "third_party_details": {
-                                "features": ["PAYMENT", "REFUND", "DELAYED_DISBURSEMENT", "PARTNER_FEE"]
+                                "features": [
+                                    "PAYMENT",
+                                    "REFUND",
+                                    "DELAYED_DISBURSEMENT",
+                                    "PARTNER_FEE",
+                                ]
                             },
                         }
                     },
@@ -635,7 +643,11 @@ class PayPalClient:
             if res.status_code in (200, 201):
                 data = res.json()
                 action_url = next(
-                    (link["href"] for link in data.get("links", []) if link.get("rel") == "action_url"),
+                    (
+                        link["href"]
+                        for link in data.get("links", [])
+                        if link.get("rel") == "action_url"
+                    ),
                     f"https://www.{'sandbox.' if settings.paypal_env.lower() != 'production' else ''}paypal.com/bizsignup/partner/entry",
                 )
                 return {
@@ -657,7 +669,11 @@ class PayPalClient:
 
     async def get_merchant_status(self, merchant_id: str) -> Dict[str, Any]:
         """Queries onboarding status of connected merchant (Active, Pending, Restricted)."""
-        if not self.is_configured or merchant_id.startswith("mock_") or merchant_id.startswith("usr_"):
+        if (
+            not self.is_configured
+            or merchant_id.startswith("mock_")
+            or merchant_id.startswith("usr_")
+        ):
             return {
                 "merchantId": merchant_id,
                 "status": "ACTIVE",
@@ -680,7 +696,9 @@ class PayPalClient:
                 data = res.json()
                 return {
                     "merchantId": merchant_id,
-                    "status": "ACTIVE" if data.get("payments_receivable") else "PENDING_VERIFICATION",
+                    "status": "ACTIVE"
+                    if data.get("payments_receivable")
+                    else "PENDING_VERIFICATION",
                     "paymentsReceivable": data.get("payments_receivable", False),
                     "primaryEmailConfirmed": data.get("primary_email_confirmed", False),
                     "env": settings.paypal_env,

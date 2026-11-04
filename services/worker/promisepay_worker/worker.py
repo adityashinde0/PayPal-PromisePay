@@ -49,9 +49,15 @@ class VerificationWorker:
         self.processed_jobs += 1
 
         crawl_result = None
-        if kind.lower() in ("live_url", "url_snapshot", "repository", "git_repository") and source.startswith("http"):
+        if kind.lower() in (
+            "live_url",
+            "url_snapshot",
+            "repository",
+            "git_repository",
+        ) and source.startswith("http"):
             try:
                 from promisepay_worker.scraper import scraper
+
                 crawl_result = await scraper.scrape_deliverable(source)
             except Exception as exc:  # noqa: BLE001
                 logger.warning("Worker scraper fallback for %s: %s", source, exc)

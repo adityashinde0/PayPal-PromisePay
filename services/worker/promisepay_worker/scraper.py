@@ -38,7 +38,9 @@ class DeliverableScraper:
 
         try:
             async with httpx.AsyncClient(timeout=self.timeout, follow_redirects=True) as client:
-                res = await client.get(url, headers={"User-Agent": "PromisePay-Outcome-Verifier/2.0"})
+                res = await client.get(
+                    url, headers={"User-Agent": "PromisePay-Outcome-Verifier/2.0"}
+                )
                 latency_ms = round((time.time() - start_time) * 1000, 2)
                 status_code = res.status_code
 
@@ -50,22 +52,38 @@ class DeliverableScraper:
                 for idx, heading in enumerate(soup.find_all(["h1", "h2", "h3", "p", "div"])[:8]):
                     text = heading.get_text(strip=True)
                     if text and len(text) > 2:
-                        extracted_sections.append({"type": heading.name, "text": text[:120], "sectionIndex": idx})
+                        extracted_sections.append(
+                            {"type": heading.name, "text": text[:120], "sectionIndex": idx}
+                        )
 
                 if not extracted_sections:
-                    extracted_sections.append({"type": "main", "text": dom_title or "Deliverable verified", "sectionIndex": 0})
+                    extracted_sections.append(
+                        {
+                            "type": "main",
+                            "text": dom_title or "Deliverable verified",
+                            "sectionIndex": 0,
+                        }
+                    )
 
                 raw_text = soup.get_text(separator=" ", strip=True)[:2000]
         except Exception as exc:  # noqa: BLE001
             latency_ms = round((time.time() - start_time) * 1000, 2)
-            logger.warning("Scraper HTTP request encountered error or simulated fallback for %s: %s", url, exc)
+            logger.warning(
+                "Scraper HTTP request encountered error or simulated fallback for %s: %s", url, exc
+            )
             dom_title = f"Deliverable ({parsed.netloc})"
             extracted_sections = [
                 {"type": "h1", "text": f"Production App: {parsed.netloc}", "sectionIndex": 0},
                 {"type": "h2", "text": "Checkout & Payment Outcome Verified", "sectionIndex": 1},
-                {"type": "p", "text": "SSL/TLS active. Automated crawler verified endpoint reachability.", "sectionIndex": 2},
+                {
+                    "type": "p",
+                    "text": "SSL/TLS active. Automated crawler verified endpoint reachability.",
+                    "sectionIndex": 2,
+                },
             ]
-            raw_text = f"Live deliverable deployed at {url}. Verified response latency {latency_ms}ms."
+            raw_text = (
+                f"Live deliverable deployed at {url}. Verified response latency {latency_ms}ms."
+            )
 
         # Generate realistic viewport preview screenshot
         screenshot_base64 = self._render_viewport_screenshot(
@@ -112,7 +130,9 @@ class DeliverableScraper:
         draw.ellipse([46, 16, 56, 26], fill=(16, 185, 129))
 
         # URL address bar
-        draw.rounded_rectangle([70, 8, width - 120, 36], radius=6, fill=(255, 255, 255), outline=(203, 213, 225))
+        draw.rounded_rectangle(
+            [70, 8, width - 120, 36], radius=6, fill=(255, 255, 255), outline=(203, 213, 225)
+        )
         draw.text((82, 14), f"https://{urlparse(url).netloc} (SSL Verified)", fill=(71, 85, 105))
 
         # Status badge pill
@@ -122,13 +142,22 @@ class DeliverableScraper:
 
         # Viewport Header
         draw.text((40, 70), title[:50], fill=(15, 23, 42))
-        draw.text((40, 100), f"Response Latency: {latency_ms}ms  |  Crawler: PromisePay-Guard V2", fill=(100, 116, 139))
+        draw.text(
+            (40, 100),
+            f"Response Latency: {latency_ms}ms  |  Crawler: PromisePay-Guard V2",
+            fill=(100, 116, 139),
+        )
         draw.line([(40, 124), (width - 40, 124)], fill=(226, 232, 240), width=1)
 
         # Render extracted sections with requirement highlights
         y_pos = 145
         for sec in sections[:4]:
-            draw.rounded_rectangle([40, y_pos, width - 40, y_pos + 56], radius=8, fill=(255, 255, 255), outline=(226, 232, 240))
+            draw.rounded_rectangle(
+                [40, y_pos, width - 40, y_pos + 56],
+                radius=8,
+                fill=(255, 255, 255),
+                outline=(226, 232, 240),
+            )
             draw.rounded_rectangle([48, y_pos + 8, 110, y_pos + 26], radius=4, fill=(219, 234, 254))
             draw.text((54, y_pos + 10), "MATCHED REQ", fill=(30, 64, 175))
             draw.text((125, y_pos + 10), sec.get("type", "section").upper(), fill=(148, 163, 184))
@@ -137,7 +166,11 @@ class DeliverableScraper:
 
         # Footer security seal
         draw.rectangle([0, height - 32, width, height], fill=(15, 23, 42))
-        draw.text((20, height - 24), "PROMISEPAY CRYPTOGRAPHIC SNAPSHOT SEAL  |  SHA-256 PROVENANCE GUARANTEED", fill=(203, 213, 225))
+        draw.text(
+            (20, height - 24),
+            "PROMISEPAY CRYPTOGRAPHIC SNAPSHOT SEAL  |  SHA-256 PROVENANCE GUARANTEED",
+            fill=(203, 213, 225),
+        )
 
         # Convert to base64 data URI
         buffer = io.BytesIO()

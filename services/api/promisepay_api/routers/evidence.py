@@ -114,12 +114,17 @@ async def register_evidence(
 
     try:
         record = evidence_store.register_evidence(promise, request_data)
-        if request_data.kind in ("live_url", "url_snapshot", "repository", "git_repository") and request_data.source:
+        if (
+            request_data.kind in ("live_url", "url_snapshot", "repository", "git_repository")
+            and request_data.source
+        ):
             try:
                 crawl_res = await scraper.scrape_deliverable(request_data.source)
                 if record.provenance:
                     record.provenance.metadata["crawler"] = crawl_res
-                    record.provenance.metadata["screenshotBase64"] = crawl_res.get("screenshotBase64")
+                    record.provenance.metadata["screenshotBase64"] = crawl_res.get(
+                        "screenshotBase64"
+                    )
                     record.provenance.metadata["latencyMs"] = crawl_res.get("latencyMs")
                     record.provenance.metadata["statusCode"] = crawl_res.get("statusCode")
             except Exception as exc:
