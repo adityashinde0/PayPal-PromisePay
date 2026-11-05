@@ -19,7 +19,7 @@ All notable changes to PromisePay are recorded here. This project follows [Keep 
   - Three pre-seeded judge demo scenarios (Digital Project, Document with deliberate gap, Delivery tracking with AI boundaries) plus 1-click demo reset endpoint (`POST /demo/reset`).
   - Observability endpoints: Prometheus standard text metrics (`GET /metrics`), detailed subsystem health diagnostics (`GET /health/detailed`), and response time / correlation tracking.
   - Public Postman Collection v2.1.0 (`docs/PayPal_PromisePay.postman_collection.json`) and exported OpenAPI 3.1 Specification (`docs/openapi.json`) covering all 20+ platform endpoints.
-  - Complete, rehearsed Judge Walkthrough & Demo Guide (`doc/DEMO_GUIDE.md`) with fresh-clone commands, under-3-minute video recording path, and PayPal Sandbox test accounts.
+  - Complete, rehearsed Judge Walkthrough & Demo Guide (`docs/DEMO_GUIDE.md`) with fresh-clone commands, under-3-minute video recording path, and PayPal Sandbox test accounts.
 - **Phase 5 (Resolution, Human-Gated Review & PayPal Sandbox Refunds)**:
   - Resolution case repository and workflow (`promisepay_api/services/resolution_store.py`) enabling buyers, merchants, and reviewers to open dispute/review cases (`POST /promises/{id}/resolution-cases`, `GET /promises/{id}/resolution-cases`, `GET /resolution-cases/{caseId}`).
   - Human-gated reviewer decision endpoint (`POST /resolution-cases/{caseId}/decisions`) enforcing mandatory human justification notes for `MARK_COMPLETE`, `REQUEST_EVIDENCE`, `OPEN_REVIEW`, or `RECOMMEND_REFUND`.

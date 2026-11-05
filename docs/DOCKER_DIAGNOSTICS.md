@@ -49,7 +49,7 @@ An in-depth code and git commit history review reveals four clear architectural 
 
 ### 3.1 Pillar 1: Hackathon Evaluation Constraints (<2 Minute Quickstart)
 PromisePay was built as an enterprise-grade hackathon prototype for PayPal integration. A primary judging criterion was the ability for judges and evaluators to clone the repository and run the live demo in under 2 minutes:
-- Documented in `doc/DEMO_GUIDE.md`: The official quickstart instructed evaluators to run native `npm run dev:api` and `npm run dev:web`.
+- Documented in `docs/DEMO_GUIDE.md`: The official quickstart instructed evaluators to run native `npm run dev:api` and `npm run dev:web`.
 - Requiring judges to have Docker Desktop pre-installed, WSL2 properly configured, and 2GB+ of base container images downloaded would have introduced high evaluation friction, potential Windows virtualization conflicts, and prolonged onboarding times.
 
 ### 3.2 Pillar 2: Autonomous In-Memory State Model
@@ -141,4 +141,3 @@ curl.exe -f http://localhost:3000
 # 5. Verify database seed
 docker exec promisepay-postgres psql -U postgres -d promisepay -c "SELECT count(*) FROM promises;"
 ```
-

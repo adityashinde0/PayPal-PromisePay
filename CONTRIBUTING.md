@@ -10,7 +10,7 @@
 
 1. Create a focused branch and issue/task describing the user impact and security implications.
 2. Add or update tests before merging behavior changes.
-3. Run the quality gates in [TESTING.md](doc/TESTING.md).
+3. Run the quality gates in [TESTING.md](docs/TESTING.md).
 4. Update API/OpenAPI, database migration, and documentation when contracts change.
 5. Request review for payments, authorization, AI policy, evidence handling, or data-model changes.
 
@@ -24,7 +24,7 @@
 
 ## External code and resources
 
-Use only code/assets you are licensed to use. The project may adapt patterns from official PayPal documentation and its official sample repositories, but contributors must preserve notices and verify licenses. Do not copy random checkout, webhook, or AI-agent snippets without a security review. Link the source in the pull request and record material design changes in [DECISIONS.md](doc/DECISIONS.md).
+Use only code/assets you are licensed to use. The project may adapt patterns from official PayPal documentation and its official sample repositories, but contributors must preserve notices and verify licenses. Do not copy random checkout, webhook, or AI-agent snippets without a security review. Link the source in the pull request and record material design changes in [DECISIONS.md](docs/DECISIONS.md).
 
 ## Reporting a security issue
 

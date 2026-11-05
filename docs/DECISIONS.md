@@ -63,3 +63,19 @@
 **Why:** Under US FinCEN MSB regulations, state escrow statutes, and EU/UK PSD2/FCA directives, holding user funds in custody requires multi-million dollar reserves and statutory licenses.
 
 **Consequence:** PromisePay provides proof-of-outcome auditing, cryptographic Merkle sealing, and structured dispute dossiers. When PayPal Complete Payments (PPCP) for Marketplaces is used, funds are placed on delayed disbursement within PayPal, never in a PromisePay account. Read [REGULATORY_COMPLIANCE.md](REGULATORY_COMPLIANCE.md) for full legal analysis.
+
+## ADR-009 — Multi-Judge AI Consensus & DLP Sanitization Engine
+
+**Decision:** Deploy a multi-judge consensus verification engine combining Google Gemini 1.5 Pro and Gemini 1.5 Flash alongside an independent deterministic Rule-Based Evaluator, preceded by an aggressive Data Loss Prevention (DLP) sanitization pipeline.
+
+**Why:** Single-model evaluation is vulnerable to prompt injection attacks, subtle hallucinations, and model drift. Ingesting arbitrary agreement texts and deliverables risks exposing payment cardholder data (PCI-DSS) or personal identifiable information (GDPR) to external LLM providers. Furthermore, divergence between models indicates evidentiary ambiguity that must never be resolved autonomously.
+
+**Consequence:** All incoming text is screened via `detect_hostile_input()` for known jailbreak vectors, credit cards are validated and scrubbed via the Luhn algorithm (`luhn_check()`), and PII/API credentials are redacted (`scrub_pii()`). During verification, both Gemini models and the deterministic rule evaluator must independently evaluate requirements. Any divergence or lack of corroborating evidence deterministically clamps confidence to $\le 0.59$ and routes the outcome to `HUMAN_REVIEW_REQUIRED`. Autonomous fund movement by AI is strictly prevented.
+
+## ADR-010 — Native Rust RFC 6962 Merkle Tree Sealing Engine
+
+**Decision:** Implement an RFC 6962-compliant cryptographic Merkle tree sealing engine in native Rust (`crates/promisepay-verify`) to generate deterministic 256-bit root hashes and audit inclusion proofs for dispute defense dossiers.
+
+**Why:** Proving delivery outcomes to PayPal dispute adjudicators, enterprise merchants, and arbitration panels requires mathematical non-repudiation and zero-tamper evidence. Pure-Python hashing is susceptible to performance bottlenecks during batch sealing and lacks memory safety guarantees against timing attacks. RFC 6962 standard domain separation prevents second preimage attacks.
+
+**Consequence:** The Rust engine enforces domain separation prefixes (`0x00` for leaf nodes, `0x01` for interior nodes) and deterministic lexicographical leaf sorting. Dispute defense dossiers achieve microsecond verification latency and generate compact inclusion proofs verifiable offline without revealing unrelated manifest deliverables. Dossiers submitted to PayPal Customer Disputes v1 API (`/v1/customer/disputes/{id}/provide-evidence`) provide indisputable cryptographic provenance.

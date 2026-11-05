@@ -26,4 +26,4 @@ PromisePay implements strict defense-in-depth principles:
 - **Data Loss Prevention (DLP):** Mathematical Luhn algorithm validation automatically redacts payment card sequences and sensitive PII before prompts are forwarded to external LLMs.
 - **Cryptographic Dispute Dossiers:** Outcome records and evidence manifests are cryptographically sealed into RFC 6962 SHA-256 Merkle trees via our Rust micro-engine.
 
-For comprehensive architectural threat modeling, SSRF safeguards, and webhook postback verification controls, read the full specification at [**doc/SECURITY.md**](doc/SECURITY.md).
+For comprehensive architectural threat modeling, SSRF safeguards, and webhook postback verification controls, read the full specification at [**docs/SECURITY_ARCHITECTURE.md**](docs/SECURITY_ARCHITECTURE.md).

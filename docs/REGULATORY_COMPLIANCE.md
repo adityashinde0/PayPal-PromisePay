@@ -1,10 +1,10 @@
 # Regulatory Compliance, Money Transmission & Platform Policies
 
-**Document Classification:** Legal, Financial Regulations & Platform Policy Blueprint  
-**Product:** PayPal PromisePay  
-**Version:** 1.0.0  
-**Effective Date:** November 2026  
-**Applicability:** US FinCEN, State Escrow Licensing, EU PSD2/PSD3, UK FCA, and PayPal Complete Payments (PPCP) Platform Policies  
+**Document Classification:** Legal, Financial Regulations & Platform Policy Blueprint<br/>
+**Product:** PayPal PromisePay<br/>
+**Version:** 1.0.0<br/>
+**Effective Date:** November 2026<br/>
+**Applicability:** US FinCEN, State Escrow Licensing, EU PSD2/PSD3, UK FCA, and PayPal Complete Payments (PPCP) Platform Policies
 
 ---
 

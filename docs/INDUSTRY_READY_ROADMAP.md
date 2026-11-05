@@ -1,9 +1,9 @@
 # PayPal PromisePay: System Audit & Industry-Ready V2 Roadmap
 
-**File Name**: `doc/INDUSTRY_READY_ROADMAP.md`  
-**Classification**: Engineering Roadmap & Production Readiness Specification  
-**Status**: Approved & Verified  
-**Date**: November 2026  
+**File Name**: `docs/INDUSTRY_READY_ROADMAP.md`<br/>
+**Classification**: Engineering Roadmap & Production Readiness Specification<br/>
+**Status**: Approved & Verified<br/>
+**Date**: November 2026
 
 ---
 
@@ -32,7 +32,7 @@ All existing Phase 0–6 goals, core modules, test suites, and enterprise compli
 
 ## 2. Completed Goals Verification Matrix (Phases 0 – 6)
 
-All initial project goals and acceptance criteria defined in [`doc/IMPLEMENTATION_PLAN.md`](IMPLEMENTATION_PLAN.md) and [`doc/PRD.md`](PRD.md) have been fully met:
+All initial project goals and acceptance criteria defined in [`docs/IMPLEMENTATION_PLAN.md`](IMPLEMENTATION_PLAN.md) and [`docs/PRD.md`](PRD.md) have been fully met:
 
 | Phase | Description | Key Deliverables | Verification Status |
 | :---: | :--- | :--- | :---: |
@@ -173,5 +173,3 @@ To connect live production services, provide the following configuration values:
 * **Required Keys**:
   * `AI_API_KEY`: Google Gemini API key with access to Gemini 1.5/2.0 Flash or Pro models.
 * **Where to find**: Google AI Studio -> **Get API key**.
-
-

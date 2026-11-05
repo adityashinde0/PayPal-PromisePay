@@ -1,8 +1,8 @@
 # PayPal AI Hackathon: Sponsor Tools Integration & Strategy Guide
 
-> **Document Status:** Official Architecture & Implementation Strategy  
-> **Target Event:** PayPal AI Hackathon 2026 (*"Build What's Next with PayPal and AI"*)  
-> **Project:** PayPal PromisePay — AI-Powered Proof-of-Outcome for Payments  
+> **Document Status:** Official Architecture & Implementation Strategy<br/>
+> **Target Event:** PayPal AI Hackathon 2026 (*"Build What's Next with PayPal and AI"*)<br/>
+> **Project:** PayPal PromisePay — AI-Powered Proof-of-Outcome for Payments<br/>
 > **Primary Goal:** Maximize hackathon evaluation scores, qualify for dedicated sponsor prize tracks, and turn PromisePay into an industry-grade, enterprise-ready platform.
 
 ---
@@ -30,7 +30,7 @@ The 10 official sponsor tools identified from the requirements are:
 
 ## 2. Global Architecture Integration Map
 
-```
+```text
 ┌────────────────────────────────────────────────────────────────────────────────────────┐
 │                                 PROMISEPAY CLIENT (Next.js 15)                         │
 │  ┌─────────────────────────┐  ┌────────────────────────────┐  ┌───────────────────────┐│
@@ -288,10 +288,9 @@ To begin wiring each tool into the codebase, here is the clear list of items. Mo
 ## 6. Execution Roadmap: Next Steps
 
 1. **Step 1:** Commit this comprehensive specification to the repository as the architectural guide.
-2. **Step 2:** Link this guide into `README.md` and `doc/ARCHITECTURE.md`.
+2. **Step 2:** Link this guide into `README.md` and `docs/ARCHITECTURE.md`.
 3. **Step 3:** Implement **AG Grid** on the frontend dashboard to elevate the Promise Ledger and Evidence Review Matrix.
 4. **Step 4:** Implement **Bryntum Gantt / Milestone Scheduler** component to target the **$1,000 Bryntum Category Award**.
 5. **Step 5:** Implement **Zapier Webhook Outbox** in FastAPI to trigger external notifications and CRM actions on promise lifecycle events.
 6. **Step 6:** Implement **KERNEL / Playwright Web Verification Service** to autonomously browse and verify digital deliverables.
 7. **Step 7:** Enrich Postman collection and Render deployment configurations for zero-friction judge evaluation.
-
