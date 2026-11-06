@@ -105,7 +105,7 @@ export function TopNavbar({
 
       {/* Right Controls */}
       <div className="flex items-center gap-3 sm:gap-4">
-        {/* Sandbox Escrow Pill */}
+        {/* Sandbox Status Pill */}
         <div className="hidden md:flex items-center gap-2 rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-[#0070BA] border border-blue-200/80">
           <span className="h-2 w-2 rounded-full bg-[#0070BA] animate-pulse" />
           <span>Live Dual-Mode V2</span>

@@ -34,7 +34,9 @@ import { EvidenceVaultCard } from '@/components/promise-detail/EvidenceVaultCard
 import { VerificationReportCard } from '@/components/promise-detail/VerificationReportCard';
 import { HumanResolutionCard } from '@/components/promise-detail/HumanResolutionCard';
 import { PaymentEscrowCard } from '@/components/promise-detail/PaymentEscrowCard';
+import { PaymentProofCard } from '@/components/promise-detail/PaymentProofCard';
 import { AuditTimelineCard } from '@/components/promise-detail/AuditTimelineCard';
+import { useAuth } from '@/context/AuthContext';
 
 const STATUS_STEPS: PromiseStatus[] = [
   'DRAFT',
@@ -49,6 +51,7 @@ const STATUS_STEPS: PromiseStatus[] = [
 export default function PromiseDetailPage() {
   const params = useParams();
   const promiseId = params.id as string;
+  const { user } = useAuth();
   const [promise, setPromise] = useState<PromiseGraphResponse | null>(null);
   const [evidenceList, setEvidenceList] = useState<EvidenceItem[]>([]);
   const [verificationRun, setVerificationRun] = useState<VerificationRun | null>(null);
@@ -223,9 +226,18 @@ export default function PromiseDetailPage() {
     setError(null);
     try {
       const capture = await capturePaymentOrder(promise.promiseId, orderId);
-      setPaymentSuccessMessage(
-        `Payment successful! Approved & Captured via PayPal Sandbox (Order: ${capture.paypalOrderId}, Capture: ${capture.paypalCaptureId})`
-      );
+      const isSim =
+        capture.paypalCaptureId?.startsWith('MOCK_') ||
+        capture.paypalOrderId?.startsWith('MOCK_');
+      if (isSim) {
+        setPaymentSuccessMessage(
+          `Simulated Demo Mode: Payment simulated with mock IDs (Order: ${capture.paypalOrderId}, Capture: ${capture.paypalCaptureId}). No actual PayPal charge was processed.`
+        );
+      } else {
+        setPaymentSuccessMessage(
+          `PayPal payment captured (Order: ${capture.paypalOrderId}, Capture: ${capture.paypalCaptureId})`
+        );
+      }
       await loadPromise();
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'PayPal payment capture failed');
@@ -242,11 +254,11 @@ export default function PromiseDetailPage() {
       const order = await createPaymentOrder(promise.promiseId);
       const capture = await capturePaymentOrder(promise.promiseId, order.paypalOrderId);
       setPaymentSuccessMessage(
-        `Direct payment successful! Captured via PayPal Sandbox (Order: ${capture.paypalOrderId}, Capture: ${capture.paypalCaptureId})`
+        `Simulated Demo Mode: Simulated demo action executed — no PayPal payment was made (Order: ${capture.paypalOrderId}, Capture: ${capture.paypalCaptureId})`
       );
       await loadPromise();
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Payment process failed');
+      setError(err instanceof Error ? err.message : 'Simulated payment failed');
     } finally {
       setPaying(false);
     }
@@ -280,7 +292,7 @@ export default function PromiseDetailPage() {
       const updated = await recordCaseDecision(resolutionCase.caseId, {
         decision,
         reason,
-        reviewer: 'lead.reviewer@promisepay.example',
+        reviewer: user?.email || 'lead.reviewer@promisepay.example',
       });
       setResolutionCase(updated);
       setCaseSuccessMessage(`Reviewer decision '${decision}' confirmed and persisted.`);
@@ -344,11 +356,24 @@ export default function PromiseDetailPage() {
 
       {/* Notifications */}
       {paymentSuccessMessage && (
-        <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-xs font-medium text-emerald-800 flex items-center justify-between shadow-xs">
-          <span>{paymentSuccessMessage}</span>
+        <div
+          className={`rounded-xl border p-4 text-xs font-medium flex items-center justify-between shadow-xs ${
+            paymentSuccessMessage.includes('Simulated Demo Mode')
+              ? 'border-amber-300 bg-amber-50 text-amber-900'
+              : 'border-emerald-200 bg-emerald-50 text-emerald-800'
+          }`}
+        >
+          <div className="flex items-center gap-2">
+            {paymentSuccessMessage.includes('Simulated Demo Mode') && (
+              <span className="rounded-full bg-amber-200 px-2 py-0.5 text-[10px] font-bold text-amber-900 border border-amber-400">
+                Simulated Demo Mode
+              </span>
+            )}
+            <span>{paymentSuccessMessage}</span>
+          </div>
           <button
             onClick={() => setPaymentSuccessMessage(null)}
-            className="text-emerald-600 hover:text-emerald-900 ml-4 font-bold text-sm"
+            className="text-slate-500 hover:text-slate-800 ml-4 font-bold text-sm"
           >
             &times;
           </button>
@@ -662,8 +687,18 @@ export default function PromiseDetailPage() {
             onCancel={() => setError('PayPal checkout was cancelled by the buyer.')}
             paying={paying}
             onAddEvidence={() => setShowEvidenceModal(true)}
-            onDirectPaySandbox={handleDirectSandboxPayment}
+            onDirectPaySandbox={
+              process.env.NEXT_PUBLIC_PAYPAL_DEMO_MODE === 'true'
+                ? handleDirectSandboxPayment
+                : undefined
+            }
             onOpenCancelModal={() => setShowCancelModal(true)}
+          />
+
+          <PaymentProofCard
+            payment={promise.payment}
+            promiseId={promise.promiseId}
+            timeline={promise.timeline}
           />
 
           <AuditTimelineCard timeline={promise.timeline} />

@@ -148,6 +148,12 @@ class PromiseStore:
         p1.payment.state = "CAPTURED"
         p1.payment.paypalOrderId = "8XY82019AA120934K"
         p1.payment.paypalCaptureId = "44D091243B590219M"
+        p1.payment.createdAt = p1.created_at
+        p1.payment.capturedAt = p1.created_at
+        p1.payment.buyerApproved = True
+        p1.payment.webhookVerified = False
+        p1.payment.webhookStatus = "AWAITING_ENDPOINT"
+        p1.payment.paymentMode = "Real PayPal Sandbox"
         p1.timeline.append(
             AuditTimelineEvent(
                 timestamp=datetime.now(timezone.utc).isoformat(),

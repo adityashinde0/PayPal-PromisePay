@@ -54,7 +54,7 @@ export function BryntumScheduleCard({ promise }: BryntumScheduleCardProps) {
       endDate: addDays(createdDate, 5),
       progress: isEvidenceSubmitted ? 100 : isCaptured ? 40 : 0,
       status: isEvidenceSubmitted ? 'COMPLETED' : isCaptured ? 'IN_PROGRESS' : 'LOCKED',
-      paymentTrigger: 'Hold in Sandbox Escrow',
+      paymentTrigger: 'PayPal payment captured',
       slaDays: 4,
     },
     {
@@ -69,12 +69,12 @@ export function BryntumScheduleCard({ promise }: BryntumScheduleCardProps) {
     },
     {
       id: 'MS-04',
-      name: 'Authorized Resolution & Final Payout',
+      name: 'Outcome Verification & Resolution',
       startDate: addDays(createdDate, 6),
       endDate: addDays(createdDate, 7),
       progress: ['COMPLETE', 'RESOLVED'].includes(promise.status) ? 100 : 0,
       status: ['COMPLETE', 'RESOLVED'].includes(promise.status) ? 'COMPLETED' : 'SCHEDULED',
-      paymentTrigger: 'Authorize Merchant Release',
+      paymentTrigger: 'Outcome verification confirmed',
       slaDays: 1,
     },
   ];

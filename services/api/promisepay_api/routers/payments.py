@@ -1,5 +1,6 @@
 """PayPal Payment Orders and Capture API Router."""
 
+import logging
 from datetime import datetime, timezone
 from typing import Optional
 
@@ -7,12 +8,17 @@ from fastapi import APIRouter, Depends, Header, HTTPException, status
 from pydantic import BaseModel
 
 from promisepay_api.auth import AuthenticatedUser, require_roles
-from promisepay_api.models.promise import AuditTimelineEvent, PromiseStatus
+from promisepay_api.models.promise import (
+    AuditTimelineEvent,
+    PromiseStatus,
+    determine_payment_mode,
+)
 from promisepay_api.services.event_broadcaster import event_broadcaster
 from promisepay_api.services.lock import lock_manager
 from promisepay_api.services.paypal_client import paypal_client
 from promisepay_api.services.promise_store import promise_store
 
+logger = logging.getLogger("promisepay-payments")
 router = APIRouter(prefix="/promises", tags=["Payments"])
 
 
@@ -20,6 +26,7 @@ class CreatePaymentOrderResponse(BaseModel):
     promiseId: str
     paypalOrderId: str
     status: str
+    paymentMode: Optional[str] = None
 
 
 class CapturePaymentOrderResponse(BaseModel):
@@ -27,6 +34,7 @@ class CapturePaymentOrderResponse(BaseModel):
     paypalOrderId: str
     paypalCaptureId: str
     status: str
+    paymentMode: Optional[str] = None
 
 
 @router.post(
@@ -60,39 +68,71 @@ async def create_payment_order(
             promiseId=promise_id,
             paypalOrderId=record.payment.paypalOrderId,
             status=record.payment.state,
+            paymentMode=record.payment.paymentMode,
         )
 
     # Create PayPal Order with PPCP Delayed Escrow
-    order_data = await paypal_client.create_order(
-        promise_id=promise_id,
-        amount_value=record.amount.value,
-        currency_code=record.amount.currencyCode,
-        title=record.title,
-        idempotency_key=idempotency_key,
-        delayed_escrow=True,
-    )
+    try:
+        order_data = await paypal_client.create_order(
+            promise_id=promise_id,
+            amount_value=record.amount.value,
+            currency_code=record.amount.currencyCode,
+            title=record.title,
+            idempotency_key=idempotency_key,
+            delayed_escrow=True,
+        )
+    except Exception as exc:
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail=f"PayPal order creation failed: {exc}",
+        ) from exc
 
     paypal_order_id = order_data["id"]
+    now_iso = datetime.now(timezone.utc).isoformat()
 
     # Update Promise State
     record.payment.paypalOrderId = paypal_order_id
     record.payment.state = "ORDER_CREATED"
+    record.payment.createdAt = now_iso
+    record.payment.buyerApproved = False
+    record.payment.paymentMode = determine_payment_mode("ORDER_CREATED", paypal_order_id, None)
     record.status = PromiseStatus.READY_FOR_PAYMENT
 
     # Append immutable audit event
     record.timeline.append(
         AuditTimelineEvent(
-            timestamp=datetime.now(timezone.utc).isoformat(),
+            timestamp=now_iso,
             actor=current_user.email,
             eventType="PAYPAL_ORDER_CREATED",
             summary=f"Created PayPal Order {paypal_order_id} for {record.amount.currencyCode} ${record.amount.value} (PPCP Delayed Escrow).",
         )
     )
 
+    # Durable persistence (safe non-blocking)
+    try:
+        from promisepay_api.db.repository import DatabaseRepository
+
+        await DatabaseRepository.save_payment(
+            promise_id=promise_id,
+            paypal_order_id=paypal_order_id,
+            paypal_capture_id=None,
+            state="ORDER_CREATED",
+            amount_value=float(record.amount.value),
+            currency_code=record.amount.currencyCode,
+            buyer_approved=False,
+            webhook_verified=False,
+            payment_mode=record.payment.paymentMode,
+            idempotency_key=idempotency_key,
+            raw_response=order_data,
+        )
+    except Exception as db_exc:
+        logger.debug("Durable DB payment record deferred or skipped: %s", db_exc)
+
     return CreatePaymentOrderResponse(
         promiseId=promise_id,
         paypalOrderId=paypal_order_id,
         status="ORDER_CREATED",
+        paymentMode=record.payment.paymentMode,
     )
 
 
@@ -129,6 +169,7 @@ async def capture_payment_order(
             paypalOrderId=paypal_order_id,
             paypalCaptureId=record.payment.paypalCaptureId or "CAPTURED",
             status="CAPTURED",
+            paymentMode=record.payment.paymentMode,
         )
 
     # Distributed Lock: Prevent concurrent double-capture race conditions
@@ -149,11 +190,30 @@ async def capture_payment_order(
             if cached:
                 return CapturePaymentOrderResponse(**cached)
 
+        now_iso = datetime.now(timezone.utc).isoformat()
+
         # Execute PayPal Capture
-        capture_data = await paypal_client.capture_order(
-            paypal_order_id=paypal_order_id,
-            idempotency_key=idempotency_key,
-        )
+        try:
+            capture_data = await paypal_client.capture_order(
+                paypal_order_id=paypal_order_id,
+                idempotency_key=idempotency_key,
+            )
+        except Exception as exc:
+            record.payment.state = "FAILED"
+            record.payment.failureReason = str(exc)
+            record.payment.paymentMode = "Payment Failed"
+            record.timeline.append(
+                AuditTimelineEvent(
+                    timestamp=now_iso,
+                    actor="PayPal Sandbox",
+                    eventType="PAYMENT_FAILED",
+                    summary=f"Payment capture failed: {exc}",
+                )
+            )
+            raise HTTPException(
+                status_code=status.HTTP_502_BAD_GATEWAY,
+                detail=f"PayPal capture failed: {exc}",
+            ) from exc
 
         # Extract capture ID from purchase_units
         capture_id = f"CAP-{paypal_order_id[:10]}"
@@ -166,20 +226,62 @@ async def capture_payment_order(
         except Exception:
             pass
 
+        if capture_data.get("status") not in ("COMPLETED", "PENDING"):
+            status_desc = capture_data.get("status")
+            record.payment.state = "FAILED"
+            record.payment.failureReason = f"PayPal capture status was not completed: {status_desc}"
+            record.payment.paymentMode = "Payment Failed"
+            record.timeline.append(
+                AuditTimelineEvent(
+                    timestamp=now_iso,
+                    actor="PayPal Sandbox",
+                    eventType="PAYMENT_FAILED",
+                    summary=f"PayPal capture status was not completed: {status_desc}",
+                )
+            )
+            raise HTTPException(
+                status_code=status.HTTP_502_BAD_GATEWAY,
+                detail=f"PayPal capture status was not completed: {status_desc}",
+            )
+
         # Update Promise & Payment State
         record.payment.paypalCaptureId = capture_id
         record.payment.state = "CAPTURED"
+        record.payment.buyerApproved = True
+        record.payment.capturedAt = now_iso
+        record.payment.failureReason = None
+        record.payment.paymentMode = determine_payment_mode("CAPTURED", paypal_order_id, capture_id)
         record.status = PromiseStatus.PAID
 
         # Append immutable audit event
         record.timeline.append(
             AuditTimelineEvent(
-                timestamp=datetime.now(timezone.utc).isoformat(),
+                timestamp=now_iso,
                 actor="PayPal Sandbox",
                 eventType="PAYMENT_CAPTURED",
-                summary=f"Captured {record.amount.currencyCode} ${record.amount.value} via PayPal (Capture ID: {capture_id}).",
+                summary=f"Captured {record.amount.currencyCode} ${record.amount.value} via PayPal (Capture ID: {capture_id}). Mode: {record.payment.paymentMode}.",
             )
         )
+
+        # Durable persistence (safe non-blocking)
+        try:
+            from promisepay_api.db.repository import DatabaseRepository
+
+            await DatabaseRepository.save_payment(
+                promise_id=promise_id,
+                paypal_order_id=paypal_order_id,
+                paypal_capture_id=capture_id,
+                state="CAPTURED",
+                amount_value=float(record.amount.value),
+                currency_code=record.amount.currencyCode,
+                buyer_approved=True,
+                webhook_verified=record.payment.webhookVerified,
+                payment_mode=record.payment.paymentMode,
+                idempotency_key=idempotency_key,
+                raw_response=capture_data,
+            )
+        except Exception as db_exc:
+            logger.debug("Durable DB payment record deferred or skipped: %s", db_exc)
 
         # Broadcast payment captured event (Goal 4)
         await event_broadcaster.broadcast_event(
@@ -190,6 +292,7 @@ async def capture_payment_order(
                 "amount": record.amount.value,
                 "currency": record.amount.currencyCode,
                 "status": "PAID",
+                "paymentMode": record.payment.paymentMode,
             },
         )
 
@@ -198,6 +301,7 @@ async def capture_payment_order(
             paypalOrderId=paypal_order_id,
             paypalCaptureId=capture_id,
             status="CAPTURED",
+            paymentMode=record.payment.paymentMode,
         )
 
         if idempotency_key:

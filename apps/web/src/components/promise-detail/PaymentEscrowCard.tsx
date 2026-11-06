@@ -37,6 +37,10 @@ export function PaymentEscrowCard({
     !isCancelled &&
     !isRefunded;
 
+  const isOrderSimulated = !!promise.payment.paypalOrderId?.startsWith('MOCK_');
+  const isCaptureSimulated = !!promise.payment.paypalCaptureId?.startsWith('MOCK_');
+  const isSimulated = isOrderSimulated || isCaptureSimulated;
+
   const [checkoutNotice, setCheckoutNotice] = useState<string | null>(null);
 
   // Fallback PayPal client ID: use env or verified Sandbox client ID
@@ -53,40 +57,98 @@ export function PaymentEscrowCard({
         <PayPalLogo height={16} variant="monogram" />
       </div>
 
+      {isSimulated && (
+        <div className="rounded-lg bg-amber-50 p-2.5 border border-amber-300 text-xs text-amber-900 flex items-center justify-between">
+          <div className="flex items-center gap-1.5 font-bold">
+            <span className="rounded-full bg-amber-200 px-2 py-0.5 text-[10px] text-amber-900 border border-amber-400">
+              Simulated Demo Mode
+            </span>
+            <span>Simulated payment (no PayPal funds moved)</span>
+          </div>
+        </div>
+      )}
+
       <div className="text-xs space-y-2 text-slate-600">
-        <div className="flex justify-between py-1 border-b border-slate-100">
+        <div className="flex justify-between items-center py-1 border-b border-slate-100">
           <span className="text-slate-400">Payment State:</span>
+          <div className="flex items-center gap-1.5">
+            {isSimulated && (
+              <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-800 border border-amber-300">
+                Simulated Demo Mode
+              </span>
+            )}
+            <span
+              className={`font-semibold ${
+                isRefunded
+                  ? 'text-rose-700 font-bold'
+                  : isSimulated
+                  ? 'text-amber-800'
+                  : isCaptured
+                  ? 'text-emerald-700'
+                  : 'text-slate-800'
+              }`}
+            >
+              {promise.payment.state}
+            </span>
+          </div>
+        </div>
+        <div className="flex justify-between items-center py-1 border-b border-slate-100">
+          <span className="text-slate-400">PayPal Order ID:</span>
+          <div className="flex items-center gap-1.5">
+            {isOrderSimulated && (
+              <span className="rounded bg-amber-100 px-1 py-0.2 text-[9px] font-bold text-amber-800 border border-amber-200">
+                Simulated
+              </span>
+            )}
+            <span className="font-mono text-slate-800 text-[11px]">
+              {promise.payment.paypalOrderId || 'Pending Checkout'}
+            </span>
+          </div>
+        </div>
+        <div className="flex justify-between items-center py-1 border-b border-slate-100">
+          <span className="text-slate-400">Capture ID:</span>
+          <div className="flex items-center gap-1.5">
+            {isCaptureSimulated && (
+              <span className="rounded bg-amber-100 px-1 py-0.2 text-[9px] font-bold text-amber-800 border border-amber-200">
+                Simulated
+              </span>
+            )}
+            <span className="font-mono text-slate-800 text-[11px]">
+              {promise.payment.paypalCaptureId || 'None'}
+            </span>
+          </div>
+        </div>
+        <div className="flex justify-between items-center py-1">
+          <span className="text-slate-400">Payment Status:</span>
           <span
-            className={`font-semibold ${
-              isRefunded
-                ? 'text-rose-700 font-bold'
+            className={`font-semibold text-[11px] ${
+              promise.payment.state === 'FAILED'
+                ? 'text-rose-700'
+                : isSimulated
+                ? 'text-amber-800'
                 : isCaptured
                 ? 'text-emerald-700'
-                : 'text-slate-800'
+                : 'text-blue-700'
             }`}
           >
-            {promise.payment.state}
-          </span>
-        </div>
-        <div className="flex justify-between py-1 border-b border-slate-100">
-          <span className="text-slate-400">PayPal Order ID:</span>
-          <span className="font-mono text-slate-800 text-[11px]">
-            {promise.payment.paypalOrderId || 'Pending Checkout'}
-          </span>
-        </div>
-        <div className="flex justify-between py-1 border-b border-slate-100">
-          <span className="text-slate-400">Capture ID:</span>
-          <span className="font-mono text-slate-800 text-[11px]">
-            {promise.payment.paypalCaptureId || 'None'}
-          </span>
-        </div>
-        <div className="flex justify-between py-1">
-          <span className="text-slate-400">Escrow Mechanism:</span>
-          <span className="font-medium text-blue-700 text-[11px]">
-            PPCP Delayed Conditional Escrow
+            {promise.payment.paymentMode ||
+              (promise.payment.state === 'FAILED'
+                ? 'Payment Failed'
+                : isSimulated
+                ? 'Simulated Demo Mode'
+                : isCaptured
+                ? 'PayPal payment captured'
+                : 'Pending Buyer Checkout')}
           </span>
         </div>
       </div>
+
+      {promise.payment.failureReason && (
+        <div className="rounded-lg bg-rose-50 p-2.5 border border-rose-200 text-xs text-rose-800 space-y-1">
+          <span className="font-bold block">Payment Error:</span>
+          <p className="font-mono text-[11px] break-words">{promise.payment.failureReason}</p>
+        </div>
+      )}
 
       {checkoutNotice && (
         <div className="rounded-lg bg-amber-50 p-2.5 border border-amber-200 text-xs text-amber-800">
@@ -99,7 +161,7 @@ export function PaymentEscrowCard({
         <div className="rounded-lg bg-rose-50 p-3 border border-rose-200 text-xs text-rose-800 space-y-1">
           <div className="font-bold flex items-center gap-1.5">
             <span>↩️</span>
-            <span>Fully Refunded via PayPal</span>
+            <span>Refund issued through PayPal</span>
           </div>
           <p className="text-[11px] text-rose-700">
             Funds of ${promise.amount.value} {promise.amount.currencyCode} have been returned to the buyer via PayPal.
@@ -121,7 +183,7 @@ export function PaymentEscrowCard({
       {isReady && !isCancelled && (
         <div className="pt-2 border-t border-slate-100 space-y-3">
           <div className="rounded-lg bg-blue-50 p-3 border border-blue-200 text-xs text-blue-800">
-            Requirements are locked. Buyer must approve checkout via the official PayPal modal to hold funds in conditional escrow.
+            Requirements are locked. Buyer must approve checkout in the official PayPal window to complete payment.
           </div>
 
           <div className="paypal-button-container relative min-h-[45px]">
@@ -155,7 +217,7 @@ export function PaymentEscrowCard({
                   }
                 }}
                 onApprove={async (data) => {
-                  setCheckoutNotice('Payer approval received. Capturing into conditional escrow...');
+                  setCheckoutNotice('Payer approval received. Capturing PayPal payment...');
                   try {
                     await onApprove(data.orderID);
                     setCheckoutNotice(null);
@@ -172,21 +234,21 @@ export function PaymentEscrowCard({
                 }}
                 onError={(err) => {
                   setCheckoutNotice(null);
-                  onError(`PayPal Modal Error: ${err?.message || 'Transaction could not be completed'}`);
+                  onError(`PayPal Error: ${err?.message || 'Transaction could not be completed'}`);
                 }}
               />
             </PayPalScriptProvider>
           </div>
 
-          {onDirectPaySandbox && (
+          {onDirectPaySandbox && process.env.NEXT_PUBLIC_PAYPAL_DEMO_MODE === 'true' && (
             <div className="pt-2 text-center">
               <button
                 type="button"
                 onClick={onDirectPaySandbox}
                 disabled={paying}
-                className="text-[11px] text-slate-500 underline hover:text-slate-800 disabled:opacity-50"
+                className="text-[11px] text-amber-700 underline hover:text-amber-900 disabled:opacity-50"
               >
-                {paying ? 'Processing...' : 'Direct Sandbox Express Capture (Dev Only)'}
+                {paying ? 'Processing...' : 'Simulated demo action — no PayPal payment'}
               </button>
             </div>
           )}
@@ -195,9 +257,23 @@ export function PaymentEscrowCard({
 
       {canAddEvidence && (
         <div className="pt-2 border-t border-slate-100 space-y-2">
-          <div className="rounded-lg bg-emerald-50 p-3 border border-emerald-200 text-xs text-emerald-800">
-            Payment confirmed! Fulfillment and proof verification are active.
-          </div>
+          {isSimulated ? (
+            <div className="rounded-lg bg-amber-50 p-3 border border-amber-300 text-xs text-amber-900 space-y-1">
+              <div className="flex items-center gap-1.5 font-bold">
+                <span className="rounded-full bg-amber-200 px-2 py-0.5 text-[10px] text-amber-900 border border-amber-400">
+                  Simulated Demo Mode
+                </span>
+                <span>Simulated Payment Active</span>
+              </div>
+              <p className="text-[11px] text-amber-800">
+                Payment simulated with mock identifiers. No real PayPal charge was executed.
+              </p>
+            </div>
+          ) : (
+            <div className="rounded-lg bg-emerald-50 p-3 border border-emerald-200 text-xs text-emerald-800">
+              PayPal payment captured! Outcome verification active.
+            </div>
+          )}
           <button
             onClick={onAddEvidence}
             className="w-full rounded-lg bg-slate-900 hover:bg-slate-800 text-white py-2 text-xs font-bold shadow transition"

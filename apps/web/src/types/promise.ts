@@ -28,11 +28,24 @@ export interface AtomicRequirement {
   verificationMethod: string;
 }
 
+export type PaymentMode =
+  | 'Real PayPal Sandbox'
+  | 'Simulated Demo Mode'
+  | 'Payment Failed'
+  | 'Awaiting Buyer Approval';
+
 export interface PaymentSummary {
   paypalOrderId?: string | null;
   paypalCaptureId?: string | null;
   state: string;
   amount: Money;
+  createdAt?: string | null;
+  capturedAt?: string | null;
+  buyerApproved?: boolean;
+  webhookVerified?: boolean;
+  webhookStatus?: string;
+  paymentMode?: PaymentMode;
+  failureReason?: string | null;
 }
 
 export interface VerificationSummary {

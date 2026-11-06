@@ -123,7 +123,7 @@ export default function LoginPage() {
 
           <div className="grid grid-cols-2 gap-2">
             {[
-              { role: 'BUYER' as UserRole, label: 'Buyer', desc: 'Confirm terms & fund escrow' },
+              { role: 'BUYER' as UserRole, label: 'Buyer', desc: 'Confirm terms & capture payment' },
               { role: 'SELLER' as UserRole, label: 'Seller', desc: 'Submit delivery evidence' },
               { role: 'REVIEWER' as UserRole, label: 'Arbitrator', desc: 'Adjudicate dispute cases' },
               { role: 'ADMIN' as UserRole, label: 'Admin', desc: 'Full platform governance' },

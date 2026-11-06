@@ -40,12 +40,12 @@ export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
     { label: 'Promise Ledger', tab: 'ledger', icon: Table2 },
     { label: 'Verification Center', tab: 'verification', icon: ShieldCheck },
     { label: 'Resolution & Disputes', tab: 'resolution', icon: Scale },
-    { label: 'Escrow Analytics', tab: 'analytics', icon: BarChart3 },
+    { label: 'Payment Analytics', tab: 'analytics', icon: BarChart3 },
   ];
 
   const integrations = [
     { name: 'PayPal Orders v2', status: 'Connected' },
-    { name: 'Gemini AI Verifier', status: 'Active (99.4%)' },
+    { name: 'Gemini AI Verifier', status: 'Active (Demo data)' },
     { name: 'Audit Log Storage', status: 'Synced' },
   ];
 
@@ -217,7 +217,7 @@ export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
                   PayPal Protection
                 </h4>
                 <p className="mt-0.5 text-[10px] text-slate-500 leading-tight">
-                  Escrow holds and AI verification governed by deterministic human policies.
+                  Outcome verification and resolutions governed by human-reviewed policies.
                 </p>
               </div>
             </div>

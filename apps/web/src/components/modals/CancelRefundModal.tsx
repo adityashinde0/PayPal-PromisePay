@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { AlertTriangle, Clock, RefreshCw, X, ShieldAlert, CheckCircle2 } from 'lucide-react';
 import { PromiseGraphResponse } from '@/types/promise';
 import { cancelPromiseAndRefund } from '@/lib/api';
+import { useAuth } from '@/context/AuthContext';
 
 interface CancelRefundModalProps {
   isOpen: boolean;
@@ -25,6 +26,7 @@ export function CancelRefundModal({
   promise,
   onSuccess,
 }: CancelRefundModalProps) {
+  const { user } = useAuth();
   const isPaid = promise.payment.state === 'CAPTURED';
   const [cancellationType, setCancellationType] = useState<
     'SLA_TIMEOUT_NOT_DELIVERED' | 'USER_CANCELLED'
@@ -67,7 +69,7 @@ export function CancelRefundModal({
       const res = await cancelPromiseAndRefund(promise.promiseId, {
         reason: reason.trim(),
         cancellationType,
-        actor: 'buyer@promisepay.example',
+        actor: user?.email || 'buyer@promisepay.example',
       });
       await onSuccess(res);
       onClose();

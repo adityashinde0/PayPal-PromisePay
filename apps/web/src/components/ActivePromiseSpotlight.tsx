@@ -137,11 +137,18 @@ export function ActivePromiseSpotlight({
         <div className="flex items-center justify-between text-slate-500">
           <span className="flex items-center gap-1.5">
             <PayPalLogo height={12} variant="monogram" />
-            <span>Escrow State</span>
+            <span>Payment State</span>
           </span>
-          <span className="font-mono text-[11px] font-bold text-slate-800">
-            {orderId}
-          </span>
+          <div className="flex items-center gap-1.5">
+            {orderId.startsWith('MOCK_') && (
+              <span className="rounded bg-amber-100 px-1 py-0.2 text-[9px] font-bold text-amber-800 border border-amber-200">
+                Simulated Demo Mode
+              </span>
+            )}
+            <span className="font-mono text-[11px] font-bold text-slate-800">
+              {orderId}
+            </span>
+          </div>
         </div>
         <div className="flex items-center justify-between text-slate-500">
           <span>Amount</span>

@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { PromiseGraphResponse, ResolutionCase } from '@/types/promise';
 import { executeCaseRefund } from '@/lib/api';
+import { useAuth } from '@/context/AuthContext';
 
 interface RefundModalProps {
   isOpen: boolean;
@@ -19,6 +20,7 @@ export function RefundModal({
   promise,
   onSuccess,
 }: RefundModalProps) {
+  const { user } = useAuth();
   const [refundReason, setRefundReason] = useState('Full outcome refund authorized by reviewer.');
   const [executingRefund, setExecutingRefund] = useState(false);
   const [refundError, setRefundError] = useState<string | null>(null);
@@ -46,7 +48,7 @@ export function RefundModal({
         {
           reason: refundReason.trim(),
           amountValue: promise.amount.value,
-          actor: 'reviewer@promisepay.example',
+          actor: user?.email || 'reviewer@promisepay.example',
         },
         idempKey
       );
@@ -73,7 +75,7 @@ export function RefundModal({
           <div>
             <h3 className="text-lg font-bold text-slate-900">Execute PayPal Sandbox Refund</h3>
             <p className="text-xs text-slate-500">
-              Deterministic escrow refund for Case {resolutionCase.caseId}
+              Human-reviewed refund for Case {resolutionCase.caseId}
             </p>
           </div>
           <button
@@ -99,7 +101,7 @@ export function RefundModal({
             </p>
             <p>
               PayPal Capture ID:{' '}
-              <span className="font-mono">{promise.payment.paypalCaptureId || 'Active Escrow'}</span>
+              <span className="font-mono">{promise.payment.paypalCaptureId || 'Active Payment'}</span>
             </p>
           </div>
 

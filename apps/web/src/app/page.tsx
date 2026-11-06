@@ -109,7 +109,22 @@ export default function Home() {
     (sum, p) => sum + (parseFloat(p.amount?.value) || 0),
     0
   );
+  const digitalVolume = promises
+    .filter((p) => p.category === 'digital_project')
+    .reduce((sum, p) => sum + (parseFloat(p.amount?.value) || 0), 0);
+  const docVolume = promises
+    .filter((p) => p.category === 'professional_document')
+    .reduce((sum, p) => sum + (parseFloat(p.amount?.value) || 0), 0);
+  const deliveryVolume = promises
+    .filter((p) => p.category === 'delivery')
+    .reduce((sum, p) => sum + (parseFloat(p.amount?.value) || 0), 0);
+
+  const digitalPct = totalVolume > 0 ? Math.round((digitalVolume / totalVolume) * 100) : 0;
+  const docPct = totalVolume > 0 ? Math.round((docVolume / totalVolume) * 100) : 0;
+  const deliveryPct = totalVolume > 0 ? Math.round((deliveryVolume / totalVolume) * 100) : 0;
+
   const capturedCount = promises.filter((p) => p.paymentState === 'CAPTURED').length;
+  const capturedPct = promises.length > 0 ? Math.round((capturedCount / promises.length) * 100) : 0;
   const verifiedCount = promises.filter(
     (p) => p.outcome === 'COMPLETE' || p.status === 'VERIFYING'
   ).length;
@@ -139,13 +154,13 @@ export default function Home() {
                 </div>
                 <h1 className="text-xl sm:text-2xl font-black tracking-tight text-slate-900">
                   {role === 'buyer'
-                    ? 'Payment Escrow & Deliverable Status'
-                    : 'Active Deliverables & Earned Payouts'}
+                    ? 'Payment & Deliverable Status'
+                    : 'Active Deliverables & Outcome Verification'}
                 </h1>
                 <p className="text-xs text-slate-500 mt-0.5 max-w-xl">
                   {role === 'buyer'
-                    ? 'Your funds are secured in PayPal Sandbox escrow. Verify submitted deliverables with Gemini AI before releasing payment.'
-                    : 'Submit proof of completion for your active contracts to trigger automated Gemini AI verification and escrow release.'}
+                    ? 'Payment captured via PayPal Sandbox. Verify submitted deliverables with Gemini AI for outcome verification.'
+                    : 'Submit proof of completion for your active contracts to trigger automated Gemini AI outcome verification.'}
                 </p>
               </div>
 
@@ -181,26 +196,26 @@ export default function Home() {
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
             <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-2xs">
               <div className="flex items-center justify-between text-slate-500 mb-1">
-                <span className="text-xs font-semibold">Total Escrow Volume</span>
+                <span className="text-xs font-semibold">Total Payment Volume</span>
                 <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
                   Live
                 </span>
               </div>
               <p className="text-2xl font-black text-slate-900">
-                ${totalVolume > 0 ? totalVolume.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '148,500.00'}
+                ${totalVolume.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </p>
               <p className="text-[10px] text-slate-400 mt-0.5">{total} active agreements</p>
             </div>
 
             <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-2xs">
               <div className="flex items-center justify-between text-slate-500 mb-1">
-                <span className="text-xs font-semibold">Settled & Released</span>
+                <span className="text-xs font-semibold">PayPal Payment Captured</span>
                 <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
                   Captured
                 </span>
               </div>
               <p className="text-2xl font-black text-emerald-600">{capturedCount}</p>
-              <p className="text-[10px] text-slate-400 mt-0.5">Completed milestone payouts</p>
+              <p className="text-[10px] text-slate-400 mt-0.5">Captured PayPal payments</p>
             </div>
 
             <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-2xs">
@@ -274,7 +289,7 @@ export default function Home() {
             <div>
               <div className="flex items-center gap-2">
                 <h1 className="text-xl font-black text-slate-900">
-                  Promise Ledger & Escrow Registry
+                  Promise Ledger & Verification Registry
                 </h1>
                 <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-bold text-[#0070BA] border border-blue-200">
                   {total} Records
@@ -401,17 +416,17 @@ export default function Home() {
             <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-2xs">
               <p className="text-xs font-semibold text-slate-500">Average Confidence Score</p>
               <p className="text-2xl font-black text-emerald-600 mt-1">99.4%</p>
-              <p className="text-[10px] text-slate-400 mt-0.5">Across 842 evaluated atomic requirements</p>
+              <p className="text-[10px] text-slate-400 mt-0.5">Evaluated atomic requirements (Demo data)</p>
             </div>
             <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-2xs">
-              <p className="text-xs font-semibold text-slate-500">Autonomous Release Accuracy</p>
+              <p className="text-xs font-semibold text-slate-500">Outcome Verification Accuracy</p>
               <p className="text-2xl font-black text-[#0070BA] mt-1">100%</p>
-              <p className="text-[10px] text-slate-400 mt-0.5">Zero unauthorized payouts without strict criteria pass</p>
+              <p className="text-[10px] text-slate-400 mt-0.5">Strict contractual criteria validation (Demo data)</p>
             </div>
             <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-2xs">
               <p className="text-xs font-semibold text-slate-500">Average Audit Velocity</p>
               <p className="text-2xl font-black text-purple-600 mt-1">2.4 min</p>
-              <p className="text-[10px] text-slate-400 mt-0.5">From deliverable upload to outcome attestation</p>
+              <p className="text-[10px] text-slate-400 mt-0.5">From deliverable upload to outcome attestation (Demo data)</p>
             </div>
           </div>
 
@@ -438,7 +453,7 @@ export default function Home() {
               </h1>
             </div>
             <p className="text-xs text-slate-500">
-              Deterministic escrow arbitration and PayPal refund execution for review-gated promises.
+              Human-reviewed resolution and PayPal refund execution for review-gated promises.
             </p>
           </div>
 
@@ -449,7 +464,7 @@ export default function Home() {
             </div>
             <div>
               <h3 className="text-sm font-bold text-slate-900">
-                All Active Escrow Contracts Nominal
+                All Active Contracts Nominal
               </h3>
               <p className="text-xs text-slate-500 mt-1 max-w-md mx-auto">
                 No contested disputes currently open. Review-gated promises are awaiting deliverable resubmissions or buyer signoff.
@@ -469,7 +484,7 @@ export default function Home() {
       )}
 
       {/* =========================================================================
-          VIEW 5: DEDICATED ESCROW ANALYTICS
+          VIEW 5: DEDICATED PAYMENT ANALYTICS
          ========================================================================= */}
       {activeTab === 'analytics' && (
         <div className="space-y-6">
@@ -477,29 +492,29 @@ export default function Home() {
             <div className="flex items-center gap-2 mb-1">
               <BarChart3 className="h-5 w-5 text-[#0070BA]" />
               <h1 className="text-xl font-black text-slate-900">
-                Escrow Performance & Payout Analytics
+                Outcome Verification & Payment Analytics
               </h1>
             </div>
             <p className="text-xs text-slate-500">
-              Historical escrow throughput, category distributions, and PayPal settlement velocity.
+              Payment throughput, category distributions, and PayPal settlement velocity.
             </p>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-2xs">
-              <h3 className="text-xs font-bold text-slate-700 mb-2">Escrow by Category</h3>
+              <h3 className="text-xs font-bold text-slate-700 mb-2">Volume by Category</h3>
               <div className="space-y-2 text-xs">
                 <div className="flex justify-between font-semibold">
                   <span>Digital Projects</span>
-                  <span className="text-[#0070BA]">58% ($86,130)</span>
+                  <span className="text-[#0070BA]">{digitalPct}% (${digitalVolume.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })})</span>
                 </div>
                 <div className="flex justify-between font-semibold">
                   <span>Professional Documents</span>
-                  <span className="text-cyan-700">24% ($35,640)</span>
+                  <span className="text-cyan-700">{docPct}% (${docVolume.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })})</span>
                 </div>
                 <div className="flex justify-between font-semibold">
                   <span>Physical Delivery</span>
-                  <span className="text-emerald-700">18% ($26,730)</span>
+                  <span className="text-emerald-700">{deliveryPct}% (${deliveryVolume.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })})</span>
                 </div>
               </div>
             </div>
@@ -509,15 +524,15 @@ export default function Home() {
               <div className="space-y-2 text-xs">
                 <div className="flex justify-between font-semibold">
                   <span>Authorized Intent</span>
-                  <span className="text-slate-900">100% captured</span>
+                  <span className="text-slate-900">{capturedPct}% captured</span>
                 </div>
                 <div className="flex justify-between font-semibold">
                   <span>Refund Rate</span>
-                  <span className="text-emerald-700">&lt; 0.5%</span>
+                  <span className="text-emerald-700">&lt; 0.5% (Demo data)</span>
                 </div>
                 <div className="flex justify-between font-semibold">
                   <span>Dispute Mediation</span>
-                  <span className="text-[#0070BA]">Automated AI audit</span>
+                  <span className="text-[#0070BA]">Human-reviewed resolution</span>
                 </div>
               </div>
             </div>
@@ -527,15 +542,15 @@ export default function Home() {
               <div className="space-y-2 text-xs">
                 <div className="flex justify-between font-semibold">
                   <span>API Uptime</span>
-                  <span className="text-emerald-700">99.98%</span>
+                  <span className="text-emerald-700">99.98% (Demo data)</span>
                 </div>
                 <div className="flex justify-between font-semibold">
                   <span>Webhook Latency</span>
-                  <span className="text-slate-900">420 ms</span>
+                  <span className="text-slate-900">420 ms (Demo data)</span>
                 </div>
                 <div className="flex justify-between font-semibold">
                   <span>Gemini Inference</span>
-                  <span className="text-[#0070BA]">1.2s avg</span>
+                  <span className="text-[#0070BA]">1.2s avg (Demo data)</span>
                 </div>
               </div>
             </div>

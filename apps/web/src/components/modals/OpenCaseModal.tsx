@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { ResolutionCase } from '@/types/promise';
 import { openResolutionCase } from '@/lib/api';
+import { useAuth } from '@/context/AuthContext';
 
 interface OpenCaseModalProps {
   isOpen: boolean;
@@ -17,6 +18,7 @@ export function OpenCaseModal({
   promiseId,
   onSuccess,
 }: OpenCaseModalProps) {
+  const { user, role } = useAuth();
   const [caseReason, setCaseReason] = useState('');
   const [caseOutcomeRequested, setCaseOutcomeRequested] = useState('REVIEW');
   const [submittingCase, setSubmittingCase] = useState(false);
@@ -43,11 +45,14 @@ export function OpenCaseModal({
     setSubmittingCase(true);
     setCaseError(null);
     try {
+      const activeSubmitter = user?.email || 'user@promisepay.example';
+      const activeRole = user?.role || role || 'BUYER';
+
       const createdCase = await openResolutionCase(promiseId, {
         reason: caseReason.trim(),
         requestedOutcome: caseOutcomeRequested,
-        submitter: 'buyer@example.com',
-        role: 'BUYER',
+        submitter: activeSubmitter,
+        role: activeRole,
       });
       await onSuccess(createdCase);
       setCaseReason('');
@@ -72,7 +77,7 @@ export function OpenCaseModal({
         <div className="flex items-center justify-between border-b border-slate-100 pb-3">
           <div>
             <h3 className="text-lg font-bold text-slate-900">Open Resolution Case</h3>
-            <p className="text-xs text-slate-500">Initiates human reviewer audit and gates payment release.</p>
+            <p className="text-xs text-slate-500">Initiates human-reviewed resolution and outcome audit.</p>
           </div>
           <button
             onClick={onClose}
@@ -90,6 +95,11 @@ export function OpenCaseModal({
         )}
 
         <form onSubmit={handleSubmit} className="mt-4 space-y-4">
+          <div className="rounded-lg bg-slate-50 p-2.5 border border-slate-200 text-[11px] text-slate-600 flex justify-between items-center">
+            <span>Submitting as:</span>
+            <span className="font-semibold text-slate-900">{user?.email || 'user@promisepay.example'} ({user?.role || role || 'BUYER'})</span>
+          </div>
+
           <div>
             <label className="block text-xs font-semibold text-slate-700">Requested Outcome</label>
             <select
@@ -99,7 +109,7 @@ export function OpenCaseModal({
             >
               <option value="REVIEW">Formal Human Review</option>
               <option value="REQUEST_EVIDENCE">Request Evidence Amendment</option>
-              <option value="REFUND">Full Escrow Refund via PayPal</option>
+              <option value="REFUND">Full Refund via PayPal</option>
             </select>
           </div>
 
@@ -136,4 +146,3 @@ export function OpenCaseModal({
     </div>
   );
 }
-

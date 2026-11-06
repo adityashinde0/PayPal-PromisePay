@@ -215,8 +215,12 @@ class PaymentModel(Base):
     state = Column(String(32), default="ORDER_CREATED", nullable=False)
     amount_value = Column(Numeric(15, 2), nullable=False)
     currency_code = Column(String(3), default="USD", nullable=False)
+    buyer_approved = Column(Boolean, default=False, nullable=False)
+    webhook_verified = Column(Boolean, default=False, nullable=False)
+    payment_mode = Column(String(64), default="Awaiting Buyer Approval", nullable=False)
     idempotency_key = Column(String(128), nullable=True)
     raw_response = Column(JSON, default=dict, nullable=True)
+    captured_at = Column(DateTime(timezone=True), nullable=True)
     created_at = Column(DateTime(timezone=True), default=now_utc)
     updated_at = Column(DateTime(timezone=True), default=now_utc, onupdate=now_utc)
 

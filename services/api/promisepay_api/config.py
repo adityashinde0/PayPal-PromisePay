@@ -26,7 +26,9 @@ class Settings(BaseSettings):
     paypal_client_id: str = ""
     paypal_client_secret: str = ""
     paypal_webhook_id: str = ""
+    paypal_webhook_url: str = ""
     paypal_api_base: str = "https://api-m.sandbox.paypal.com"
+    paypal_demo_mode: bool = False
 
     # AI Provider
     ai_provider: str = "google"

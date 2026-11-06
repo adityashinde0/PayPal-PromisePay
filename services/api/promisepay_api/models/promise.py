@@ -89,11 +89,41 @@ class StructuredPromiseVersion(BaseModel):
     approvedBy: Optional[str] = None
 
 
+def determine_payment_mode(
+    state: str,
+    paypal_order_id: Optional[str] = None,
+    paypal_capture_id: Optional[str] = None,
+    is_failed: bool = False,
+) -> str:
+    """Classifies payment provenance into one of four verified status labels:
+    - Real PayPal Sandbox
+    - Simulated Demo Mode
+    - Payment Failed
+    - Awaiting Buyer Approval
+    """
+    if is_failed or state in ("FAILED", "CAPTURE_DENIED"):
+        return "Payment Failed"
+    if (paypal_order_id and paypal_order_id.startswith("MOCK_")) or (
+        paypal_capture_id and paypal_capture_id.startswith("MOCK_")
+    ):
+        return "Simulated Demo Mode"
+    if state == "CAPTURED" and paypal_order_id and not paypal_order_id.startswith("MOCK_"):
+        return "Real PayPal Sandbox"
+    return "Awaiting Buyer Approval"
+
+
 class PaymentSummary(BaseModel):
     paypalOrderId: Optional[str] = None
     paypalCaptureId: Optional[str] = None
     state: str = "NOT_STARTED"
     amount: Money
+    createdAt: Optional[str] = None
+    capturedAt: Optional[str] = None
+    buyerApproved: bool = False
+    webhookVerified: bool = False
+    webhookStatus: str = "AWAITING_ENDPOINT"
+    paymentMode: str = "Awaiting Buyer Approval"
+    failureReason: Optional[str] = None
 
 
 class VerificationSummary(BaseModel):

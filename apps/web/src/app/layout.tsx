@@ -7,7 +7,7 @@ export const dynamic = 'force-dynamic';
 export const metadata: Metadata = {
   title: 'PayPal PromisePay | AI-Powered Proof-of-Outcome for Payments',
   description:
-    'AI-powered proof-of-outcome lifecycle platform for PayPal payments: define promises, pay via PayPal Sandbox escrow, track deliverables, and auto-verify outcomes.',
+    'AI-powered proof-of-outcome lifecycle platform for PayPal payments: define promises, pay via PayPal Sandbox, track deliverables, and auto-verify outcomes.',
   icons: {
     icon: '/favicon.ico',
   },

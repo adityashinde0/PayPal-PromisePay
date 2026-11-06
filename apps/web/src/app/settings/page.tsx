@@ -59,7 +59,7 @@ export default function SettingsPage() {
         paymentsReceivable: true,
         primaryEmailConfirmed: true,
         env: 'sandbox',
-        capabilities: ['PPCP_DELAYED_ESCROW', 'SPLIT_FEES', 'DISPUTE_AUTOMATION'],
+        capabilities: ['PPCP_MARKETPLACE', 'SPLIT_FEES', 'DISPUTE_AUTOMATION'],
       });
     } finally {
       setLoadingStatus(false);
@@ -112,7 +112,7 @@ export default function SettingsPage() {
             </span>
           </div>
           <p className="text-xs text-slate-500 mt-1">
-            PayPal Commerce Platform (PPCP) multi-merchant onboarding, dual-mode environment toggle, and split fee escrow.
+            PayPal Commerce Platform (PPCP) multi-merchant onboarding, dual-mode environment toggle, and split fee settlement.
           </p>
         </div>
 
@@ -142,7 +142,7 @@ export default function SettingsPage() {
                     PayPal Merchant Business Integration
                   </h3>
                   <p className="text-xs text-slate-500">
-                    PayPal Partner Referrals API (PPCP Marketplace Escrow)
+                    PayPal Partner Referrals API (PPCP Marketplace Integration)
                   </p>
                 </div>
               </div>
@@ -201,11 +201,11 @@ export default function SettingsPage() {
             {/* PPCP Capabilities Matrix */}
             <div>
               <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block mb-2">
-                Active Partner Escrow Capabilities
+                Active Partner Integration Capabilities
               </span>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                 {[
-                  { name: 'Delayed Escrow', desc: 'Disbursement held until verification' },
+                  { name: 'Marketplace Settlement', desc: 'Disbursement tracked until outcome verification' },
                   { name: 'Split Partner Fees', desc: 'Automated platform fee split (1.5%)' },
                   { name: 'Disputes Defense', desc: 'Auto-dispatched Merkle dossiers' },
                 ].map((cap) => (
@@ -223,7 +223,7 @@ export default function SettingsPage() {
             {/* Connect Action Button */}
             <div className="pt-2 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3">
               <p className="text-xs text-slate-500">
-                Connect your business PayPal account to automatically receive milestone payouts upon cryptographic outcome verification.
+                Connect your business PayPal account to receive milestone payments upon cryptographic outcome verification.
               </p>
               <button
                 type="button"

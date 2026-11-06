@@ -1,14 +1,13 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import Link from 'next/link';
 import {
   Sparkles,
   ShieldCheck,
   CheckCircle2,
   ExternalLink,
-  Unlock,
-  Check,
+  FileCheck,
 } from 'lucide-react';
 import { PromiseSummaryResponse } from '@/types/promise';
 
@@ -17,8 +16,6 @@ interface AiOutcomeCardProps {
 }
 
 export function AiOutcomeCard({ promise }: AiOutcomeCardProps) {
-  const [released, setReleased] = useState(false);
-
   const id = promise?.promiseId || 'PP-8F72X-2026';
   const title = promise?.title || 'E-commerce Website & Deployment Agreement';
   const amount = promise?.amount?.value || '500.00';
@@ -84,7 +81,7 @@ export function AiOutcomeCard({ promise }: AiOutcomeCardProps) {
           <div className="font-mono text-xs font-bold text-slate-800">
             ${amount} {currency}{' '}
             <span className="text-[10px] font-normal text-slate-400">
-              ({isCaptured ? 'Escrow Captured' : 'Ready for Payment'})
+              ({isCaptured ? 'PayPal payment captured' : 'Ready for Payment'})
             </span>
           </div>
         </div>
@@ -117,28 +114,13 @@ export function AiOutcomeCard({ promise }: AiOutcomeCardProps) {
           <ExternalLink className="h-3.5 w-3.5" />
         </Link>
 
-        <button
-          type="button"
-          onClick={() => setReleased(true)}
-          disabled={released}
-          className={`inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-xs font-bold transition-all shadow-sm ${
-            released
-              ? 'bg-emerald-600 text-white cursor-default'
-              : 'bg-[#0070BA] text-white hover:bg-[#003087] hover:shadow-md'
-          }`}
+        <Link
+          href={`/promises/${id}`}
+          className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#0070BA] hover:bg-[#003087] px-4 py-2.5 text-xs font-bold text-white transition-all shadow-sm hover:shadow-md"
         >
-          {released ? (
-            <>
-              <Check className="h-4 w-4" />
-              <span>Funds Released via PayPal Sandbox</span>
-            </>
-          ) : (
-            <>
-              <Unlock className="h-4 w-4" />
-              <span>Authorize Escrow Payout (${amount} {currency})</span>
-            </>
-          )}
-        </button>
+          <FileCheck className="h-4 w-4" />
+          <span>View Verification Report</span>
+        </Link>
       </div>
     </div>
   );

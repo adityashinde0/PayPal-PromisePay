@@ -24,8 +24,8 @@ export function RecentActivityTimeline({ promises = [], onViewAll }: RecentActiv
         if (p.paymentState === 'CAPTURED') {
           return {
             id: p.promiseId,
-            title: `Payment Captured (${p.promiseId})`,
-            desc: `$${p.amount?.value || '0.00'} secured in PayPal Escrow for "${p.title}"`,
+            title: `PayPal Payment Captured (${p.promiseId})`,
+            desc: `$${p.amount?.value || '0.00'} captured via PayPal for "${p.title}"`,
             time: 'Recently',
             icon: CheckCircle2,
             iconColor: 'bg-emerald-50 text-emerald-600 border-emerald-200',

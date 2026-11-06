@@ -11,6 +11,7 @@ from promisepay_api.db.models import (
     AuditLogModel,
     EvidenceModel,
     PaymentModel,
+    PayPalEventModel,
     PromiseModel,
     PromiseRequirementModel,
     PromiseVersionModel,
@@ -109,6 +110,114 @@ class DatabaseRepository:
 
             await session.commit()
             return record
+
+    @staticmethod
+    async def save_payment(
+        promise_id: str,
+        paypal_order_id: str,
+        state: str,
+        amount_value: float,
+        currency_code: str = "USD",
+        paypal_capture_id: Optional[str] = None,
+        buyer_approved: bool = False,
+        webhook_verified: bool = False,
+        payment_mode: str = "Awaiting Buyer Approval",
+        idempotency_key: Optional[str] = None,
+        raw_response: Optional[Dict[str, Any]] = None,
+    ) -> Optional[PaymentModel]:
+        """Durable repository method to persist or update a PayPal payment record."""
+        async with AsyncSessionLocal() as session:
+            p_stmt = select(PromiseModel).where(PromiseModel.promise_id == promise_id)
+            p_res = await session.execute(p_stmt)
+            promise = p_res.scalars().first()
+
+            if not promise:
+                promise = PromiseModel(
+                    promise_id=promise_id,
+                    title=f"Promise {promise_id}",
+                    category="digital_project",
+                    status="READY_FOR_PAYMENT",
+                    amount_value=amount_value,
+                    currency_code=currency_code,
+                )
+                session.add(promise)
+                await session.flush()
+
+            stmt = select(PaymentModel).where(PaymentModel.paypal_order_id == paypal_order_id)
+            res = await session.execute(stmt)
+            payment = res.scalars().first()
+
+            from datetime import datetime, timezone
+
+            now = datetime.now(timezone.utc)
+
+            if not payment:
+                payment = PaymentModel(
+                    promise_id=promise.id,
+                    paypal_order_id=paypal_order_id,
+                    paypal_capture_id=paypal_capture_id,
+                    state=state,
+                    amount_value=amount_value,
+                    currency_code=currency_code,
+                    buyer_approved=buyer_approved,
+                    webhook_verified=webhook_verified,
+                    payment_mode=payment_mode,
+                    idempotency_key=idempotency_key,
+                    raw_response=raw_response or {},
+                    captured_at=now if state == "CAPTURED" else None,
+                )
+                session.add(payment)
+            else:
+                payment.state = state
+                if paypal_capture_id:
+                    payment.paypal_capture_id = paypal_capture_id
+                payment.buyer_approved = buyer_approved or payment.buyer_approved
+                payment.webhook_verified = webhook_verified or payment.webhook_verified
+                payment.payment_mode = payment_mode
+                if idempotency_key:
+                    payment.idempotency_key = idempotency_key
+                if raw_response:
+                    payment.raw_response = raw_response
+                if state == "CAPTURED" and not payment.captured_at:
+                    payment.captured_at = now
+
+            await session.commit()
+            return payment
+
+    @staticmethod
+    async def get_payment_by_order_id(paypal_order_id: str) -> Optional[PaymentModel]:
+        async with AsyncSessionLocal() as session:
+            stmt = select(PaymentModel).where(PaymentModel.paypal_order_id == paypal_order_id)
+            res = await session.execute(stmt)
+            return res.scalars().first()
+
+    @staticmethod
+    async def save_paypal_event(
+        paypal_event_id: str,
+        event_type: str,
+        payload_digest: str,
+        signature_status: str,
+        raw_payload: Dict[str, Any],
+        payment_id: Optional[str] = None,
+    ) -> PayPalEventModel:
+        async with AsyncSessionLocal() as session:
+            stmt = select(PayPalEventModel).where(
+                PayPalEventModel.paypal_event_id == paypal_event_id
+            )
+            res = await session.execute(stmt)
+            evt = res.scalars().first()
+            if not evt:
+                evt = PayPalEventModel(
+                    paypal_event_id=paypal_event_id,
+                    payment_id=payment_id,
+                    event_type=event_type,
+                    payload_digest=payload_digest,
+                    signature_status=signature_status,
+                    raw_payload=raw_payload,
+                )
+                session.add(evt)
+                await session.commit()
+            return evt
 
     @staticmethod
     async def get_promise(promise_id: str) -> Optional[PromiseModel]:

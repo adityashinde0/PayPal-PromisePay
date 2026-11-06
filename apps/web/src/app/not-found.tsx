@@ -7,7 +7,7 @@ export default function NotFound() {
         <span className="font-mono text-4xl font-black text-[#0070BA]">404</span>
         <h2 className="mt-2 text-lg font-bold text-slate-900">Page Not Found</h2>
         <p className="mt-2 text-xs text-slate-500">
-          The escrow agreement, promise record, or verification dossier you requested does not exist.
+          The promise record or verification dossier you requested does not exist.
         </p>
         <Link
           href="/"

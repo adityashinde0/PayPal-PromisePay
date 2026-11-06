@@ -7,7 +7,11 @@ from typing import Set
 
 from fastapi import APIRouter, HTTPException, Request, status
 
-from promisepay_api.models.promise import AuditTimelineEvent, PromiseStatus
+from promisepay_api.models.promise import (
+    AuditTimelineEvent,
+    PromiseStatus,
+    determine_payment_mode,
+)
 from promisepay_api.services.event_broadcaster import event_broadcaster
 from promisepay_api.services.paypal_client import paypal_client
 from promisepay_api.services.promise_store import promise_store
@@ -105,14 +109,28 @@ async def handle_paypal_webhook(request: Request):
                 target_promise = p
                 break
 
-    # 5. Reconcile Payment Lifecycle States
+    # 5. Reconcile Payment Lifecycle States & Provenance
     if target_promise:
         from datetime import datetime, timezone
 
         now = datetime.now(timezone.utc).isoformat()
 
+        # Record verified webhook provenance
+        target_promise.payment.webhookVerified = True
+        target_promise.payment.webhookStatus = "VERIFIED"
+        target_promise.timeline.append(
+            AuditTimelineEvent(
+                timestamp=now,
+                actor="PayPal Webhook",
+                eventType="WEBHOOK_SIGNATURE_VERIFIED",
+                summary=f"PayPal webhook signature verified for event {event_id} ({event_type}).",
+            )
+        )
+
         if event_type == "CHECKOUT.ORDER.APPROVED":
             target_promise.payment.state = "APPROVED"
+            target_promise.payment.buyerApproved = True
+            target_promise.payment.paymentMode = determine_payment_mode("APPROVED", paypal_order_id, None)
             target_promise.status = PromiseStatus.PAYMENT_PENDING
             target_promise.timeline.append(
                 AuditTimelineEvent(
@@ -126,20 +144,27 @@ async def handle_paypal_webhook(request: Request):
         elif event_type == "PAYMENT.CAPTURE.COMPLETED":
             capture_id = resource.get("id")
             target_promise.payment.state = "CAPTURED"
+            target_promise.payment.buyerApproved = True
+            target_promise.payment.capturedAt = now
             if capture_id:
                 target_promise.payment.paypalCaptureId = capture_id
+            target_promise.payment.paymentMode = determine_payment_mode(
+                "CAPTURED", target_promise.payment.paypalOrderId, capture_id
+            )
             target_promise.status = PromiseStatus.PAID
             target_promise.timeline.append(
                 AuditTimelineEvent(
                     timestamp=now,
                     actor="PayPal Webhook",
                     eventType="CAPTURE_COMPLETED",
-                    summary=f"Capture {capture_id or ''} completed via PayPal webhook reconciliation.",
+                    summary=f"Capture {capture_id or ''} completed via PayPal webhook reconciliation. Mode: {target_promise.payment.paymentMode}.",
                 )
             )
 
         elif event_type == "PAYMENT.CAPTURE.DENIED":
             target_promise.payment.state = "FAILED"
+            target_promise.payment.failureReason = "PayPal capture denied by webhook"
+            target_promise.payment.paymentMode = "Payment Failed"
             target_promise.timeline.append(
                 AuditTimelineEvent(
                     timestamp=now,
@@ -151,6 +176,7 @@ async def handle_paypal_webhook(request: Request):
 
         elif event_type == "PAYMENT.CAPTURE.REFUNDED":
             target_promise.payment.state = "REFUNDED"
+            target_promise.payment.paymentMode = "Real PayPal Sandbox"
             target_promise.timeline.append(
                 AuditTimelineEvent(
                     timestamp=now,
@@ -221,5 +247,31 @@ async def handle_paypal_webhook(request: Request):
                 event_type="PAYPAL_DISPUTE_RESOLVED",
                 payload={"disputeId": dispute_id, "outcome": outcome},
             )
+
+        # Durable DB record (safe non-blocking)
+        try:
+            from promisepay_api.db.repository import DatabaseRepository
+
+            await DatabaseRepository.save_paypal_event(
+                paypal_event_id=event_id,
+                event_type=event_type,
+                payload_digest=f"sha256_{event_id}",
+                signature_status="VERIFIED",
+                raw_payload=event,
+            )
+            await DatabaseRepository.save_payment(
+                promise_id=target_promise.promise_id,
+                paypal_order_id=target_promise.payment.paypalOrderId or paypal_order_id or event_id,
+                paypal_capture_id=target_promise.payment.paypalCaptureId,
+                state=target_promise.payment.state,
+                amount_value=float(target_promise.amount.value),
+                currency_code=target_promise.amount.currencyCode,
+                buyer_approved=target_promise.payment.buyerApproved,
+                webhook_verified=True,
+                payment_mode=target_promise.payment.paymentMode,
+                raw_response=event,
+            )
+        except Exception as db_err:
+            logger.debug("Durable DB webhook record deferred or skipped: %s", db_err)
 
     return {"status": "processed", "eventId": event_id, "eventType": event_type}

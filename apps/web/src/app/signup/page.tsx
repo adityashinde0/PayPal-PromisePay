@@ -110,7 +110,7 @@ export default function SignUpPage() {
             </label>
             <div className="grid grid-cols-2 gap-3">
               {[
-                { r: 'BUYER' as UserRole, title: 'Buyer / Client', sub: 'Commission work & fund escrow' },
+                { r: 'BUYER' as UserRole, title: 'Buyer / Client', sub: 'Commission work & capture payment' },
                 { r: 'SELLER' as UserRole, title: 'Seller / Merchant', sub: 'Deliver milestones & get paid' },
               ].map((opt) => (
                 <button

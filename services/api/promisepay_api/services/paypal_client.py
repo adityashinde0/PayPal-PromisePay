@@ -37,6 +37,11 @@ class PayPalClient:
         """Returns True if real Sandbox credentials are provided."""
         return bool(self.client_id and self.client_secret and self.client_id != "placeholder")
 
+    @property
+    def is_demo_or_test(self) -> bool:
+        """Mock fallback is strictly allowed only when in automated tests or explicit demo mode."""
+        return bool(settings.paypal_demo_mode or settings.app_env.lower() in ("test", "testing"))
+
     def _get_base_headers(
         self, token: Optional[str] = None, request_id: Optional[str] = None
     ) -> Dict[str, str]:
@@ -54,7 +59,11 @@ class PayPalClient:
     async def get_access_token(self) -> str:
         """Retrieves or refreshes an OAuth 2.0 bearer token using client credentials."""
         if not self.is_configured:
-            return "mock_oauth_sandbox_token"
+            if self.is_demo_or_test:
+                return "mock_oauth_sandbox_token"
+            raise RuntimeError(
+                "PayPal Sandbox credentials are not configured and PAYPAL_DEMO_MODE is disabled."
+            )
 
         now = time.time()
         if self._access_token and now < self._token_expires_at - 60:
@@ -75,11 +84,15 @@ class PayPalClient:
                 )
                 if res.status_code != 200:
                     logger.warning(
-                        "PayPal OAuth returned %s: %s. Using Sandbox mock token.",
+                        "PayPal OAuth returned %s: %s.",
                         res.status_code,
                         res.text,
                     )
-                    return "mock_oauth_sandbox_token"
+                    if self.is_demo_or_test:
+                        return "mock_oauth_sandbox_token"
+                    raise RuntimeError(
+                        f"PayPal OAuth error ({res.status_code}): {res.text}"
+                    )
 
                 json_data = res.json()
                 self._access_token = json_data["access_token"]
@@ -87,8 +100,12 @@ class PayPalClient:
                 self._token_expires_at = now + expires_in
                 return self._access_token
             except Exception as exc:
-                logger.warning("PayPal OAuth connection error: %s. Using Sandbox mock token.", exc)
-                return "mock_oauth_sandbox_token"
+                if isinstance(exc, RuntimeError):
+                    raise
+                logger.warning("PayPal OAuth connection error: %s.", exc)
+                if self.is_demo_or_test:
+                    return "mock_oauth_sandbox_token"
+                raise RuntimeError(f"PayPal OAuth connection error: {exc}") from exc
 
     async def create_order(
         self,
@@ -109,6 +126,10 @@ class PayPalClient:
         request_id = idempotency_key or str(uuid.uuid4())
 
         if not self.is_configured:
+            if not self.is_demo_or_test:
+                raise RuntimeError(
+                    "PayPal Sandbox credentials are not configured and PAYPAL_DEMO_MODE is disabled."
+                )
             # Deterministic Sandbox mock order for local dev and automated tests
             mock_order_id = f"MOCK_ORD_{uuid.uuid4().hex[:12].upper()}"
             logger.info(
@@ -195,17 +216,29 @@ class PayPalClient:
                         retry_res.status_code,
                         retry_res.text,
                     )
+                    if not self.is_demo_or_test:
+                        raise RuntimeError(
+                            f"PayPal standard capture retry failed ({retry_res.status_code}): {retry_res.text}"
+                        )
 
                 logger.warning(
-                    "PayPal live order creation rejected (%s). Falling back to deterministic Sandbox mock order.",
+                    "PayPal live order creation rejected (%s).",
                     res.status_code,
                 )
+                if not self.is_demo_or_test:
+                    raise RuntimeError(
+                        f"PayPal live order creation rejected ({res.status_code}): {res.text}"
+                    )
             except Exception as exc:
+                if isinstance(exc, RuntimeError):
+                    raise
                 logger.warning(
-                    "PayPal order request connection error: %s. Using Sandbox mock order.", exc
+                    "PayPal order request connection error: %s.", exc
                 )
+                if not self.is_demo_or_test:
+                    raise RuntimeError(f"PayPal order request connection error: {exc}") from exc
 
-            # Deterministic Sandbox mock order fallback
+            # Deterministic Sandbox mock order fallback (ONLY in demo or test mode)
             mock_order_id = f"MOCK_ORD_{uuid.uuid4().hex[:12].upper()}"
             return {
                 "id": mock_order_id,
@@ -226,6 +259,10 @@ class PayPalClient:
         request_id = idempotency_key or str(uuid.uuid4())
 
         if not self.is_configured or paypal_order_id.startswith("MOCK_ORD_"):
+            if not self.is_demo_or_test:
+                raise RuntimeError(
+                    f"Mock order capture ({paypal_order_id}) is disallowed outside explicit demo or test mode."
+                )
             # Deterministic Sandbox mock capture
             mock_capture_id = f"MOCK_CAP_{uuid.uuid4().hex[:12].upper()}"
             logger.info(
@@ -265,17 +302,25 @@ class PayPalClient:
                 if res.status_code in (200, 201):
                     return res.json()
                 logger.warning(
-                    "PayPal Capture Order returned %s: %s. Using Sandbox capture fallback.",
+                    "PayPal Capture Order returned %s: %s.",
                     res.status_code,
                     res.text,
                 )
+                if not self.is_demo_or_test:
+                    raise RuntimeError(
+                        f"PayPal capture failed ({res.status_code}): {res.text}"
+                    )
             except Exception as exc:
+                if isinstance(exc, RuntimeError):
+                    raise
                 logger.warning(
-                    "PayPal Capture Order connection error: %s. Using Sandbox capture fallback.",
+                    "PayPal Capture Order connection error: %s.",
                     exc,
                 )
+                if not self.is_demo_or_test:
+                    raise RuntimeError(f"PayPal Capture Order connection error: {exc}") from exc
 
-            # Fallback capture for sandbox simulation
+            # Fallback capture for sandbox simulation (ONLY in demo or test mode)
             mock_capture_id = f"MOCK_CAP_{uuid.uuid4().hex[:12].upper()}"
             return {
                 "id": paypal_order_id,
@@ -310,6 +355,10 @@ class PayPalClient:
         request_id = idempotency_key or str(uuid.uuid4())
 
         if not self.is_configured or paypal_capture_id.startswith("MOCK_CAP_"):
+            if not self.is_demo_or_test:
+                raise RuntimeError(
+                    f"Mock capture refund ({paypal_capture_id}) is disallowed outside explicit demo or test mode."
+                )
             mock_refund_id = f"MOCK_REF_{uuid.uuid4().hex[:12].upper()}"
             logger.info(
                 "Refunded Sandbox mock capture %s -> refund %s", paypal_capture_id, mock_refund_id
@@ -343,6 +392,10 @@ class PayPalClient:
     async def disburse_delayed_payment(self, capture_id: str) -> Dict[str, Any]:
         """Releases held funds from delayed escrow to merchant upon verified outcome."""
         if not self.is_configured or capture_id.startswith("MOCK_CAP_"):
+            if not self.is_demo_or_test:
+                raise RuntimeError(
+                    f"Mock disbursement ({capture_id}) is disallowed outside explicit demo or test mode."
+                )
             logger.info("Mock sandbox delayed disbursement released for capture %s", capture_id)
             return {"status": "DISBURSED", "captureId": capture_id, "mode": "MOCK_DISBURSEMENT"}
 
