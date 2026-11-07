@@ -130,7 +130,9 @@ async def handle_paypal_webhook(request: Request):
         if event_type == "CHECKOUT.ORDER.APPROVED":
             target_promise.payment.state = "APPROVED"
             target_promise.payment.buyerApproved = True
-            target_promise.payment.paymentMode = determine_payment_mode("APPROVED", paypal_order_id, None)
+            target_promise.payment.paymentMode = determine_payment_mode(
+                "APPROVED", paypal_order_id, None
+            )
             target_promise.status = PromiseStatus.PAYMENT_PENDING
             target_promise.timeline.append(
                 AuditTimelineEvent(

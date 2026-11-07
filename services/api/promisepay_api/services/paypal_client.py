@@ -90,9 +90,7 @@ class PayPalClient:
                     )
                     if self.is_demo_or_test:
                         return "mock_oauth_sandbox_token"
-                    raise RuntimeError(
-                        f"PayPal OAuth error ({res.status_code}): {res.text}"
-                    )
+                    raise RuntimeError(f"PayPal OAuth error ({res.status_code}): {res.text}")
 
                 json_data = res.json()
                 self._access_token = json_data["access_token"]
@@ -232,9 +230,7 @@ class PayPalClient:
             except Exception as exc:
                 if isinstance(exc, RuntimeError):
                     raise
-                logger.warning(
-                    "PayPal order request connection error: %s.", exc
-                )
+                logger.warning("PayPal order request connection error: %s.", exc)
                 if not self.is_demo_or_test:
                     raise RuntimeError(f"PayPal order request connection error: {exc}") from exc
 
@@ -307,9 +303,7 @@ class PayPalClient:
                     res.text,
                 )
                 if not self.is_demo_or_test:
-                    raise RuntimeError(
-                        f"PayPal capture failed ({res.status_code}): {res.text}"
-                    )
+                    raise RuntimeError(f"PayPal capture failed ({res.status_code}): {res.text}")
             except Exception as exc:
                 if isinstance(exc, RuntimeError):
                     raise

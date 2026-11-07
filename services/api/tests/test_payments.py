@@ -112,6 +112,7 @@ def test_mock_fallback_disallowed_outside_demo_or_test_mode(client, monkeypatch)
 def test_sandbox_capture_failure_returns_error_not_mock_cap(client, monkeypatch):
     """Test that genuine sandbox capture failure returns clear API error instead of fake MOCK_CAP."""
     import httpx
+
     from promisepay_api.config import settings
     from promisepay_api.services.paypal_client import paypal_client
     from promisepay_api.services.promise_store import promise_store
@@ -131,7 +132,10 @@ def test_sandbox_capture_failure_returns_error_not_mock_cap(client, monkeypatch)
         text = '{"name":"UNPROCESSABLE_ENTITY","message":"The requested action could not be performed"}'
 
         def json(self):
-            return {"name": "UNPROCESSABLE_ENTITY", "message": "The requested action could not be performed"}
+            return {
+                "name": "UNPROCESSABLE_ENTITY",
+                "message": "The requested action could not be performed",
+            }
 
     async def mock_post(*args, **kwargs):
         return MockCaptureErrorResponse()
@@ -177,6 +181,7 @@ def test_mock_fallback_allowed_when_demo_mode_enabled(client, monkeypatch):
 def test_real_capture_provenance_state_is_recorded(client, monkeypatch):
     """Test that real PayPal Sandbox capture properly records all provenance fields."""
     import httpx
+
     from promisepay_api.config import settings
     from promisepay_api.services.paypal_client import paypal_client
     from promisepay_api.services.promise_store import promise_store
@@ -266,6 +271,7 @@ def test_demo_mode_is_visibly_simulated_mode(client, monkeypatch):
 def test_normal_sandbox_capture_failure_records_failed_provenance(client, monkeypatch):
     """Test that capture failure transitions payment to 'Payment Failed' mode with failure reason."""
     import httpx
+
     from promisepay_api.config import settings
     from promisepay_api.services.paypal_client import paypal_client
     from promisepay_api.services.promise_store import promise_store
