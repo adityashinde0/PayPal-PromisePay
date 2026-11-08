@@ -268,7 +268,9 @@ def isolate_test_environment(monkeypatch, tmp_path):
     monkeypatch.setattr(paypal_client, "client_id", "")
     monkeypatch.setattr(paypal_client, "client_secret", "")
     monkeypatch.setattr("promisepay_api.config.settings.ai_api_key", "")
-    monkeypatch.setattr("promisepay_api.routers.webhooks._STORAGE_FILE", tmp_path / "test_events.txt")
+    monkeypatch.setattr(
+        "promisepay_api.routers.webhooks._STORAGE_FILE", tmp_path / "test_events.txt"
+    )
     PROCESSED_EVENT_IDS.clear()
 ```
 - **Architectural Implications**:

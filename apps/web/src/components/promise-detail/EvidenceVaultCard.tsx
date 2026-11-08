@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState } from 'react';
-import Image from 'next/image';
 import { Camera, CheckCircle2, ChevronDown, ChevronUp, ExternalLink, Globe, Lock, ShieldCheck } from 'lucide-react';
 import { EvidenceItem } from '@/types/promise';
 import { useAuth } from '@/context/AuthContext';

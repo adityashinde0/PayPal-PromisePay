@@ -61,7 +61,7 @@ export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
 
       {/* Rock-solid, fixed sidebar: strictly locked width, sticky on desktop */}
       <aside
-        className={`fixed top-0 bottom-0 left-0 z-50 flex w-64 min-w-[16rem] max-w-[16rem] shrink-0 flex-col border-r border-slate-200 bg-white lg:sticky lg:top-0 lg:h-screen lg:translate-x-0 ${
+        className={`fixed top-0 bottom-0 left-0 z-50 flex w-64 min-w-[16rem] max-w-[16rem] shrink-0 flex-col border-r border-[#15254d] bg-[#0a1633] text-white lg:sticky lg:top-0 lg:h-screen lg:translate-x-0 ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
         style={{
@@ -70,33 +70,33 @@ export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
         }}
       >
         {/* Brand Header */}
-        <div className="flex h-16 shrink-0 items-center px-5 border-b border-slate-100">
+        <div className="flex h-16 shrink-0 items-center px-5 border-b border-[#15254d]">
           <Link href="/" onClick={() => setActiveTab('dashboard')} className="block select-none">
-            <PayPalLogo height={22} variant="brand" />
+            <PayPalLogo height={22} variant="brand" theme="dark" />
           </Link>
         </div>
 
         {/* Navigation & Controls */}
         <div className="flex-1 overflow-y-auto px-3.5 py-4 space-y-5 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
           {/* Switch Role Pill */}
-          <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-2.5 shrink-0">
-            <div className="flex items-center justify-between text-[11px] font-semibold text-slate-500 mb-1.5 select-none">
+          <div className="rounded-xl border border-[#1b3164] bg-[#0f1f45] p-2.5 shrink-0">
+            <div className="flex items-center justify-between text-[11px] font-semibold text-slate-400 mb-1.5 select-none">
               <span className="flex items-center gap-1">
                 <ArrowRightLeft className="h-3 w-3" />
                 <span>Account Role</span>
               </span>
-              <span className="capitalize font-bold text-[#0070BA] text-[10px]">
+              <span className="capitalize font-bold text-[#00c0f7] text-[10px]">
                 {role}
               </span>
             </div>
-            <div className="grid grid-cols-2 gap-1 rounded-lg bg-white p-1 border border-slate-200/80 shadow-2xs">
+            <div className="grid grid-cols-2 gap-1 rounded-lg bg-[#0a1633] p-1 border border-[#1b3164] shadow-2xs">
               <button
                 type="button"
                 onClick={() => setRole('buyer')}
                 className={`rounded-md py-1.5 text-xs font-bold transition-colors duration-150 ${
                   role === 'buyer'
-                    ? 'bg-[#0070BA] text-white shadow-xs'
-                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                    ? 'bg-white text-slate-900 shadow-xs'
+                    : 'text-slate-300 hover:text-white hover:bg-[#132654]'
                 }`}
               >
                 Buyer
@@ -106,8 +106,8 @@ export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
                 onClick={() => setRole('seller')}
                 className={`rounded-md py-1.5 text-xs font-bold transition-colors duration-150 ${
                   role === 'seller'
-                    ? 'bg-[#0070BA] text-white shadow-xs'
-                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                    ? 'bg-white text-slate-900 shadow-xs'
+                    : 'text-slate-300 hover:text-white hover:bg-[#132654]'
                 }`}
               >
                 Seller
@@ -128,13 +128,13 @@ export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
                   onClick={() => handleNavClick(item.tab)}
                   className={`w-full flex items-center gap-3 rounded-lg px-3.5 py-2.5 text-xs font-semibold transition-colors duration-150 select-none text-left ${
                     isActive
-                      ? 'bg-[#EBF3FC] text-[#0070BA] font-bold'
-                      : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                      ? 'bg-[#0070ba] text-white font-bold shadow-sm'
+                      : 'text-slate-300 hover:bg-[#12234e] hover:text-white'
                   }`}
                 >
                   <Icon
                     className={`h-4 w-4 shrink-0 transition-colors duration-150 ${
-                      isActive ? 'text-[#0070BA]' : 'text-slate-400'
+                      isActive ? 'text-white' : 'text-slate-400'
                     }`}
                   />
                   <span className="truncate">{item.label}</span>
@@ -148,13 +148,13 @@ export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
               onClick={onClose}
               className={`flex items-center gap-3 rounded-lg px-3.5 py-2.5 text-xs font-semibold transition-colors duration-150 select-none ${
                 pathname === '/create'
-                  ? 'bg-[#EBF3FC] text-[#0070BA] font-bold'
-                  : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                  ? 'bg-[#0070ba] text-white font-bold shadow-sm'
+                  : 'text-slate-300 hover:bg-[#12234e] hover:text-white'
               }`}
             >
               <PlusCircle
                 className={`h-4 w-4 shrink-0 ${
-                  pathname === '/create' ? 'text-[#0070BA]' : 'text-slate-400'
+                  pathname === '/create' ? 'text-white' : 'text-slate-400'
                 }`}
               />
               <span className="truncate">Create Promise</span>
@@ -166,13 +166,13 @@ export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
               onClick={onClose}
               className={`flex items-center gap-3 rounded-lg px-3.5 py-2.5 text-xs font-semibold transition-colors duration-150 select-none ${
                 pathname === '/settings'
-                  ? 'bg-[#EBF3FC] text-[#0070BA] font-bold'
-                  : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                  ? 'bg-[#0070ba] text-white font-bold shadow-sm'
+                  : 'text-slate-300 hover:bg-[#12234e] hover:text-white'
               }`}
             >
               <Settings
                 className={`h-4 w-4 shrink-0 ${
-                  pathname === '/settings' ? 'text-[#0070BA]' : 'text-slate-400'
+                  pathname === '/settings' ? 'text-white' : 'text-slate-400'
                 }`}
               />
               <span className="truncate">PayPal Merchant Hub</span>
@@ -180,23 +180,23 @@ export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
           </nav>
 
           {/* Live System Integrations */}
-          <div className="space-y-2 pt-2 border-t border-slate-100 shrink-0">
+          <div className="space-y-2 pt-2 border-t border-[#15254d] shrink-0">
             <div className="flex items-center justify-between px-1 select-none">
               <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
                 System Integrations
               </span>
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 ring-2 ring-emerald-100" />
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 ring-2 ring-emerald-400/30" />
             </div>
-            <div className="space-y-1 rounded-lg border border-slate-100 bg-slate-50/50 p-2">
+            <div className="space-y-1.5 rounded-lg border border-[#1b3164] bg-[#0f1f45]/70 p-2">
               {integrations.map((item) => (
                 <div
                   key={item.name}
                   className="flex items-center justify-between text-xs py-1 px-1.5"
                 >
-                  <span className="font-medium text-slate-600 text-[11px] truncate">
+                  <span className="font-medium text-slate-300 text-[11px] truncate">
                     {item.name}
                   </span>
-                  <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200/60 shrink-0">
+                  <span className="text-[10px] font-semibold text-emerald-300 bg-emerald-950/70 px-1.5 py-0.5 rounded border border-emerald-500/30 shrink-0">
                     {item.status}
                   </span>
                 </div>
@@ -206,17 +206,17 @@ export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
         </div>
 
         {/* Bottom Trust Card */}
-        <div className="p-3 border-t border-slate-100 shrink-0 bg-white">
-          <div className="rounded-xl bg-slate-50 p-3 border border-slate-200/80">
+        <div className="p-3 border-t border-[#15254d] shrink-0 bg-[#0a1633]">
+          <div className="rounded-xl bg-[#0f1f45] p-3 border border-[#1b3164]">
             <div className="flex items-start gap-2.5">
-              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-[#0070BA] text-white">
+              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-[#0070ba] text-white">
                 <Shield className="h-3.5 w-3.5" />
               </div>
               <div className="overflow-hidden">
-                <h4 className="text-xs font-bold text-slate-900 truncate">
+                <h4 className="text-xs font-bold text-white truncate">
                   PayPal Protection
                 </h4>
-                <p className="mt-0.5 text-[10px] text-slate-500 leading-tight">
+                <p className="mt-0.5 text-[10px] text-slate-300 leading-tight">
                   Outcome verification and resolutions governed by human-reviewed policies.
                 </p>
               </div>

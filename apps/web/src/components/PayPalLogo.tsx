@@ -4,12 +4,14 @@ interface PayPalLogoProps {
   className?: string;
   variant?: 'brand' | 'monogram';
   height?: number;
+  theme?: 'light' | 'dark';
 }
 
 export function PayPalLogo({
   className = '',
   variant = 'brand',
   height = 22,
+  theme = 'light',
 }: PayPalLogoProps) {
   if (variant === 'monogram') {
     return (
@@ -66,14 +68,29 @@ export function PayPalLogo({
 
       {/* Brand Wordmark: PayPal PromisePay */}
       <div className="flex items-baseline">
-        <span className="font-extrabold italic tracking-tight text-[#003087] text-lg">
+        <span
+          className={`font-extrabold italic tracking-tight text-lg ${
+            theme === 'dark' ? 'text-white' : 'text-[#003087]'
+          }`}
+        >
           Pay
         </span>
-        <span className="font-extrabold italic tracking-tight text-[#0070BA] text-lg">
+        <span
+          className={`font-extrabold italic tracking-tight text-lg ${
+            theme === 'dark' ? 'text-[#00c0f7]' : 'text-[#0070BA]'
+          }`}
+        >
           Pal
         </span>
-        <span className="ml-1.5 font-bold tracking-tight text-slate-900 text-lg">
-          Promise<span className="text-[#0070BA]">Pay</span>
+        <span
+          className={`ml-1.5 font-bold tracking-tight text-lg ${
+            theme === 'dark' ? 'text-white' : 'text-slate-900'
+          }`}
+        >
+          Promise
+          <span className={theme === 'dark' ? 'text-[#00c0f7]' : 'text-[#0070BA]'}>
+            Pay
+          </span>
         </span>
       </div>
     </div>

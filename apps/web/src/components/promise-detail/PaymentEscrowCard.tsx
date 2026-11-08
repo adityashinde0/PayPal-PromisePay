@@ -234,7 +234,11 @@ export function PaymentEscrowCard({
                 }}
                 onError={(err) => {
                   setCheckoutNotice(null);
-                  onError(`PayPal Error: ${err?.message || 'Transaction could not be completed'}`);
+                  const msg = (err as { message?: string })?.message || String(err || '');
+                  if (msg.includes('Component closed') || msg.includes('paypal_js_sdk')) {
+                    return;
+                  }
+                  onError(`PayPal Error: ${(err as { message?: string })?.message || 'Transaction could not be completed'}`);
                 }}
               />
             </PayPalScriptProvider>

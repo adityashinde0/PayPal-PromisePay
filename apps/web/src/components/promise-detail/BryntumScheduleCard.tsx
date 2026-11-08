@@ -125,57 +125,74 @@ export function BryntumScheduleCard({ promise }: BryntumScheduleCardProps) {
       </div>
 
       {viewMode === 'timeline' ? (
-        <div className="mt-5 space-y-3">
-          {milestones.map((m, idx) => (
-            <div
-              key={m.id}
-              className={`rounded-xl border p-4 transition ${
-                m.status === 'COMPLETED'
-                  ? 'border-emerald-200 bg-emerald-50/40'
-                  : m.status === 'IN_PROGRESS'
-                  ? 'border-blue-300 bg-blue-50/40 shadow-xs ring-1 ring-blue-200'
-                  : 'border-slate-200 bg-slate-50/60 opacity-80'
-              }`}
-            >
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                <div className="flex items-start gap-3">
-                  <div className="mt-0.5">
-                    {m.status === 'COMPLETED' ? (
-                      <CheckCircle2 className="h-5 w-5 text-emerald-600" />
-                    ) : m.status === 'IN_PROGRESS' ? (
-                      <Clock className="h-5 w-5 text-[#0070BA] animate-pulse" />
-                    ) : (
-                      <AlertCircle className="h-5 w-5 text-slate-400" />
-                    )}
-                  </div>
-                  <div>
+        <div className="mt-4 overflow-x-auto">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="border-b border-slate-100 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                <th className="py-2 pr-4">SLA Milestone</th>
+                <th className="py-2 px-4 text-center">Status</th>
+                <th className="py-2 pl-4 text-right">Progress</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100 text-xs">
+              {milestones.map((m) => (
+                <tr key={m.id} className="hover:bg-slate-50/60 transition-colors">
+                  <td className="py-2.5 pr-4">
                     <div className="flex items-center gap-2">
-                      <span className="font-mono text-[11px] font-bold text-slate-500">{m.id}</span>
-                      <h4 className="text-xs font-bold text-slate-900">{m.name}</h4>
+                      <span className="font-mono text-[11px] font-bold text-slate-600 shrink-0">
+                        {m.id}
+                      </span>
+                      <span className="font-semibold text-slate-800 truncate">
+                        {m.name}
+                      </span>
                     </div>
-                    <div className="mt-1 flex items-center gap-3 text-[11px] text-slate-500">
-                      <span>Window: <strong className="text-slate-700">{m.startDate}</strong> to <strong className="text-slate-700">{m.endDate}</strong> ({m.slaDays}d SLA)</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-center border-t sm:border-t-0 pt-2 sm:pt-0 border-slate-200">
-                  <span className="text-[11px] font-mono font-bold text-[#003087] bg-white px-2 py-0.5 rounded border border-blue-100">
-                    {m.paymentTrigger}
-                  </span>
-                  <div className="flex items-center gap-1.5 mt-1">
-                    <div className="w-16 bg-slate-200 h-1.5 rounded-full overflow-hidden">
-                      <div
-                        className={`h-full ${m.status === 'COMPLETED' ? 'bg-emerald-500' : 'bg-blue-600'}`}
-                        style={{ width: `${m.progress}%` }}
+                  </td>
+                  <td className="py-2.5 px-4 text-center">
+                    <span
+                      className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
+                        m.status === 'COMPLETED'
+                          ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                          : m.status === 'IN_PROGRESS'
+                          ? 'bg-blue-50 text-[#0070BA] border border-blue-200'
+                          : 'bg-slate-100 text-slate-500'
+                      }`}
+                    >
+                      <span
+                        className={`h-1.5 w-1.5 rounded-full ${
+                          m.status === 'COMPLETED'
+                            ? 'bg-emerald-500'
+                            : m.status === 'IN_PROGRESS'
+                            ? 'bg-[#0070BA]'
+                            : 'bg-slate-400'
+                        }`}
                       />
+                      Status
+                    </span>
+                  </td>
+                  <td className="py-2.5 pl-4 text-right">
+                    <div className="inline-flex items-center justify-end gap-1.5">
+                      <div className="w-16 bg-slate-100 h-1.5 rounded-full overflow-hidden hidden sm:block">
+                        <div
+                          className={`h-full ${
+                            m.status === 'COMPLETED' ? 'bg-emerald-500' : 'bg-[#0070BA]'
+                          }`}
+                          style={{ width: `${m.progress}%` }}
+                        />
+                      </div>
+                      <span className="font-bold text-slate-700 text-[11px]">
+                        {m.progress}%
+                      </span>
+                      {m.status === 'COMPLETED' ? (
+                        <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0 inline" />
+                      ) : (
+                        <Clock className="h-4 w-4 text-slate-400 shrink-0 inline" />
+                      )}
                     </div>
-                    <span className="text-[10px] font-bold text-slate-600">{m.progress}%</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          ))}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       ) : (
         /* Gantt View Bar Visualizer */

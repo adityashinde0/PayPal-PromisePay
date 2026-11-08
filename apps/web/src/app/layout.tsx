@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   description:
     'AI-powered proof-of-outcome lifecycle platform for PayPal payments: define promises, pay via PayPal Sandbox, track deliverables, and auto-verify outcomes.',
   icons: {
-    icon: '/favicon.ico',
+    icon: '/paypal.svg',
   },
 };
 

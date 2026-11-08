@@ -154,6 +154,15 @@ export default function PromiseDetailPage() {
     const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
     let eventSource: EventSource | null = null;
 
+    let connectedHandler: ((e: MessageEvent) => void) | null = null;
+    let scanningHandler: ((e: MessageEvent) => void) | null = null;
+    let ocrHandler: ((e: MessageEvent) => void) | null = null;
+    let aiAnalyzingHandler: ((e: MessageEvent) => void) | null = null;
+    let merkleHandler: ((e: MessageEvent) => void) | null = null;
+    let paymentHandler: ((e: MessageEvent) => void) | null = null;
+    let disputeSyncedHandler: ((e: MessageEvent) => void) | null = null;
+    let disputeResolvedHandler: ((e: MessageEvent) => void) | null = null;
+
     try {
       eventSource = new EventSource(`${API_URL}/api/promises/${promiseId}/events`);
 
@@ -192,16 +201,37 @@ export default function PromiseDetailPage() {
         } catch {}
       };
 
-      eventSource.addEventListener('CONNECTED', handleIncomingEvent('CONNECTED', 'Stream Connected'));
-      eventSource.addEventListener('EVIDENCE_SCANNING', handleIncomingEvent('EVIDENCE_SCANNING', 'Evidence Scanning'));
-      eventSource.addEventListener('OCR_EXTRACTING', handleIncomingEvent('OCR_EXTRACTING', 'Multimodal Vision OCR'));
-      eventSource.addEventListener('MERKLE_TREE_SEALED', handleIncomingEvent('MERKLE_TREE_SEALED', 'Merkle Tree Sealed'));
-      eventSource.addEventListener('PAYMENT_CAPTURED', handleIncomingEvent('PAYMENT_CAPTURED', 'Payment Captured'));
-      eventSource.addEventListener('PAYPAL_DISPUTE_SYNCED', handleIncomingEvent('PAYPAL_DISPUTE_SYNCED', 'PayPal Dispute Synced'));
+      connectedHandler = handleIncomingEvent('CONNECTED', 'Stream Connected');
+      scanningHandler = handleIncomingEvent('EVIDENCE_SCANNING', 'Evidence Scanning');
+      ocrHandler = handleIncomingEvent('OCR_EXTRACTING', 'Multimodal Vision OCR');
+      aiAnalyzingHandler = handleIncomingEvent('AI_ANALYZING_REQUIREMENT', 'AI Requirement Analysis');
+      merkleHandler = handleIncomingEvent('MERKLE_TREE_SEALED', 'Merkle Tree Sealed');
+      paymentHandler = handleIncomingEvent('PAYMENT_CAPTURED', 'Payment Captured');
+      disputeSyncedHandler = handleIncomingEvent('PAYPAL_DISPUTE_SYNCED', 'PayPal Dispute Synced');
+      disputeResolvedHandler = handleIncomingEvent('PAYPAL_DISPUTE_RESOLVED', 'PayPal Dispute Resolved');
+
+      eventSource.addEventListener('CONNECTED', connectedHandler);
+      eventSource.addEventListener('EVIDENCE_SCANNING', scanningHandler);
+      eventSource.addEventListener('OCR_EXTRACTING', ocrHandler);
+      eventSource.addEventListener('AI_ANALYZING_REQUIREMENT', aiAnalyzingHandler);
+      eventSource.addEventListener('MERKLE_TREE_SEALED', merkleHandler);
+      eventSource.addEventListener('PAYMENT_CAPTURED', paymentHandler);
+      eventSource.addEventListener('PAYPAL_DISPUTE_SYNCED', disputeSyncedHandler);
+      eventSource.addEventListener('PAYPAL_DISPUTE_RESOLVED', disputeResolvedHandler);
     } catch {}
 
     return () => {
-      eventSource?.close();
+      if (eventSource) {
+        if (connectedHandler) eventSource.removeEventListener('CONNECTED', connectedHandler);
+        if (scanningHandler) eventSource.removeEventListener('EVIDENCE_SCANNING', scanningHandler);
+        if (ocrHandler) eventSource.removeEventListener('OCR_EXTRACTING', ocrHandler);
+        if (aiAnalyzingHandler) eventSource.removeEventListener('AI_ANALYZING_REQUIREMENT', aiAnalyzingHandler);
+        if (merkleHandler) eventSource.removeEventListener('MERKLE_TREE_SEALED', merkleHandler);
+        if (paymentHandler) eventSource.removeEventListener('PAYMENT_CAPTURED', paymentHandler);
+        if (disputeSyncedHandler) eventSource.removeEventListener('PAYPAL_DISPUTE_SYNCED', disputeSyncedHandler);
+        if (disputeResolvedHandler) eventSource.removeEventListener('PAYPAL_DISPUTE_RESOLVED', disputeResolvedHandler);
+        eventSource.close();
+      }
     };
   }, [promiseId, loadPromise]);
 
@@ -537,23 +567,15 @@ export default function PromiseDetailPage() {
           <div>
             <div className="flex items-center gap-2">
               <h2 className="text-2xl font-bold font-mono text-slate-900">{promise.promiseId}</h2>
-              <span className="rounded bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-700 capitalize">
+              <span className="rounded bg-blue-50 text-[#0070BA] border border-blue-200 px-2 py-0.5 text-xs font-semibold capitalize">
                 {promise.category.replace('_', ' ')}
               </span>
             </div>
             <p className="mt-1 text-base font-semibold text-slate-800">{promise.title}</p>
           </div>
           <div className="flex flex-col sm:flex-row sm:items-center gap-4 text-left md:text-right">
-            <button
-              onClick={() => setShowDossierModal(true)}
-              className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-blue-300 bg-blue-50 px-3.5 py-2 text-xs font-semibold text-[#0070BA] hover:bg-blue-100 transition-colors shadow-2xs"
-              title="View and print official cryptographic dossier for PayPal Resolution Center"
-            >
-              <span>🛡️</span>
-              <span>View Dispute Dossier</span>
-            </button>
             <div>
-              <span className="text-xs uppercase tracking-wider text-slate-400 font-medium">Locked Amount</span>
+              <span className="text-xs uppercase tracking-wider text-slate-400 font-medium">LOCKED AMOUNT</span>
               <p className="text-3xl font-extrabold text-[#003087]">
                 ${promise.amount.value}{' '}
                 <span className="text-sm font-normal text-slate-500">{promise.amount.currencyCode}</span>
@@ -562,112 +584,135 @@ export default function PromiseDetailPage() {
           </div>
         </div>
 
-        {/* Lifecycle Stepper */}
-        <div className="mt-8 border-t border-slate-100 pt-6">
-          <p className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3">Lifecycle Progress</p>
-          <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-2">
+        {/* Elegant Progress Pipeline (Chevron Stepper) */}
+        <div className="mt-6 border-t border-slate-100 pt-5">
+          <p className="text-xs font-bold uppercase tracking-wider text-slate-700 mb-3">
+            Elegant Progress Pipeline
+          </p>
+          <div className="flex items-center w-full overflow-x-auto py-1 text-[11px] font-bold">
             {STATUS_STEPS.map((s, idx) => {
-              const isPast = currentStepIdx >= idx;
+              const isPast = currentStepIdx > idx;
               const isCurrent = currentStepIdx === idx;
+              const isFirst = idx === 0;
+              const isLast = idx === STATUS_STEPS.length - 1;
+
+              // Polygon clip-paths for crisp chevron arrow shapes
+              let clipClass = '';
+              if (isFirst) {
+                clipClass = '[clip-path:polygon(0%_0%,calc(100%-12px)_0%,100%_50%,calc(100%-12px)_100%,0%_100%)]';
+              } else if (isLast) {
+                clipClass = '[clip-path:polygon(0%_0%,100%_0%,100%_100%,0%_100%,12px_50%)]';
+              } else {
+                clipClass = '[clip-path:polygon(0%_0%,calc(100%-12px)_0%,100%_50%,calc(100%-12px)_100%,0%_100%,12px_50%)]';
+              }
+
               return (
                 <div
                   key={s}
-                  className={`rounded-lg p-2 text-center text-xs font-medium border ${
+                  className={`flex-1 min-w-[105px] py-2.5 px-3 text-center transition-all ${clipClass} ${
                     isCurrent
-                      ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
+                      ? 'bg-[#0a1733] text-white shadow-sm font-extrabold'
                       : isPast
-                      ? 'bg-blue-50 text-blue-800 border-blue-200'
-                      : 'bg-slate-50 text-slate-400 border-slate-200'
+                      ? 'bg-slate-200 text-slate-700'
+                      : 'bg-slate-100 text-slate-400'
                   }`}
                 >
-                  {s.replace(/_/g, ' ')}
+                  <span className="truncate">{s.replace(/_/g, ' ')}</span>
                 </div>
               );
             })}
           </div>
         </div>
-
-        {/* Real-Time Agent Verification Stepper & Event Feed (Goal 4) */}
-        <div className="mt-6 border-t border-slate-100 pt-5">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                Live Verification Activity Stream (SSE)
-              </span>
-              <span
-                className={`inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                  streamConnected
-                    ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                    : 'bg-slate-100 text-slate-500'
-                }`}
-              >
-                <span
-                  className={`h-1.5 w-1.5 rounded-full ${
-                    streamConnected ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400'
-                  }`}
-                />
-                {streamConnected ? 'Connected on SSE / Redis' : 'Listening...'}
-              </span>
-            </div>
-            {realtimeEvents.length > 0 && (
-              <span className="text-[10px] text-slate-400">
-                Latest: {realtimeEvents[0].timestamp}
-              </span>
-            )}
-          </div>
-
-          {realtimeEvents.length === 0 ? (
-            <div className="rounded-lg bg-slate-50/80 p-3 border border-slate-200/60 text-xs text-slate-500 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Activity className="h-4 w-4 text-[#0070BA]" />
-                <span>Ready for agent verification events (EVIDENCE_SCANNING, OCR_EXTRACTING, MERKLE_TREE_SEALED)...</span>
-              </div>
-            </div>
-          ) : (
-            <div className="space-y-1.5 max-h-40 overflow-y-auto">
-              {realtimeEvents.slice(0, 4).map((ev, i) => (
-                <div
-                  key={i}
-                  className="rounded-lg bg-slate-50 p-2 text-xs border border-slate-200 flex items-center justify-between gap-2"
-                >
-                  <div className="flex items-center gap-2 truncate">
-                    <span className="rounded bg-blue-100 text-[#0070BA] px-1.5 py-0.5 text-[10px] font-bold">
-                      {ev.type}
-                    </span>
-                    <span className="text-slate-700 truncate">{ev.message}</span>
-                  </div>
-                  <span className="text-[10px] text-slate-400 font-mono shrink-0">
-                    {ev.timestamp}
-                  </span>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
       </div>
 
-      {/* Grid: Requirements, Evidence, Reports, and Actions */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
-        {/* Left 2 Cols */}
-        <div className="lg:col-span-2 space-y-6">
-          <BryntumScheduleCard promise={promise} />
+      {/* Main Layout Grid */}
+      <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start mt-6">
+        {/* Left Area (9 cols): Top 2-col row + Bottom 3-col row */}
+        <div className="xl:col-span-9 space-y-6">
+          {/* Top Row: Live SSE Activity Stream + Bryntum Schedule Card */}
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-stretch">
+            {/* Live Verification Activity Stream (SSE) Card */}
+            <div className="md:col-span-5 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                  <span className="text-xs font-bold uppercase tracking-wider text-slate-700">
+                    Live Verification Activity Stream (SSE)
+                  </span>
+                  <span
+                    className={`inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                      streamConnected
+                        ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                        : 'bg-slate-100 text-slate-500'
+                    }`}
+                  >
+                    <span
+                      className={`h-1.5 w-1.5 rounded-full ${
+                        streamConnected ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400'
+                      }`}
+                    />
+                    {streamConnected ? 'Connected on SSE / Redis' : 'Listening...'}
+                  </span>
+                </div>
 
-          <AtomicRequirementsCard
-            requirements={promise.requirements}
-            evidenceList={evidenceList}
-          />
+                <div className="mt-4 space-y-2.5 max-h-56 overflow-y-auto">
+                  {realtimeEvents.length === 0 ? (
+                    <div className="rounded-xl bg-slate-50 p-4 border border-dashed border-slate-200 text-xs text-slate-500 flex items-center gap-2.5">
+                      <Activity className="h-4 w-4 text-[#0070BA] shrink-0" />
+                      <span>Ready for agent verification events (EVIDENCE_SCANNING, OCR_EXTRACTING, MERKLE_TREE_SEALED)...</span>
+                    </div>
+                  ) : (
+                    realtimeEvents.slice(0, 5).map((ev, i) => (
+                      <div
+                        key={i}
+                        className="rounded-lg bg-slate-50 p-2.5 text-xs border border-slate-200 flex items-center justify-between gap-2 shadow-2xs"
+                      >
+                        <div className="flex items-center gap-2 truncate">
+                          <span className="h-2 w-2 rounded-full bg-emerald-500 shrink-0" />
+                          <span className="font-bold text-slate-800 text-[11px]">{ev.type}</span>
+                          <span className="text-slate-600 text-[11px] truncate">{ev.message}</span>
+                        </div>
+                        <span className="text-[10px] text-slate-400 font-mono shrink-0">
+                          {ev.timestamp}
+                        </span>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
 
-          <EvidenceVaultCard
-            evidenceList={evidenceList}
-            onAddEvidence={() => setShowEvidenceModal(true)}
-          />
+              {realtimeEvents.length > 0 && (
+                <div className="pt-3 border-t border-slate-100 text-[10px] text-slate-400 text-right">
+                  Latest: {realtimeEvents[0].timestamp}
+                </div>
+              )}
+            </div>
 
-          <VerificationReportCard
-            verificationRun={verificationRun}
-            onTriggerVerification={handleRunVerification}
-            verifying={verifying}
-          />
+            {/* Promise Milestone Schedule Card */}
+            <div className="md:col-span-7">
+              <BryntumScheduleCard promise={promise} />
+            </div>
+          </div>
 
+          {/* Bottom Row: 3 Equal Columns */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
+            <AtomicRequirementsCard
+              requirements={promise.requirements}
+              evidenceList={evidenceList}
+            />
+
+            <EvidenceVaultCard
+              evidenceList={evidenceList}
+              onAddEvidence={() => setShowEvidenceModal(true)}
+            />
+
+            <VerificationReportCard
+              verificationRun={verificationRun}
+              onTriggerVerification={handleRunVerification}
+              verifying={verifying}
+            />
+          </div>
+
+          {/* Human Resolution Card (full width if needed) */}
           <HumanResolutionCard
             resolutionCase={resolutionCase}
             onOpenCase={() => setShowOpenCaseModal(true)}
@@ -677,8 +722,17 @@ export default function PromiseDetailPage() {
           />
         </div>
 
-        {/* Right 1 Col */}
-        <div className="space-y-6">
+        {/* Right Sticky Area (3 cols) */}
+        <div className="xl:col-span-3 space-y-6 xl:sticky xl:top-20">
+          <button
+            onClick={() => setShowDossierModal(true)}
+            className="w-full flex items-center justify-center gap-2 rounded-xl border border-slate-300 bg-slate-100 hover:bg-slate-200 text-slate-800 px-4 py-2.5 text-xs font-bold shadow-xs transition"
+            title="View and print official cryptographic dossier for PayPal Resolution Center"
+          >
+            <span>🛡️</span>
+            <span>View Dispute Dossier</span>
+          </button>
+
           <PaymentEscrowCard
             promise={promise}
             onCreateOrder={handleCreatePaymentOrder}

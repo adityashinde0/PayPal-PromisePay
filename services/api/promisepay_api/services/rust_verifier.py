@@ -42,7 +42,6 @@ def get_rust_binary_path() -> Optional[Path]:
         if path.is_file():
             return path
     return None
-    return None
 
 
 def is_rust_engine_available() -> bool:
