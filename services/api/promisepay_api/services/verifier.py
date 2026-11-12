@@ -632,7 +632,10 @@ async def execute_verification_run(
     used_live = any(f.deterministicChecks.get("aiProvider") == "gemini_live" for f in results)
     if used_live:
         run.modelIdentifier = f"Google {settings.ai_model} (Live API)"
-    elif any("aiError" in f.deterministicChecks or "aiException" in f.deterministicChecks for f in results):
+    elif any(
+        "aiError" in f.deterministicChecks or "aiException" in f.deterministicChecks
+        for f in results
+    ):
         first_err = next(
             (
                 f.deterministicChecks.get("aiError") or f.deterministicChecks.get("aiException")
