@@ -7,14 +7,13 @@ Uses synchronous SQLAlchemy 2.0 Engine and native sqlite3 driver for determinist
 import os
 import sqlite3
 import sys
-import uuid
 from datetime import datetime, timezone
 
 # Ensure project paths are in sys.path
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "services", "api")))
+sys.path.insert(
+    0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "services", "api"))
+)
 
-from sqlalchemy import create_engine, select, text
-from sqlalchemy.orm import Session
 from promisepay_api.db.models import (
     AuditLogModel,
     Base,
@@ -25,8 +24,9 @@ from promisepay_api.db.models import (
     PromiseRequirementModel,
     PromiseVersionModel,
     UserModel,
-    VerificationRunModel,
 )
+from sqlalchemy import create_engine, select
+from sqlalchemy.orm import Session
 
 
 def log(msg: str):
@@ -204,7 +204,7 @@ def verify_database():
             select(PromiseModel).where(PromiseModel.promise_id == test_promise_id)
         ).scalar_one()
 
-        log(f"READ verified:")
+        log("READ verified:")
         log(f"  - UUID: {p.id}")
         log(f"  - Promise ID: {p.promise_id}")
         log(f"  - Title: {p.title}")
@@ -222,7 +222,9 @@ def verify_database():
         assert p.status == test_status_initial
 
     # Step 6: CRUD Test - UPDATE
-    log("Step 6: Executing CRUD - UPDATE record (State transition, Payment capture, Evidence submission)...")
+    log(
+        "Step 6: Executing CRUD - UPDATE record (State transition, Payment capture, Evidence submission)..."
+    )
     updated_title = "AI Security Audit & Cryptographic Dossier Engine [VERIFIED]"
     order_id = "ORD-VERIFY-998877"
     capture_id = "CAP-VERIFY-112233"
@@ -282,10 +284,14 @@ def verify_database():
         )
         session.add(audit_update)
         session.commit()
-        log("UPDATE complete: Promise transitioned to PAID, payment captured, evidence linked, audit logged.")
+        log(
+            "UPDATE complete: Promise transitioned to PAID, payment captured, evidence linked, audit logged."
+        )
 
     # Step 7: Independent Direct SQL Query Verification via Separate SQLite Connection
-    log("Step 7: Executing Direct SQL queries against SQLite database file to verify physical persistence...")
+    log(
+        "Step 7: Executing Direct SQL queries against SQLite database file to verify physical persistence..."
+    )
     cursor.execute(
         "SELECT id, promise_id, title, status, amount_value, currency_code FROM promises WHERE promise_id = ?",
         (test_promise_id,),
@@ -335,11 +341,15 @@ def verify_database():
     # Column count and schema inspection
     cursor.execute("PRAGMA table_info(promises);")
     columns_promises = [r[1] for r in cursor.fetchall()]
-    log(f"Table 'promises' verified with {len(columns_promises)} columns: {', '.join(columns_promises)}")
+    log(
+        f"Table 'promises' verified with {len(columns_promises)} columns: {', '.join(columns_promises)}"
+    )
 
     cursor.execute("PRAGMA table_info(payments);")
     columns_payments = [r[1] for r in cursor.fetchall()]
-    log(f"Table 'payments' verified with {len(columns_payments)} columns: {', '.join(columns_payments)}")
+    log(
+        f"Table 'payments' verified with {len(columns_payments)} columns: {', '.join(columns_payments)}"
+    )
 
     conn_raw.close()
     log("=== COMPREHENSIVE DATABASE VERIFICATION COMPLETED SUCCESSFULLY ===")
