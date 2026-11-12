@@ -4,6 +4,9 @@
 
 The end-to-end demo runs against the **PayPal Sandbox** and demonstrates a complete, working product—not a mock checkout or static prototype. This guide provides fresh-clone instructions, non-secret judge account workflows, and an under-three-minute rehearsal path as required by the [PayPal AI Hackathon Rules](https://paypalaihackathon.devpost.com/rules).
 
+> [!TIP]
+> **🎥 Official Demo Video**: [Watch the PromisePay Judge Walkthrough on YouTube](https://youtu.be/wZzLk0Lg9BE) for the full 3-minute end-to-end demonstration.
+
 ---
 
 ## 🚀 Quickstart: Fresh Clone in Under 2 Minutes

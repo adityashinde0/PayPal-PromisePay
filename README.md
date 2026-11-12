@@ -34,10 +34,11 @@
 [![APIMatic Context Plugin](https://img.shields.io/badge/APIMatic-Context_Plugin_%26_OpenAPI-4B52B2?style=flat&logo=openapi-initiative&logoColor=white)](docs/SPONSOR_INTEGRATIONS.md#2-apimatic)
 [![AG Grid Enterprise](https://img.shields.io/badge/AG_Grid-Quartz_Ledger-E84855?style=flat&logo=react&logoColor=white)](docs/SPONSOR_INTEGRATIONS.md#1-ag-grid)
 [![Render Cloud](https://img.shields.io/badge/Render-24%2F7_Hosted_App-46E3B7?style=flat&logo=render&logoColor=black)](https://promisepay-web.onrender.com)
+[![Video Demo](https://img.shields.io/badge/Demo_Video-YouTube-FF0000?style=flat&logo=youtube&logoColor=white)](https://youtu.be/wZzLk0Lg9BE)
 
 <br>
 
-**[🌐 Live Web Application](https://promisepay-web.onrender.com)** • **[⚡ Interactive API Docs (Swagger)](http://localhost:8000/docs)** • **[📖 Master Documentation Hub](docs/README.md)** • **[🛡️ Enterprise Audit Scorecard](docs/PAYPAL_ENTERPRISE_ADOPTION.md)**
+**[🌐 Live Web Application](https://promisepay-web.onrender.com)** • **[🎥 Video Demo (YouTube)](https://youtu.be/wZzLk0Lg9BE)** • **[⚡ Interactive API Docs (Swagger)](http://localhost:8000/docs)** • **[📖 Master Documentation Hub](docs/README.md)** • **[🛡️ Enterprise Audit Scorecard](docs/PAYPAL_ENTERPRISE_ADOPTION.md)**
 
 </div>
 
@@ -205,6 +206,9 @@ docker compose -f infra/docker-compose.yml logs -f
 ---
 
 ## 🧪 Pre-Seeded Judge Walkthrough & Demo Scenarios
+
+> [!TIP]
+> **🎥 Watch the Complete Video Walkthrough:** [Watch the PromisePay End-to-End Demo on YouTube (https://youtu.be/wZzLk0Lg9BE)](https://youtu.be/wZzLk0Lg9BE) showcasing the real PayPal Sandbox checkout, live SSE streaming ledger, deliverable evidence ingestion, and explainable Google Gemini verification!
 
 PromisePay boots with **4 pre-seeded demo agreements** covering the complete spectrum of digital, professional, delivery, and dispute defense scenarios:
 
