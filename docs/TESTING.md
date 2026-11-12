@@ -1,6 +1,6 @@
 # Testing strategy
 
-PromisePay maintains an enterprise test pyramid spanning unit, integration, contract, security, and native cryptographic test suites. The automated test suite contains **102 passing tests** across Python FastAPI, the background worker, and the native Rust Merkle sealing crate.
+PromisePay maintains an enterprise test pyramid spanning unit, integration, contract, security, and native cryptographic test suites. The automated test suite contains **160 passing tests** across Python FastAPI, the background worker, and the native Rust Merkle sealing crate.
 
 ## Test Pyramid & Execution Summary
 
@@ -16,10 +16,10 @@ PromisePay maintains an enterprise test pyramid spanning unit, integration, cont
 
 | Suite | Component | Framework | Test Count | Pass Rate | Execution Target |
 | --- | --- | --- | :---: | :---: | --- |
-| API Service | `services/api/` | Pytest + Pytest-Asyncio | 93 | 100% | `pytest services/api/tests/ -v` |
+| API Service | `services/api/` | Pytest + Pytest-Asyncio | 157 | 100% | `pytest services/api/tests/ -v` |
 | Background Worker | `services/worker/` | Pytest + Pytest-Asyncio | 3 | 100% | `pytest services/worker/tests/ -v` |
 | Cryptographic Engine | `crates/promisepay-verify/` | Cargo Test (Native Rust) | 6 | 100% | `cargo test --manifest-path crates/promisepay-verify/Cargo.toml` |
-| **Total Test Suite** | **Entire Platform** | **Polyglot Python + Rust** | **102** | **100%** | **All 102 passing with 0 failures** |
+| **Total Test Suite** | **Entire Platform** | **Polyglot Python + Rust** | **166** | **100%** | **All tests passing with 0 failures** |
 
 ---
 

@@ -32,7 +32,7 @@ All existing Phase 0–6 goals, core modules, test suites, and enterprise compli
 
 ## 2. Completed Goals Verification Matrix (Phases 0 – 6)
 
-All initial project goals and acceptance criteria defined in [`docs/IMPLEMENTATION_PLAN.md`](IMPLEMENTATION_PLAN.md) and [`docs/PRD.md`](PRD.md) have been fully met:
+All initial project goals and acceptance criteria defined in [`docs/PRD.md`](PRD.md) and [`docs/ARCHITECTURE.md`](ARCHITECTURE.md) have been fully met:
 
 | Phase | Description | Key Deliverables | Verification Status |
 | :---: | :--- | :--- | :---: |

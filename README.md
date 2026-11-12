@@ -2,6 +2,8 @@
 
 <div align="center">
 
+<img src="assets/title_card.png" alt="PayPal PromisePay Banner" width="100%" />
+
 ## Verifiable Payment Promises with Delayed Escrow, Multi-Judge AI Consensus, and Native Rust Merkle Proofs for PayPal Commerce Platform
 
 <!-- TIER 1: CORE APPLICATION STACK -->
@@ -23,7 +25,7 @@
 [![SHA-256 Proofs](https://img.shields.io/badge/Cryptography-SHA--256_Inclusion_Proofs-0079C1?style=flat&logo=auth0&logoColor=white)](docs/EVIDENCE_VERIFICATION.md)
 
 <!-- TIER 4: OPERATIONAL QUALITY, LICENSING & ENTERPRISE READINESS -->
-[![102 Tests Passing](https://img.shields.io/badge/Test_Pyramid-102%2F102_Passing_(100%25)-2ea44f?style=flat&logo=pytest&logoColor=white)](docs/TESTING.md)
+[![160 Tests Passing](https://img.shields.io/badge/Test_Pyramid-160%2F160_Passing_(100%25)-2ea44f?style=flat&logo=pytest&logoColor=white)](docs/TESTING.md)
 [![Strict Zero Non-MD Invariance](https://img.shields.io/badge/Integrity-Zero_Non--MD_Invariance-003087?style=flat&logo=git&logoColor=white)](docs/TESTING.md)
 [![License](https://img.shields.io/badge/License-Apache_2.0_%7C_MIT-0079C1?style=flat&logo=open-source-initiative&logoColor=white)](LICENSE)
 [![Enterprise Certified](https://img.shields.io/badge/Enterprise_Readiness-100%2F100_Certified-003087?style=flat&labelColor=FFC439&logo=checkmarx&logoColor=003087)](docs/PAYPAL_ENTERPRISE_ADOPTION.md)
@@ -57,6 +59,22 @@ Every transaction is anchored to an immutable **Promise ID** (e.g., `PP-DEMO1-20
 
 > [!IMPORTANT]
 > **Crucial Safety Guarantee (ADR-001):** The AI engine operates purely as an objective auditor and **never possesses the authority or credentials to move money**. All monetary actions—captures, delayed releases, payouts, and refunds—require deterministic server business logic and authorized human approval.
+
+---
+
+## 🖼️ Application Showcase & UI Tour
+
+<div align="center">
+  <img src="assets/promisepay_hero_dashboard.jpg" alt="PromisePay Active Promise Spotlight & Ledger" width="95%" />
+  <p><em>Executive Command Center: Active Promise Spotlight, AG Grid Ledger, and Real-Time Lifecycle Stepper</em></p>
+</div>
+
+<br>
+
+<div align="center">
+  <img src="assets/promisepay_escrow_audit_studio.jpg" alt="PromisePay Verification Studio & Evidence Vault" width="95%" />
+  <p><em>Evidence Vault & Verification Studio: SHA-256 Fingerprinted Deliverables, Explainable AI Findings & Merkle Inclusion Proofs</em></p>
+</div>
 
 ---
 
@@ -154,8 +172,8 @@ Get PromisePay running locally with either the **Native Runner** or **Docker Com
 #### 2. Installation & Environment Configuration
 ```bash
 # Clone the repository
-git clone https://github.com/promisepay/paypal-promisepay.git
-cd paypal-promisepay
+git clone https://github.com/adityashinde0/PayPal-PromisePay.git
+cd "PayPal PromisePay"
 
 # Copy environment configuration
 cp .env.example .env
@@ -251,20 +269,25 @@ PromisePay is architected from the ground up for strict fintech regulatory compl
 
 ```text
 ├── apps/
-│   └── web/                     # Next.js 15 frontend, Tailwind CSS, AG Grid Enterprise, PayPal SDK
-├── services/
-│   ├── api/                     # FastAPI backend, PayPal REST client, Gemini Multi-Judge AI, DLP
-│   └── worker/                  # Asynchronous queue worker & deliverable web scraper
+│   └── web/                     # Next.js 15 App Router frontend, Tailwind CSS, AG Grid Enterprise, PayPal SDK
+├── assets/                      # Official project banner, UI screenshots, mockups & theme assets
 ├── crates/
 │   └── promisepay-verify/       # High-performance Rust RFC 6962 Merkle tree verification engine
+├── docs/                        # Master engineering documentation library (17 technical guides & specs)
 ├── infra/
 │   ├── supabase/                # PostgreSQL schema migrations (00001_initial_schema.sql) & seeds
 │   ├── docker-compose.yml       # Production-grade containerization configuration
 │   └── scripts/                 # Secret scanner, migration check & Python test runners
-├── docs/                        # Unified documentation hub housing 20 technical guides & API assets
+├── services/
+│   ├── api/                     # FastAPI backend, PayPal Orders v2, Gemini Multi-Judge AI, DLP
+│   └── worker/                  # Asynchronous queue worker & deliverable web scraper
+├── .env.example                 # Environment configuration template
 ├── apimatic.json                # APIMatic OpenAPI context plugin & SDK configuration
-└── .github/
-    └── workflows/               # Automated CI pipeline (Unit, Integration, Security & Linter Gates)
+├── package.json                 # Monorepo task runner & CI scripts
+├── pytest.ini                   # Python pytest configuration
+├── render.yaml                  # Render cloud deployment blueprint
+├── requirements.txt             # Python backend dependencies
+└── ruff.toml                    # Python formatting & linting rules
 ```
 
 ---
@@ -275,10 +298,10 @@ For in-depth architectural blueprints, security threat models, and regulatory fi
 
 | Category | Technical Guides | Focus Areas & Descriptions |
 | :--- | :--- | :--- |
-| **🏛️ Architecture & Product Design** | • [PRD.md](docs/PRD.md)<br>• [ARCHITECTURE.md](docs/ARCHITECTURE.md)<br>• [IMPLEMENTATION_PLAN.md](docs/IMPLEMENTATION_PLAN.md)<br>• [DATABASE_SCHEMA.md](docs/DATABASE_SCHEMA.md)<br>• [DECISIONS.md](docs/DECISIONS.md) | Product requirements, dual Python+Rust engine, phased delivery roadmap, 16-table PostgreSQL schema, and ADRs (ADR-001 through ADR-010). |
+| **🏛️ Architecture & Product Design** | • [PRD.md](docs/PRD.md)<br>• [ARCHITECTURE.md](docs/ARCHITECTURE.md)<br>• [DATABASE_SCHEMA.md](docs/DATABASE_SCHEMA.md)<br>• [DECISIONS.md](docs/DECISIONS.md) | Product requirements, dual Python+Rust engine, 16-table PostgreSQL schema, and ADRs (ADR-001 through ADR-010). |
 | **💳 PayPal & Financial Systems** | • [PAYPAL_INTEGRATION.md](docs/PAYPAL_INTEGRATION.md)<br>• [PAYPAL_ENTERPRISE_ADOPTION.md](docs/PAYPAL_ENTERPRISE_ADOPTION.md)<br>• [REGULATORY_COMPLIANCE.md](docs/REGULATORY_COMPLIANCE.md)<br>• [API_SPEC.md](docs/API_SPEC.md) | Orders v2 capture, PPCP Delayed Escrow, 100/100 enterprise scorecard, FinCEN MSB exemption, and complete REST endpoint contracts. |
 | **🧠 AI Engineering & Security** | • [AI_DESIGN.md](docs/AI_DESIGN.md)<br>• [AI_ENGINEERING_DEEP_DIVE.md](docs/AI_ENGINEERING_DEEP_DIVE.md)<br>• [SECURITY_ARCHITECTURE.md](docs/SECURITY_ARCHITECTURE.md) | Structured Gemini prompt schemas, Luhn DLP card scrubbing, Multi-Judge Consensus, and STRIDE threat analysis. |
-| **🛡️ Evidence, Quality & Verification** | • [EVIDENCE_VERIFICATION.md](docs/EVIDENCE_VERIFICATION.md)<br>• [TESTING.md](docs/TESTING.md)<br>• [DEMO_GUIDE.md](docs/DEMO_GUIDE.md)<br>• [DOCKER_DIAGNOSTICS.md](docs/DOCKER_DIAGNOSTICS.md) | Multi-modal evidence vault, 102 passing tests pyramid, under-3-minute judge rehearsal walkthrough, and Docker host diagnostics. |
+| **🛡️ Evidence, Quality & Verification** | • [EVIDENCE_VERIFICATION.md](docs/EVIDENCE_VERIFICATION.md)<br>• [TESTING.md](docs/TESTING.md)<br>• [DEMO_GUIDE.md](docs/DEMO_GUIDE.md) | Multi-modal evidence vault, 160-test quality matrix, and under-3-minute judge rehearsal walkthrough. |
 | **🚀 Roadmaps & Ecosystem** | • [STRATEGIC_IMPROVEMENTS.md](docs/STRATEGIC_IMPROVEMENTS.md)<br>• [INDUSTRY_READY_ROADMAP.md](docs/INDUSTRY_READY_ROADMAP.md)<br>• [SPONSOR_INTEGRATIONS.md](docs/SPONSOR_INTEGRATIONS.md) | Automated dispute defense dossiers, multi-tenant V2 architecture, and strategic integrations with 10 sponsor tools. |
 | **📦 Master Portal & Assets** | • [README.md](docs/README.md)<br>• [openapi.json](docs/openapi.json)<br>• [Postman Collection](docs/PayPal_PromisePay.postman_collection.json) | Central technical documentation library index, OpenAPI 3.1.0 specification, and Postman v2.1.0 test collection. |
 

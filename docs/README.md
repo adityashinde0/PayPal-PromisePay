@@ -22,9 +22,8 @@
 ```text
 docs/
 ├── 🏛️ Architecture & Product Design
-│   ├── PRD.md                           # Product Requirements, Target Personas & MVP Scope
+│   ├── PRD.md                           # Product Requirements, Target Personas & Core Lifecycle
 │   ├── ARCHITECTURE.md                  # System Topology, Boundaries & Dual Python+Rust Engine
-│   ├── IMPLEMENTATION_PLAN.md           # Phased Delivery Roadmap & Verification Status (Phases 0–6)
 │   ├── DATABASE_SCHEMA.md               # 16-Table Relational Schema, RLS Policies & Audit Trails
 │   └── DECISIONS.md                     # Architecture Decision Records (ADR-001 through ADR-010)
 │
@@ -41,9 +40,8 @@ docs/
 │
 ├── 🛡️ Evidence, Quality & Verification
 │   ├── EVIDENCE_VERIFICATION.md         # Multi-Modal Ingestion, SHA-256 Fingerprinting & Review Triggers
-│   ├── TESTING.md                       # Test Matrix (102 Passing Tests), Fixtures & Quality Gates
-│   ├── DEMO_GUIDE.md                    # 5-Step Under-3-Minute Judge Rehearsal Guide & Scenarios
-│   └── DOCKER_DIAGNOSTICS.md            # Host Docker Architecture, Socket Diagnostics & Quickstart
+│   ├── TESTING.md                       # Comprehensive Test Matrix, Fixtures & Quality Gates
+│   └── DEMO_GUIDE.md                    # 5-Step Under-3-Minute Judge Rehearsal Guide & Scenarios
 │
 ├── 🚀 Roadmaps & Ecosystem
 │   ├── STRATEGIC_IMPROVEMENTS.md        # Game-Theory Mechanics & Dispute Defense Dossiers
@@ -63,10 +61,10 @@ Find relevant technical guides matched to your evaluation or engineering objecti
 
 | Evaluation / Engineering Persona | Recommended Reading Path |
 | :--- | :--- |
-| **🏆 Hackathon Judges & Evaluators** | 1. [DEMO_GUIDE.md](DEMO_GUIDE.md) (Under-3-minute walkthrough & 3 pre-seeded scenarios)<br>2. [PRD.md](PRD.md) (Problem statement, buyer/seller/reviewer personas)<br>3. [DOCKER_DIAGNOSTICS.md](DOCKER_DIAGNOSTICS.md) (Host environment & quickstart verification) |
+| **🏆 Hackathon Judges & Evaluators** | 1. [DEMO_GUIDE.md](DEMO_GUIDE.md) (Under-3-minute walkthrough & 3 pre-seeded scenarios)<br>2. [PRD.md](PRD.md) (Problem statement, buyer/seller/reviewer personas)<br>3. [ARCHITECTURE.md](ARCHITECTURE.md) (System topology & dual Python+Rust engine) |
 | **💳 PayPal Integration & Fintech Reviewers** | 1. [PAYPAL_INTEGRATION.md](PAYPAL_INTEGRATION.md) (Orders v2 capture, delayed escrow, webhooks)<br>2. [PAYPAL_ENTERPRISE_ADOPTION.md](PAYPAL_ENTERPRISE_ADOPTION.md) (100/100 enterprise scorecard & sandbox telemetry)<br>3. [REGULATORY_COMPLIANCE.md](REGULATORY_COMPLIANCE.md) (FinCEN MSB exemption & non-custodial status) |
 | **🧠 AI Engineers & Security Auditors** | 1. [AI_DESIGN.md](AI_DESIGN.md) (Pydantic schemas & fail-closed outcome policy)<br>2. [AI_ENGINEERING_DEEP_DIVE.md](AI_ENGINEERING_DEEP_DIVE.md) (Multi-Judge consensus, regex anti-injection, Luhn DLP)<br>3. [SECURITY_ARCHITECTURE.md](SECURITY_ARCHITECTURE.md) (STRIDE threat model & SSRF defense) |
-| **🛠️ Core Platform & Backend Developers** | 1. [ARCHITECTURE.md](ARCHITECTURE.md) (FastAPI + Rust micro-engine + Next.js topology)<br>2. [DATABASE_SCHEMA.md](DATABASE_SCHEMA.md) (16-table PostgreSQL schema & RLS rules)<br>3. [API_SPEC.md](API_SPEC.md) (REST endpoints, SSE events, error responses)<br>4. [TESTING.md](TESTING.md) (102-test matrix, execution commands & gates) |
+| **🛠️ Core Platform & Backend Developers** | 1. [ARCHITECTURE.md](ARCHITECTURE.md) (FastAPI + Rust micro-engine + Next.js topology)<br>2. [DATABASE_SCHEMA.md](DATABASE_SCHEMA.md) (16-table PostgreSQL schema & RLS rules)<br>3. [API_SPEC.md](API_SPEC.md) (REST endpoints, SSE events, error responses)<br>4. [TESTING.md](TESTING.md) (Complete test matrix, execution commands & gates) |
 | **📦 API Consumers & Integrators** | 1. [openapi.json](openapi.json) (OpenAPI 3.1.0 JSON specification)<br>2. [PayPal_PromisePay.postman_collection.json](PayPal_PromisePay.postman_collection.json) (Pre-configured Postman requests)<br>3. [SPONSOR_INTEGRATIONS.md](SPONSOR_INTEGRATIONS.md) (AG Grid, Bryntum, Render, APIMatic integrations) |
 
 ---
@@ -81,9 +79,6 @@ Find relevant technical guides matched to your evaluation or engineering objecti
 * **[ARCHITECTURE.md](ARCHITECTURE.md)**<br/>
   *System Topology, Trust Boundaries & Dual-Engine Architecture*<br/>
   Detailed architecture blueprint showing the interaction between Next.js 15 frontend, FastAPI backend, native Rust RFC 6962 Merkle proof engine (`crates/promisepay-verify`), Supabase PostgreSQL, Google Gemini AI, and PayPal REST APIs.
-* **[IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md)**<br/>
-  *Phased Implementation Milestones & Sprint Ledger*<br/>
-  Comprehensive phase-by-phase delivery breakdown tracking completed deliverables across Phase 0 (Foundations), Phase 1 (Promise Core), Phase 2 (Payments), Phase 3 (Evidence), Phase 4 (AI Verification), Phase 5 (Resolutions), and Phase 6 (Polish & Cryptographic Proofs).
 * **[DATABASE_SCHEMA.md](DATABASE_SCHEMA.md)**<br/>
   *Relational Data Model, RLS Policies & Audit Log Structures*<br/>
   Full specification of the 16-table PostgreSQL schema in Supabase, covering promises, requirements, payments, evidence files, verifications, resolution cases, and immutable audit ledgers with Row-Level Security (RLS) enforcement.
@@ -135,9 +130,6 @@ Find relevant technical guides matched to your evaluation or engineering objecti
 * **[DEMO_GUIDE.md](DEMO_GUIDE.md)**<br/>
   *Judge Walkthrough, Pre-Seeded Scenarios & Video Rehearsal*<br/>
   Step-by-step rehearsal guide for hackathon judges and evaluators. Includes fresh-clone commands, under-3-minute video rehearsal script, walkthroughs of the 3 pre-seeded demo scenarios (`PP-DEMO1-2026`, `PP-DEMO2-2026`, `PP-DEMO3-2026`), and 1-click demo reset instructions.
-* **[DOCKER_DIAGNOSTICS.md](DOCKER_DIAGNOSTICS.md)**<br/>
-  *Host Docker Environment, Port Bindings & Diagnostic Protocols*<br/>
-  Technical analysis of containerization options, Docker Desktop host socket integration, port mapping requirements (ports 8000, 3000, 5432), and native execution commands for judge evaluation environments.
 
 ---
 
