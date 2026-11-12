@@ -123,6 +123,7 @@ class PaymentSummary(BaseModel):
     webhookVerified: bool = False
     webhookStatus: str = "AWAITING_ENDPOINT"
     paymentMode: str = "Awaiting Buyer Approval"
+    disbursementMode: Optional[str] = "STANDARD_CAPTURE"
     failureReason: Optional[str] = None
 
 

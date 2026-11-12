@@ -99,6 +99,16 @@ export function PaymentEscrowCard({
           </div>
         </div>
         <div className="flex justify-between items-center py-1 border-b border-slate-100">
+          <span className="text-slate-400">Escrow Protocol:</span>
+          <span className="font-medium text-slate-700 text-[11px]">
+            {isSimulated
+              ? 'Simulated Platform Escrow'
+              : promise.payment.disbursementMode === 'DELAYED'
+              ? 'PayPal PPCP Delayed Disbursement'
+              : 'Standard Capture with Platform Holds'}
+          </span>
+        </div>
+        <div className="flex justify-between items-center py-1 border-b border-slate-100">
           <span className="text-slate-400">PayPal Order ID:</span>
           <div className="flex items-center gap-1.5">
             {isOrderSimulated && (

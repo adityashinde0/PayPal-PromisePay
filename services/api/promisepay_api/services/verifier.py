@@ -472,6 +472,7 @@ async def _run_ai_model_analysis(
                     limitations=limitations,
                     deterministicChecks={
                         "aiModel": settings.ai_model,
+                        "aiProvider": "gemini_live",
                         "evidenceCount": len(valid_ids),
                         "multiJudgeConsensus": consensus_status,
                         "ruleEngineOutcome": rule_finding.status.value,
@@ -491,6 +492,7 @@ async def _run_ai_model_analysis(
                 )
                 finding.deterministicChecks["aiError"] = f"HTTP_{res.status_code}"
                 finding.deterministicChecks["aiModel"] = settings.ai_model
+                finding.deterministicChecks["aiProvider"] = "promisepay_document_ai_deterministic"
                 return finding
     except Exception as exc:
         logger.error(
@@ -506,6 +508,7 @@ async def _run_ai_model_analysis(
         )
         finding.deterministicChecks["aiException"] = str(exc)
         finding.deterministicChecks["aiModel"] = settings.ai_model
+        finding.deterministicChecks["aiProvider"] = "promisepay_document_ai_deterministic"
         return finding
 
     return _evaluate_requirement_rule_based(req, linked_evidence, all_evidence_ids)
@@ -625,7 +628,23 @@ async def execute_verification_run(
 
     completed_at = datetime.now(timezone.utc).isoformat()
 
-    # Update run
+    # Update run with accurate provider/engine attribution
+    used_live = any(f.deterministicChecks.get("aiProvider") == "gemini_live" for f in results)
+    if used_live:
+        run.modelIdentifier = f"Google {settings.ai_model} (Live API)"
+    elif any("aiError" in f.deterministicChecks or "aiException" in f.deterministicChecks for f in results):
+        first_err = next(
+            (
+                f.deterministicChecks.get("aiError") or f.deterministicChecks.get("aiException")
+                for f in results
+                if "aiError" in f.deterministicChecks or "aiException" in f.deterministicChecks
+            ),
+            "Service Unavailable",
+        )
+        run.modelIdentifier = f"Deterministic Rule Engine (Fallback: {first_err})"
+    else:
+        run.modelIdentifier = "promisepay-document-ai-deterministic"
+
     run.state = VerificationRunState.COMPLETED
     run.outcome = outcome
     run.overallConfidence = overall_conf

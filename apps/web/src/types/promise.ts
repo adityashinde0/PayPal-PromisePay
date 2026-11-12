@@ -45,6 +45,7 @@ export interface PaymentSummary {
   webhookVerified?: boolean;
   webhookStatus?: string;
   paymentMode?: PaymentMode;
+  disbursementMode?: string | null;
   failureReason?: string | null;
 }
 

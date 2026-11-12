@@ -33,7 +33,7 @@ class Settings(BaseSettings):
     # AI Provider
     ai_provider: str = "google"
     ai_api_key: str = ""
-    ai_model: str = "gemini-3.5-flash-lite"
+    ai_model: str = "gemini-2.0-flash"
 
     # Sponsor Integrations (Zapier, Elastic, KERNEL, Channel3)
     zapier_webhook_url: str = ""

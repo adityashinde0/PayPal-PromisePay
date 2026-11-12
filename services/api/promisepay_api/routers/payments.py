@@ -90,11 +90,31 @@ async def create_payment_order(
     paypal_order_id = order_data["id"]
     now_iso = datetime.now(timezone.utc).isoformat()
 
+    # Determine confirmed disbursement mode from PayPal response
+    has_delayed = False
+    try:
+        pu = order_data.get("purchase_units", [])
+        if pu and isinstance(pu, list) and "payment_instruction" in pu[0]:
+            has_delayed = True
+    except Exception:
+        pass
+
+    if paypal_order_id.startswith("MOCK_"):
+        disbursement_protocol = "SIMULATED"
+        protocol_desc = "Simulated Demo Capture"
+    elif has_delayed:
+        disbursement_protocol = "DELAYED"
+        protocol_desc = "PPCP Delayed Disbursement Escrow"
+    else:
+        disbursement_protocol = "STANDARD_CAPTURE"
+        protocol_desc = "Standard Capture with Platform Milestone Holds"
+
     # Update Promise State
     record.payment.paypalOrderId = paypal_order_id
     record.payment.state = "ORDER_CREATED"
     record.payment.createdAt = now_iso
     record.payment.buyerApproved = False
+    record.payment.disbursementMode = disbursement_protocol
     record.payment.paymentMode = determine_payment_mode("ORDER_CREATED", paypal_order_id, None)
     record.status = PromiseStatus.READY_FOR_PAYMENT
 
@@ -104,7 +124,7 @@ async def create_payment_order(
             timestamp=now_iso,
             actor=current_user.email,
             eventType="PAYPAL_ORDER_CREATED",
-            summary=f"Created PayPal Order {paypal_order_id} for {record.amount.currencyCode} ${record.amount.value} (PPCP Delayed Escrow).",
+            summary=f"Created PayPal Order {paypal_order_id} for {record.amount.currencyCode} ${record.amount.value} ({protocol_desc}).",
         )
     )
 

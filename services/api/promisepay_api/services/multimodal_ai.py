@@ -26,7 +26,7 @@ logger = logging.getLogger("promisepay-vision-ai")
 
 class MultimodalAiService:
     def __init__(self):
-        self.default_model = "gemini-2.5-flash"
+        self.default_model = "gemini-2.0-flash"
 
     @property
     def api_key(self) -> str:

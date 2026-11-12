@@ -106,7 +106,9 @@ export function PaymentProofCard({
             <h3 className="text-sm font-bold text-slate-900">Payment Proof & Provenance</h3>
             <p className="text-xs text-slate-500">
               {paymentMode === 'Real PayPal Sandbox'
-                ? 'Verified Sandbox transaction backed by PayPal payment IDs'
+                ? payment.disbursementMode === 'DELAYED'
+                  ? 'Verified Sandbox transaction held in PayPal PPCP Delayed Disbursement'
+                  : 'Verified Sandbox transaction (Standard Capture with Platform Milestone Holds)'
                 : paymentMode === 'Simulated Demo Mode'
                 ? 'Simulated developer demo action (no real PayPal funds transferred)'
                 : paymentMode === 'Payment Failed'
@@ -285,6 +287,17 @@ export function PaymentProofCard({
               {payment.paypalCaptureId || 'None (Uncaptured)'}
             </span>
           </div>
+        </div>
+
+        <div className="flex items-center justify-between py-1.5 gap-2">
+          <span className="text-slate-500 font-medium shrink-0">Disbursement Protocol</span>
+          <span className="font-semibold text-slate-800 text-[11px] truncate">
+            {isSimulated
+              ? 'Simulated Demo Escrow'
+              : payment.disbursementMode === 'DELAYED'
+              ? 'PayPal PPCP Delayed Disbursement'
+              : 'Standard Capture (Platform Milestone Holds)'}
+          </span>
         </div>
 
         <div className="flex items-center justify-between py-1.5 gap-2">
