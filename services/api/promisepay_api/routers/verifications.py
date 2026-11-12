@@ -58,8 +58,8 @@ async def create_verification_run(
     evidence_ids = payload.evidenceIds if payload else None
     force_rerun = payload.forceRerun if payload else False
 
-    # Check whether synchronous execution is requested or forced by test environment
-    is_sync = sync is True or (sync is None and settings.app_env.lower() == "test")
+    # Check whether synchronous execution is requested or forced by test/dev environment
+    is_sync = sync is True or (sync is None and settings.app_env.lower() in ("test", "development"))
 
     if is_sync:
         try:

@@ -46,14 +46,14 @@ export default function ErrorBoundary({ error, reset }: ErrorProps) {
           <button
             type="button"
             onClick={() => reset()}
-            className="inline-flex w-full sm:w-auto items-center justify-center gap-2 rounded-lg bg-[#0070BA] px-4 py-2.5 text-xs font-bold text-white shadow-xs transition hover:bg-[#003087] focus:outline-hidden focus:ring-2 focus:ring-[#0070BA] focus:ring-offset-2"
+            className="inline-flex w-full sm:w-auto items-center justify-center gap-2 rounded-lg bg-[#0070BA] px-4 py-2.5 text-xs font-bold text-white shadow-xs transition hover:bg-[#003087] focus:outline-none focus:ring-2 focus:ring-[#0070BA] focus:ring-offset-2"
           >
             <RefreshCw className="h-3.5 w-3.5" aria-hidden="true" />
             Try Again
           </button>
           <Link
             href="/"
-            className="inline-flex w-full sm:w-auto items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-xs font-bold text-slate-700 shadow-xs transition hover:bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-slate-400 focus:ring-offset-2"
+            className="inline-flex w-full sm:w-auto items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-xs font-bold text-slate-700 shadow-xs transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2"
           >
             <Home className="h-3.5 w-3.5" aria-hidden="true" />
             Dashboard

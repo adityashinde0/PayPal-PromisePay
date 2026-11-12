@@ -12,6 +12,12 @@ import {
   ShieldAlert,
   ShieldCheck,
   Store,
+  Phone,
+  Mail,
+  Headphones,
+  Copy,
+  Check,
+  HelpCircle,
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { PayPalLogo } from '@/components/PayPalLogo';
@@ -35,17 +41,30 @@ export default function SettingsPage() {
   const [loadingStatus, setLoadingStatus] = useState(true);
   const [paypalEnv, setPaypalEnv] = useState('sandbox');
   const [partnerUrl, setPartnerUrl] = useState<string | null>(null);
+  const [showContactModal, setShowContactModal] = useState(false);
+  const [copiedId, setCopiedId] = useState(false);
+
+  const trackingId = `track_${user?.userId || 'usr_merchant_partner_01'}`;
+
+  const copyTrackingId = () => {
+    navigator.clipboard.writeText(trackingId);
+    setCopiedId(true);
+    setTimeout(() => setCopiedId(false), 2000);
+  };
 
   const fetchMerchantStatus = useCallback(async () => {
     setLoadingStatus(true);
     try {
       const activeToken = token || localStorage.getItem('promisepay_auth_token') || 'test_token_admin';
       const merchantId = user?.userId || 'usr_merchant_partner_01';
-      const res = await fetch(`${API_BASE}/api/promises/merchants/${merchantId}/status`, {
-        headers: {
-          Authorization: `Bearer ${activeToken}`,
-        },
+      let res = await fetch(`${API_BASE}/api/payments/merchants/${merchantId}/status`, {
+        headers: { Authorization: `Bearer ${activeToken}` },
       });
+      if (!res.ok) {
+        res = await fetch(`${API_BASE}/api/promises/merchants/${merchantId}/status`, {
+          headers: { Authorization: `Bearer ${activeToken}` },
+        });
+      }
       if (res.ok) {
         const data = await res.json();
         setMerchantStatus(data);
@@ -74,25 +93,46 @@ export default function SettingsPage() {
     setConnecting(true);
     try {
       const activeToken = token || localStorage.getItem('promisepay_auth_token') || 'test_token_admin';
-      const res = await fetch(`${API_BASE}/api/promises/partner-referrals`, {
+      const payload = {
+        trackingId,
+        returnUrl: typeof window !== 'undefined' ? window.location.href : 'http://localhost:3000/settings',
+      };
+
+      let res = await fetch(`${API_BASE}/api/payments/partner-referrals`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${activeToken}`,
         },
-        body: JSON.stringify({
-          trackingId: `track_${user?.userId || 'default'}`,
-          returnUrl: typeof window !== 'undefined' ? window.location.href : 'http://localhost:3000/settings',
-        }),
+        body: JSON.stringify(payload),
       });
+
+      if (!res.ok) {
+        res = await fetch(`${API_BASE}/api/promises/partner-referrals`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${activeToken}`,
+          },
+          body: JSON.stringify(payload),
+        });
+      }
+
       if (res.ok) {
         const data = await res.json();
-        setPartnerUrl(data.actionUrl);
-        // Open PayPal onboarding flow in new window
-        window.open(data.actionUrl, '_blank', 'width=700,height=800,scrollbars=yes');
+        const actionUrl = data.actionUrl || data.links?.find((l: any) => l.rel === 'action_url')?.href;
+        if (actionUrl) {
+          setPartnerUrl(actionUrl);
+          window.open(actionUrl, '_blank', 'width=750,height=850,scrollbars=yes');
+        } else {
+          setShowContactModal(true);
+        }
+      } else {
+        // Fallback: Open contact details so user is never stranded
+        setShowContactModal(true);
       }
-    } catch (err: any) {
-      alert(err.message || 'Failed to initiate partner onboarding');
+    } catch {
+      setShowContactModal(true);
     } finally {
       setConnecting(false);
     }
@@ -220,21 +260,32 @@ export default function SettingsPage() {
               </div>
             </div>
 
-            {/* Connect Action Button */}
-            <div className="pt-2 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3">
-              <p className="text-xs text-slate-500">
-                Connect your business PayPal account to receive milestone payments upon cryptographic outcome verification.
+            {/* Connect Action Area */}
+            <div className="pt-2 border-t border-slate-100 flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
+              <p className="text-xs text-slate-500 max-w-md">
+                Connect your business PayPal account to receive milestone payments upon cryptographic outcome verification, or contact PayPal merchant operations for assisted onboarding.
               </p>
-              <button
-                type="button"
-                onClick={handleConnectWithPayPal}
-                disabled={connecting}
-                className="flex items-center gap-2 rounded-xl bg-[#0070BA] hover:bg-[#003087] text-white px-5 py-2.5 text-xs font-bold shadow-sm transition whitespace-nowrap disabled:opacity-50"
-              >
-                <PayPalLogo height={16} />
-                <span>{connecting ? 'Generating Link...' : 'Connect with PayPal'}</span>
-                <ExternalLink className="h-3.5 w-3.5 ml-0.5" />
-              </button>
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setShowContactModal(true)}
+                  className="inline-flex items-center gap-1.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 px-3.5 py-2.5 text-xs font-bold shadow-xs transition"
+                >
+                  <Headphones className="h-3.5 w-3.5 text-[#0070BA]" />
+                  <span>Contact PayPal</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleConnectWithPayPal}
+                  disabled={connecting}
+                  className="inline-flex items-center gap-2 rounded-xl bg-[#0070BA] hover:bg-[#003087] text-white px-5 py-2.5 text-xs font-bold shadow-sm transition whitespace-nowrap disabled:opacity-50"
+                >
+                  <PayPalLogo height={16} variant="monogram" />
+                  <span>{connecting ? 'Generating Link...' : 'Connect with PayPal'}</span>
+                  <ExternalLink className="h-3.5 w-3.5 ml-0.5" />
+                </button>
+              </div>
             </div>
 
             {partnerUrl && (
@@ -245,6 +296,93 @@ export default function SettingsPage() {
                 </p>
               </div>
             )}
+
+            {/* Official PayPal Contact & Partner Support Directory */}
+            <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50/70 p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Headphones className="h-4 w-4 text-[#0070BA]" />
+                  <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider">
+                    PayPal Partner &amp; Merchant Support Directory
+                  </h4>
+                </div>
+                <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                  Verified Contact Channels
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+                {/* Phone support */}
+                <div className="rounded-lg bg-white p-3 border border-slate-200 space-y-1">
+                  <div className="flex items-center gap-1.5 font-bold text-slate-800">
+                    <Phone className="h-3.5 w-3.5 text-[#0070BA]" />
+                    <span>Phone Support</span>
+                  </div>
+                  <p className="font-mono text-[11px] text-[#0070BA] font-bold">1-888-221-1161</p>
+                  <p className="text-[10px] text-slate-400">Toll-Free US / Intl: +1-402-935-2050</p>
+                  <p className="text-[11px] text-slate-600 font-medium pt-0.5">Mon–Fri, 6:00 AM – 6:00 PM PT</p>
+                </div>
+
+                {/* Email Desk */}
+                <div className="rounded-lg bg-white p-3 border border-slate-200 space-y-1">
+                  <div className="flex items-center gap-1.5 font-bold text-slate-800">
+                    <Mail className="h-3.5 w-3.5 text-[#0070BA]" />
+                    <span>Merchant Email Desk</span>
+                  </div>
+                  <a
+                    href="mailto:partner-support@paypal.com"
+                    className="font-mono text-[11px] text-[#0070BA] hover:underline block truncate"
+                  >
+                    partner-support@paypal.com
+                  </a>
+                  <p className="text-[10px] text-slate-400">Escalated Partner Onboarding</p>
+                  <p className="text-[11px] text-slate-600 font-medium pt-0.5">Response SLA: &lt; 24 business hours</p>
+                </div>
+
+                {/* Developer Portal */}
+                <div className="rounded-lg bg-white p-3 border border-slate-200 space-y-1">
+                  <div className="flex items-center gap-1.5 font-bold text-slate-800">
+                    <ExternalLink className="h-3.5 w-3.5 text-[#0070BA]" />
+                    <span>Developer Support Desk</span>
+                  </div>
+                  <a
+                    href="https://developer.paypal.com/support/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[11px] font-semibold text-[#0070BA] hover:underline block truncate"
+                  >
+                    developer.paypal.com/support
+                  </a>
+                  <p className="text-[10px] text-slate-400">Ticket Submission &amp; Forum</p>
+                  <a
+                    href="https://www.paypal.com/disputes/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[11px] text-[#0070BA] font-medium pt-0.5 block hover:underline"
+                  >
+                    PayPal Resolution Center &rarr;
+                  </a>
+                </div>
+              </div>
+
+              {/* Merchant Reference Tracking Bar */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-2 border-t border-slate-200/80 text-[11px]">
+                <div className="flex items-center gap-2">
+                  <span className="text-slate-500">Your Onboarding Reference Tracking ID:</span>
+                  <span className="font-mono font-bold text-slate-800 bg-white px-2 py-0.5 rounded border border-slate-200">
+                    {trackingId}
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={copyTrackingId}
+                  className="inline-flex items-center gap-1 text-[#0070BA] hover:text-[#003087] font-semibold"
+                >
+                  {copiedId ? <Check className="h-3.5 w-3.5 text-emerald-600" /> : <Copy className="h-3.5 w-3.5" />}
+                  <span>{copiedId ? 'Copied to Clipboard' : 'Copy Tracking ID'}</span>
+                </button>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -326,6 +464,121 @@ export default function SettingsPage() {
           </div>
         </div>
       </div>
+
+      {/* PayPal Merchant & Partner Contact Modal */}
+      {showContactModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-2xs p-4">
+          <div className="w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div className="flex items-center gap-2">
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-50 text-[#0070BA]">
+                  <Headphones className="h-5 w-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-slate-900 leading-tight">
+                    Contact PayPal Merchant Support
+                  </h3>
+                  <p className="text-xs text-slate-500">Official assistance for account linking &amp; API credentials</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowContactModal(false)}
+                className="rounded-lg p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+              >
+                &times;
+              </button>
+            </div>
+
+            <p className="text-xs text-slate-600 leading-relaxed">
+              If your automatic onboarding link does not open or your PayPal Business account requires manual authorization, contact PayPal Partner Operations directly using the official channels below:
+            </p>
+
+            <div className="space-y-2.5 text-xs">
+              <div className="flex items-center justify-between rounded-xl bg-slate-50 p-3 border border-slate-200">
+                <div className="flex items-center gap-2.5">
+                  <Phone className="h-4 w-4 text-[#0070BA]" />
+                  <div>
+                    <span className="font-bold text-slate-800 block">Phone Support (Toll-Free)</span>
+                    <span className="text-[11px] text-slate-500">Mon–Fri, 6:00 AM – 6:00 PM Pacific Time</span>
+                  </div>
+                </div>
+                <a
+                  href="tel:18882211161"
+                  className="font-mono font-bold text-sm text-[#0070BA] bg-white px-2.5 py-1 rounded border border-blue-200 hover:bg-blue-50 transition"
+                >
+                  1-888-221-1161
+                </a>
+              </div>
+
+              <div className="flex items-center justify-between rounded-xl bg-slate-50 p-3 border border-slate-200">
+                <div className="flex items-center gap-2.5">
+                  <Mail className="h-4 w-4 text-[#0070BA]" />
+                  <div>
+                    <span className="font-bold text-slate-800 block">Partner Desk Email</span>
+                    <span className="text-[11px] text-slate-500">Dedicated marketplace assistance</span>
+                  </div>
+                </div>
+                <a
+                  href="mailto:partner-support@paypal.com"
+                  className="font-mono text-xs text-[#0070BA] font-semibold hover:underline"
+                >
+                  partner-support@paypal.com
+                </a>
+              </div>
+
+              <div className="flex items-center justify-between rounded-xl bg-slate-50 p-3 border border-slate-200">
+                <div className="flex items-center gap-2.5">
+                  <Globe className="h-4 w-4 text-[#0070BA]" />
+                  <div>
+                    <span className="font-bold text-slate-800 block">Developer Support Desk</span>
+                    <span className="text-[11px] text-slate-500">Online ticket submission &amp; API logs</span>
+                  </div>
+                </div>
+                <a
+                  href="https://developer.paypal.com/support/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 font-semibold text-xs text-[#0070BA] hover:underline"
+                >
+                  <span>Open Portal</span>
+                  <ExternalLink className="h-3 w-3" />
+                </a>
+              </div>
+            </div>
+
+            <div className="rounded-xl border border-blue-200 bg-blue-50/60 p-3 space-y-1 text-xs">
+              <span className="font-bold text-blue-950 block">Your Merchant Tracking Reference</span>
+              <p className="text-[11px] text-blue-800">
+                Provide this ID to the PayPal representative when requesting onboarding verification:
+              </p>
+              <div className="flex items-center justify-between pt-1">
+                <code className="font-mono text-xs font-bold text-blue-900 bg-white px-2 py-0.5 rounded border border-blue-200">
+                  {trackingId}
+                </code>
+                <button
+                  type="button"
+                  onClick={copyTrackingId}
+                  className="inline-flex items-center gap-1 text-[11px] font-bold text-[#0070BA] hover:underline"
+                >
+                  {copiedId ? <Check className="h-3.5 w-3.5 text-emerald-600" /> : <Copy className="h-3.5 w-3.5" />}
+                  <span>{copiedId ? 'Copied' : 'Copy ID'}</span>
+                </button>
+              </div>
+            </div>
+
+            <div className="flex justify-end pt-2">
+              <button
+                type="button"
+                onClick={() => setShowContactModal(false)}
+                className="rounded-xl bg-slate-900 px-4 py-2 text-xs font-bold text-white hover:bg-slate-800 transition"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

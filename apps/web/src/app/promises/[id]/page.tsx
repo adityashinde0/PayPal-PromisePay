@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
-import { Activity, Bell, Radio, ShieldAlert, CheckCircle2 } from 'lucide-react';
+import { Activity, Bell, Radio, ShieldAlert, CheckCircle2, ShieldCheck } from 'lucide-react';
 import {
   EvidenceItem,
   PromiseGraphResponse,
@@ -14,6 +14,7 @@ import {
 } from '@/types/promise';
 import {
   capturePaymentOrder,
+  confirmPromise,
   createPaymentOrder,
   fetchPromise,
   fetchPromiseEvidence,
@@ -314,6 +315,22 @@ export default function PromiseDetailPage() {
     }
   };
 
+  const [confirmingDraft, setConfirmingDraft] = useState(false);
+
+  const handleConfirmDraft = async () => {
+    if (!promise) return;
+    setConfirmingDraft(true);
+    setError(null);
+    try {
+      await confirmPromise(promise.promiseId);
+      await loadPromise();
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to lock requirements');
+    } finally {
+      setConfirmingDraft(false);
+    }
+  };
+
   const handleRecordDecision = async (decision: ResolutionDecision, reason: string) => {
     if (!resolutionCase) return;
     setSubmittingDecision(true);
@@ -362,21 +379,25 @@ export default function PromiseDetailPage() {
   const currentStepIdx = STATUS_STEPS.indexOf(promise.status);
 
   return (
-    <div className="space-y-8 max-w-5xl mx-auto pb-12">
+    <div className="space-y-6 max-w-7xl mx-auto pb-12">
       {/* Top Breadcrumb & Status Badges */}
       <div className="flex items-center justify-between">
-        <Link href="/" className="text-xs font-semibold text-slate-500 hover:text-slate-900 transition-colors">
-          &larr; Back to Promise Ledger
+        <Link
+          href="/"
+          className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-600 hover:text-[#0070BA] transition-colors"
+        >
+          <span>&larr;</span>
+          <span>Back to Promise Ledger</span>
         </Link>
         <div className="flex items-center gap-2">
-          <span className="font-mono text-xs bg-slate-100 text-slate-600 px-2.5 py-1 rounded border">
-            Version: v{promise.currentVersion}
+          <span className="font-mono text-xs bg-slate-100 text-slate-600 px-2.5 py-1 rounded-md border border-slate-200">
+            Version v{promise.currentVersion}
           </span>
           <span
-            className={`rounded-full px-3 py-1 text-xs font-semibold border ${
+            className={`rounded-full px-3 py-1 text-xs font-bold border ${
               promise.status === 'PAID' || promise.status === 'EVIDENCE_SUBMITTED'
-                ? 'bg-emerald-100 text-emerald-800 border-emerald-200'
-                : 'bg-blue-100 text-blue-800 border-blue-200'
+                ? 'bg-emerald-50 text-emerald-800 border-emerald-300'
+                : 'bg-blue-50 text-[#0070BA] border-blue-300'
             }`}
           >
             {promise.status}
@@ -488,7 +509,7 @@ export default function PromiseDetailPage() {
       {dossierSuccess && (
         <div className="rounded-xl border border-blue-300 bg-blue-50 p-4 text-xs font-medium text-blue-900 flex items-center justify-between shadow-xs">
           <div className="flex items-center gap-2">
-            <span className="text-[#0070BA] font-bold">🛡️</span>
+            <ShieldCheck className="h-4 w-4 text-[#0070BA] shrink-0" />
             <span>{dossierSuccess}</span>
           </div>
           <button
@@ -547,7 +568,7 @@ export default function PromiseDetailPage() {
               onClick={() => setShowDossierModal(true)}
               className="rounded-lg bg-rose-700 hover:bg-rose-800 text-white px-3.5 py-1.5 text-xs font-bold shadow-xs transition whitespace-nowrap inline-flex items-center gap-1.5"
             >
-              <span>🛡️</span>
+              <ShieldCheck className="h-4 w-4 text-white shrink-0" />
               <span>View Defense Dossier</span>
             </button>
             <button
@@ -693,13 +714,14 @@ export default function PromiseDetailPage() {
             </div>
           </div>
 
-          {/* Bottom Row: 3 Equal Columns */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
-            <AtomicRequirementsCard
-              requirements={promise.requirements}
-              evidenceList={evidenceList}
-            />
+          {/* Contractual Requirements */}
+          <AtomicRequirementsCard
+            requirements={promise.requirements}
+            evidenceList={evidenceList}
+          />
 
+          {/* Dual Verification Pillars: Evidence Vault (Left) & AI Verification Report (Right) */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
             <EvidenceVaultCard
               evidenceList={evidenceList}
               onAddEvidence={() => setShowEvidenceModal(true)}
@@ -729,7 +751,7 @@ export default function PromiseDetailPage() {
             className="w-full flex items-center justify-center gap-2 rounded-xl border border-slate-300 bg-slate-100 hover:bg-slate-200 text-slate-800 px-4 py-2.5 text-xs font-bold shadow-xs transition"
             title="View and print official cryptographic dossier for PayPal Resolution Center"
           >
-            <span>🛡️</span>
+            <ShieldCheck className="h-4 w-4 text-slate-700 shrink-0" />
             <span>View Dispute Dossier</span>
           </button>
 
@@ -747,6 +769,8 @@ export default function PromiseDetailPage() {
                 : undefined
             }
             onOpenCancelModal={() => setShowCancelModal(true)}
+            onConfirmDraft={handleConfirmDraft}
+            confirmingDraft={confirmingDraft}
           />
 
           <PaymentProofCard

@@ -39,17 +39,23 @@ export function VerificationReportCard({
 
         {verificationRun && (
           <div className="flex items-center gap-2">
-            <span
-              className={`rounded-lg px-2.5 py-1 text-xs font-bold border ${
-                verificationRun.outcome === 'COMPLETE'
-                  ? 'bg-emerald-50 text-emerald-800 border-emerald-300'
-                  : verificationRun.outcome === 'REVIEW_REQUIRED'
-                  ? 'bg-amber-50 text-amber-800 border-amber-300'
-                  : 'bg-rose-50 text-rose-800 border-rose-300'
-              }`}
-            >
-              Outcome: {verificationRun.outcome}
-            </span>
+            {verificationRun.outcome ? (
+              <span
+                className={`rounded-lg px-2.5 py-1 text-xs font-bold border ${
+                  verificationRun.outcome === 'COMPLETE'
+                    ? 'bg-emerald-50 text-emerald-800 border-emerald-300'
+                    : verificationRun.outcome === 'REVIEW_REQUIRED'
+                    ? 'bg-amber-50 text-amber-800 border-amber-300'
+                    : 'bg-rose-50 text-rose-800 border-rose-300'
+                }`}
+              >
+                Outcome: {verificationRun.outcome}
+              </span>
+            ) : (
+              <span className="rounded-lg px-2.5 py-1 text-xs font-bold border bg-blue-50 text-[#0070BA] border-blue-200 animate-pulse">
+                Analyzing...
+              </span>
+            )}
             <span className="rounded-lg bg-slate-100 px-2 py-1 text-xs font-mono font-bold text-slate-700">
               {Math.round((verificationRun.overallConfidence || 0) * 100)}% Conf.
             </span>
@@ -80,19 +86,23 @@ export function VerificationReportCard({
         <div className="space-y-5">
           {/* Manifest & Model Metadata Strip */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 rounded-xl bg-slate-50 p-3.5 border border-slate-200 text-xs">
-            <div>
+            <div className="min-w-0">
               <span className="block text-[10px] font-bold uppercase text-slate-400">Run ID</span>
-              <span className="font-mono text-slate-800 font-semibold">{verificationRun.runId}</span>
+              <span className="font-mono text-slate-800 font-semibold truncate block" title={verificationRun.runId}>
+                {verificationRun.runId}
+              </span>
             </div>
-            <div>
+            <div className="min-w-0">
               <span className="block text-[10px] font-bold uppercase text-slate-400">Model & Engine</span>
-              <span className="font-semibold text-slate-800">{verificationRun.modelIdentifier}</span>
+              <span className="font-semibold text-slate-800 truncate block" title={verificationRun.modelIdentifier}>
+                {verificationRun.modelIdentifier}
+              </span>
             </div>
-            <div>
+            <div className="min-w-0">
               <span className="block text-[10px] font-bold uppercase text-slate-400">Prompt Version</span>
-              <span className="font-mono text-slate-800">{verificationRun.promptVersion}</span>
+              <span className="font-mono text-slate-800 truncate block">{verificationRun.promptVersion}</span>
             </div>
-            <div>
+            <div className="min-w-0">
               <span className="block text-[10px] font-bold uppercase text-slate-400">Manifest Hash</span>
               <div className="flex items-center gap-1">
                 <span className="font-mono text-[10px] text-slate-700">

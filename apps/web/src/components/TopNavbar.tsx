@@ -22,6 +22,7 @@ export function TopNavbar({
   const { setRole } = useDashboard();
   const searchInputRef = useRef<HTMLInputElement>(null);
   const [profileOpen, setProfileOpen] = useState(false);
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -89,8 +90,8 @@ export function TopNavbar({
             type="text"
             value={searchValue}
             onChange={(e) => onSearchChange?.(e.target.value)}
-            placeholder="Search promises, PayPal order IDs, or keywords... (Press ⌘K or Ctrl+K)"
-            className="w-full rounded-lg border border-slate-300 bg-slate-50/50 py-1.5 pl-9 pr-12 text-xs font-medium text-slate-800 placeholder:text-slate-400 focus:border-[#0070BA] focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#0070BA] transition-all"
+            placeholder="Search promises, PayPal order IDs, or merchants..."
+            className="w-full rounded-lg border border-slate-200 bg-slate-50/70 py-1.5 pl-9 pr-12 text-xs font-medium text-slate-800 placeholder:text-slate-400 focus:border-[#0070BA] focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#0070BA] transition-all"
           />
           <div className="absolute inset-y-0 right-0 flex items-center pr-2.5">
             <kbd
@@ -104,11 +105,21 @@ export function TopNavbar({
       </div>
 
       {/* Right Controls */}
-      <div className="flex items-center gap-3 sm:gap-4">
-        {/* Sandbox Status Pill */}
-        <div className="hidden md:flex items-center gap-2 rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-[#0070BA] border border-blue-200/80">
-          <span className="h-2 w-2 rounded-full bg-[#0070BA] animate-pulse" />
-          <span>Live Dual-Mode V2</span>
+      <div className="flex items-center gap-2.5 sm:gap-3.5">
+        {/* Mobile Search Toggle */}
+        <button
+          type="button"
+          onClick={() => setMobileSearchOpen(!mobileSearchOpen)}
+          className="sm:hidden rounded-lg p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-700 transition-colors"
+          aria-label="Toggle search"
+        >
+          <Search className="h-4 w-4" />
+        </button>
+
+        {/* Environment Status Badge */}
+        <div className="hidden md:inline-flex items-center gap-1.5 rounded-full bg-slate-50 px-2.5 py-1 text-[11px] font-semibold text-slate-700 border border-slate-200">
+          <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+          <span>PayPal Sandbox</span>
         </div>
 
         {/* Quick Create Action */}
@@ -129,7 +140,7 @@ export function TopNavbar({
           >
             <Bell className="h-4 w-4" />
           </button>
-          <span className="absolute top-1.5 right-1.5 flex h-2 w-2">
+          <span className="absolute top-1.5 right-1.5 flex h-2 w-2 pointer-events-none">
             <span className="relative inline-flex rounded-full h-2 w-2 bg-[#0070BA]" />
           </span>
         </div>
@@ -146,70 +157,101 @@ export function TopNavbar({
             </div>
             <div className="hidden text-left xl:block">
               <p className="text-xs font-bold text-slate-900 leading-tight">
-                {user?.email?.split('@')[0] || 'User'}
+                {role === 'ADMIN'
+                  ? 'Administrator'
+                  : role === 'SELLER'
+                  ? 'Merchant'
+                  : role === 'REVIEWER'
+                  ? 'Arbitrator'
+                  : 'Buyer'}
               </p>
-              <p className="text-[10px] font-semibold text-[#0070BA] uppercase tracking-wide">
-                {role}
+              <p className="text-[10px] font-semibold text-[#0070BA] tracking-wide">
+                {role === 'ADMIN' ? 'Platform Admin' : `${role.charAt(0) + role.slice(1).toLowerCase()} Portal`}
               </p>
             </div>
             <ChevronDown className="h-3.5 w-3.5 text-slate-400" />
           </button>
 
           {profileOpen && (
-            <div className="absolute right-0 mt-2 w-64 rounded-xl border border-slate-200 bg-white py-2 shadow-xl ring-1 ring-black/5 z-50">
-              <div className="px-4 py-2 border-b border-slate-100">
-                <p className="text-xs font-bold text-slate-900 truncate">
-                  {user?.email || 'user@promisepay.example'}
+            <div className="absolute right-0 mt-2 w-72 rounded-2xl border border-slate-200 bg-white py-2 shadow-2xl ring-1 ring-black/5 z-50">
+              {/* Account Overview Header */}
+              <div className="px-4 py-3 border-b border-slate-100">
+                <div className="flex items-center justify-between">
+                  <p className="text-xs font-bold text-slate-900">
+                    {role === 'ADMIN'
+                      ? 'Administrator'
+                      : role === 'SELLER'
+                      ? 'Merchant Partner'
+                      : role === 'REVIEWER'
+                      ? 'Dispute Arbitrator'
+                      : 'Buyer'}
+                  </p>
+                  <span className="inline-flex items-center rounded-md bg-blue-50 px-2 py-0.5 text-[10px] font-bold text-[#0070BA] border border-blue-200">
+                    {role === 'REVIEWER' ? 'Arbitrator' : role}
+                  </span>
+                </div>
+                <p className="text-[11px] text-slate-500 font-mono mt-0.5 truncate">
+                  {user?.email || 'admin@promisepay.example'}
                 </p>
-                <div className="flex items-center gap-1.5 mt-1">
-                  <span className="inline-flex items-center rounded-md bg-blue-50 px-2 py-0.5 text-[10px] font-bold text-[#0070BA] ring-1 ring-inset ring-blue-700/10">
-                    {role} Role
-                  </span>
-                  <span className="text-[10px] text-slate-400 truncate">
-                    {user?.organizationId ? `${user.organizationId.slice(0, 8)}...` : 'Default Org'}
-                  </span>
+                <div className="flex items-center gap-1.5 mt-2 text-[10px] text-slate-400 font-medium">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                  <span>PromisePay Enterprise Organization</span>
                 </div>
               </div>
 
-              {/* RBAC Persona Switcher */}
-              <div className="px-3 py-2 border-b border-slate-100">
-                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1 px-1">
-                  Switch Active Persona (RBAC)
-                </p>
+              {/* Role Switcher */}
+              <div className="px-3 py-2.5 border-b border-slate-100">
+                <div className="flex items-center justify-between mb-2 px-1">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                    Switch Account Role
+                  </span>
+                  <span className="text-[11px] text-slate-500 font-medium">Live Permissions</span>
+                </div>
                 <div className="grid grid-cols-2 gap-1.5">
-                  {(['BUYER', 'SELLER', 'REVIEWER', 'ADMIN'] as UserRole[]).map((r) => (
-                    <button
-                      key={r}
-                      type="button"
-                      onClick={() => handleRoleSelect(r)}
-                      className={`px-2.5 py-1.5 text-left text-xs font-semibold rounded-lg transition ${
-                        role === r
-                          ? 'bg-[#0070BA] text-white'
-                          : 'bg-slate-50 text-slate-700 hover:bg-slate-100'
-                      }`}
-                    >
-                      {r === 'REVIEWER' ? 'Arbitrator' : r.charAt(0) + r.slice(1).toLowerCase()}
-                    </button>
-                  ))}
+                  {(['BUYER', 'SELLER', 'REVIEWER', 'ADMIN'] as UserRole[]).map((r) => {
+                    const isSelected = role === r;
+                    const label =
+                      r === 'REVIEWER'
+                        ? 'Arbitrator'
+                        : r === 'ADMIN'
+                        ? 'Administrator'
+                        : r.charAt(0) + r.slice(1).toLowerCase();
+                    return (
+                      <button
+                        key={r}
+                        type="button"
+                        onClick={() => handleRoleSelect(r)}
+                        className={`flex items-center justify-between px-3 py-2 text-xs font-semibold rounded-xl transition ${
+                          isSelected
+                            ? 'bg-[#0070BA] text-white shadow-xs'
+                            : 'bg-slate-50 text-slate-700 hover:bg-slate-100'
+                        }`}
+                      >
+                        <span>{label}</span>
+                        {isSelected && <span className="text-white text-xs font-bold">&#10003;</span>}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 
-              <div className="py-1">
+              {/* Quick Links */}
+              <div className="py-1 text-xs">
                 <Link
                   href="/login"
                   onClick={() => setProfileOpen(false)}
-                  className="flex items-center gap-2 px-4 py-2 text-xs text-slate-700 hover:bg-slate-50"
+                  className="flex items-center gap-2.5 px-4 py-2 text-slate-700 hover:bg-slate-50 transition-colors"
                 >
                   <LogIn className="h-4 w-4 text-slate-400" />
-                  Sign In with Another Account
+                  <span>Sign In with Another Account</span>
                 </Link>
                 <Link
                   href="/signup"
                   onClick={() => setProfileOpen(false)}
-                  className="flex items-center gap-2 px-4 py-2 text-xs text-slate-700 hover:bg-slate-50"
+                  className="flex items-center gap-2.5 px-4 py-2 text-slate-700 hover:bg-slate-50 transition-colors"
                 >
                   <UserCheck className="h-4 w-4 text-slate-400" />
-                  Register New Organization
+                  <span>Register New Organization</span>
                 </Link>
                 {isAuthenticated && (
                   <button
@@ -218,10 +260,10 @@ export function TopNavbar({
                       logout();
                       setProfileOpen(false);
                     }}
-                    className="flex w-full items-center gap-2 px-4 py-2 text-xs text-rose-600 hover:bg-rose-50"
+                    className="flex w-full items-center gap-2.5 px-4 py-2 text-rose-600 hover:bg-rose-50 transition-colors"
                   >
                     <LogOut className="h-4 w-4" />
-                    Sign Out
+                    <span>Sign Out</span>
                   </button>
                 )}
               </div>
@@ -229,6 +271,30 @@ export function TopNavbar({
           )}
         </div>
       </div>
+
+      {/* Mobile Search Input Drawer */}
+      {mobileSearchOpen && (
+        <div className="sm:hidden absolute top-16 left-0 w-full bg-white border-b border-slate-200 px-4 py-2.5 z-40 shadow-md flex items-center gap-2">
+          <div className="relative flex-1">
+            <Search className="absolute inset-y-0 left-3 h-4 w-4 my-auto text-slate-400" />
+            <input
+              autoFocus
+              type="text"
+              value={searchValue}
+              onChange={(e) => onSearchChange?.(e.target.value)}
+              placeholder="Search promises, order IDs..."
+              className="w-full rounded-lg border border-slate-200 bg-slate-50 py-1.5 pl-9 pr-3 text-xs text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#0070BA] focus:bg-white"
+            />
+          </div>
+          <button
+            type="button"
+            onClick={() => setMobileSearchOpen(false)}
+            className="text-xs font-semibold text-slate-500 hover:text-slate-800 px-2 py-1"
+          >
+            Cancel
+          </button>
+        </div>
+      )}
     </header>
   );
 }

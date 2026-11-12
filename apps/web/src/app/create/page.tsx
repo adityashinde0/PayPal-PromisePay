@@ -149,8 +149,16 @@ export default function CreatePromisePage() {
               {CATEGORIES.map((cat) => (
                 <div
                   key={cat.id}
+                  role="button"
+                  tabIndex={0}
                   onClick={() => handleCategoryChange(cat.id)}
-                  className={`cursor-pointer rounded-xl border p-4 transition-all ${
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      handleCategoryChange(cat.id);
+                    }
+                  }}
+                  className={`cursor-pointer rounded-xl border p-4 transition-all focus:outline-none focus:ring-2 focus:ring-[#0070BA] ${
                     selectedCategory === cat.id
                       ? 'border-[#0070BA] bg-blue-50/50 shadow-sm ring-2 ring-[#0070BA]/20'
                       : 'border-slate-200 bg-white hover:border-slate-300'
@@ -211,13 +219,13 @@ export default function CreatePromisePage() {
           </div>
 
           <div className="flex justify-between items-center pt-2">
-            <div>
-              <span className="text-xs text-slate-400">Merchant Reference: </span>
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-semibold text-slate-500">Merchant Reference:</span>
               <input
                 type="text"
                 value={merchantOrderRef}
                 onChange={(e) => setMerchantOrderRef(e.target.value)}
-                className="text-xs border rounded px-2 py-1 text-slate-600"
+                className="text-xs border border-slate-300 rounded-md px-2.5 py-1 text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#0070BA] focus:border-[#0070BA] font-mono shadow-2xs"
               />
             </div>
             <button

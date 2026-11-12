@@ -91,7 +91,7 @@ export function BryntumScheduleCard({ promise }: BryntumScheduleCardProps) {
               <h3 className="text-base font-bold text-slate-900">Promise Milestone Schedule</h3>
               <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-700 border border-emerald-200">
                 <Sparkles className="h-3 w-3" />
-                Bryntum Schedule Engine
+                Milestone & SLA Engine
               </span>
             </div>
             <p className="text-xs text-slate-500">
@@ -166,7 +166,11 @@ export function BryntumScheduleCard({ promise }: BryntumScheduleCardProps) {
                             : 'bg-slate-400'
                         }`}
                       />
-                      Status
+                      {m.status === 'COMPLETED'
+                        ? 'Completed'
+                        : m.status === 'IN_PROGRESS'
+                        ? 'In Progress'
+                        : 'Scheduled'}
                     </span>
                   </td>
                   <td className="py-2.5 pl-4 text-right">
@@ -236,7 +240,7 @@ export function BryntumScheduleCard({ promise }: BryntumScheduleCardProps) {
               <span className="h-2 w-2 rounded-full bg-blue-600 ml-2" /> In Progress
               <span className="h-2 w-2 rounded-full bg-slate-300 ml-2" /> Scheduled
             </span>
-            <span className="font-mono text-[11px] text-[#0070BA]">Powered by Bryntum Scheduling Engine</span>
+            <span className="font-mono text-[11px] text-[#0070BA]">PromisePay Milestone & SLA Timeline Engine</span>
           </div>
         </div>
       )}

@@ -231,9 +231,11 @@ export async function uploadEvidenceFile(
 
 export async function triggerVerification(
   promiseId: string,
-  options?: { evidenceIds?: string[]; forceRerun?: boolean }
+  options?: { evidenceIds?: string[]; forceRerun?: boolean; sync?: boolean }
 ): Promise<VerificationRun> {
-  const res = await fetch(`${API_BASE}/api/promises/${promiseId}/verifications`, {
+  const isSync = options?.sync ?? true;
+  const url = `${API_BASE}/api/promises/${promiseId}/verifications${isSync ? '?sync=true' : ''}`;
+  const res = await fetch(url, {
     method: 'POST',
     headers: getAuthHeaders({ 'Content-Type': 'application/json' }),
     body: JSON.stringify(options || {}),

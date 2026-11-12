@@ -24,8 +24,8 @@ export function LifecycleStepper() {
       num: '2',
       title: '2. Pay with PayPal',
       desc: 'Secure payment (Sandbox)',
-      icon: ({ className }: { className?: string }) => (
-        <PayPalLogo height={16} variant="monogram" className={className} />
+      icon: () => (
+        <PayPalLogo height={18} variant="monogram" />
       ),
       accent: 'border-indigo-200 bg-indigo-50/90 text-[#003087]',
     },

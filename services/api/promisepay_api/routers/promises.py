@@ -231,3 +231,26 @@ async def cancel_promise(
         "reason": payload.reason,
         "promise": record.to_graph_response(),
     }
+
+
+class PartnerReferralPayload(BaseModel):
+    trackingId: Optional[str] = None
+    returnUrl: Optional[str] = "http://localhost:3000/settings"
+
+
+@router.post("/partner-referrals")
+async def create_partner_referrals_alias(payload: PartnerReferralPayload):
+    """Creates PayPal Partner Referral onboarding URL alias."""
+    tracking_id = payload.trackingId or f"track_{uuid.uuid4().hex[:12]}"
+    referral = await paypal_client.create_partner_referral(
+        tracking_id=tracking_id,
+        return_url=payload.returnUrl or "http://localhost:3000/settings",
+    )
+    return referral
+
+
+@router.get("/merchants/{merchant_id}/status")
+async def get_merchant_status_alias(merchant_id: str):
+    """Query PayPal merchant account onboarding status alias."""
+    status_data = await paypal_client.get_merchant_status(merchant_id)
+    return status_data

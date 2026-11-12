@@ -19,7 +19,9 @@ export function AuditTimelineCard({ timeline }: AuditTimelineCardProps) {
       ) : (
         <div className="space-y-3 text-xs max-h-96 overflow-y-auto pr-1">
           {timeline.map((event, idx) => {
-            const userEmail = event.actor?.includes('@') ? event.actor : 'bob.bonchent@example.com';
+            const userEmail = event.actor?.includes('@')
+              ? event.actor
+              : (event.actor || 'system.automation@promisepay.internal');
             return (
               <div key={idx} className="flex items-start gap-2.5 pb-2.5 border-b border-slate-100 last:border-b-0">
                 <div className="h-7 w-7 rounded-full bg-slate-200 text-slate-700 flex items-center justify-center font-bold text-[10px] shrink-0">

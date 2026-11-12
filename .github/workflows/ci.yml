@@ -31,6 +31,10 @@ jobs:
           pip install -r requirements.txt
           pip install ruff pytest pytest-asyncio
 
+      - name: Install web dependencies
+        run: |
+          npm --prefix apps/web ci
+
       - name: Secret scanning
         run: |
           python infra/scripts/scan_repo.py
@@ -44,8 +48,17 @@ jobs:
           ruff check services infra
           ruff format --check services infra
 
+      - name: Web lint & typecheck
+        run: |
+          npm --prefix apps/web run lint
+          npm --prefix apps/web run typecheck
+
       - name: Run API & Worker unit tests
         env:
           PYTHONPATH: services/api:services/worker
         run: |
           pytest services/api services/worker
+
+      - name: Build web application
+        run: |
+          npm --prefix apps/web run build

@@ -59,9 +59,9 @@ function resolvePython() {
 const pythonExe = resolvePython();
 const args = process.argv.slice(2);
 
-const child = spawn(`"${pythonExe}"`, args, {
+const child = spawn(pythonExe, args, {
   stdio: 'inherit',
-  shell: true,
+  shell: false,
 });
 
 child.on('error', (err) => {

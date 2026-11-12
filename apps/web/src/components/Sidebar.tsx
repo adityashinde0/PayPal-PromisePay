@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { PayPalLogo } from './PayPalLogo';
 import { useDashboard, DashboardTab } from '@/context/DashboardContext';
+import { useAuth } from '@/context/AuthContext';
 
 interface SidebarProps {
   isOpen?: boolean;
@@ -26,6 +27,12 @@ export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const { activeTab, setActiveTab, role, setRole } = useDashboard();
+  const { switchRole } = useAuth();
+
+  const handleRoleToggle = (targetRole: 'buyer' | 'seller') => {
+    setRole(targetRole);
+    void switchRole(targetRole === 'buyer' ? 'BUYER' : 'SELLER');
+  };
 
   const handleNavClick = (tabId: DashboardTab) => {
     setActiveTab(tabId);
@@ -92,7 +99,7 @@ export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
             <div className="grid grid-cols-2 gap-1 rounded-lg bg-[#0a1633] p-1 border border-[#1b3164] shadow-2xs">
               <button
                 type="button"
-                onClick={() => setRole('buyer')}
+                onClick={() => handleRoleToggle('buyer')}
                 className={`rounded-md py-1.5 text-xs font-bold transition-colors duration-150 ${
                   role === 'buyer'
                     ? 'bg-white text-slate-900 shadow-xs'
@@ -103,7 +110,7 @@ export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
               </button>
               <button
                 type="button"
-                onClick={() => setRole('seller')}
+                onClick={() => handleRoleToggle('seller')}
                 className={`rounded-md py-1.5 text-xs font-bold transition-colors duration-150 ${
                   role === 'seller'
                     ? 'bg-white text-slate-900 shadow-xs'
@@ -201,25 +208,6 @@ export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
                   </span>
                 </div>
               ))}
-            </div>
-          </div>
-        </div>
-
-        {/* Bottom Trust Card */}
-        <div className="p-3 border-t border-[#15254d] shrink-0 bg-[#0a1633]">
-          <div className="rounded-xl bg-[#0f1f45] p-3 border border-[#1b3164]">
-            <div className="flex items-start gap-2.5">
-              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-[#0070ba] text-white">
-                <Shield className="h-3.5 w-3.5" />
-              </div>
-              <div className="overflow-hidden">
-                <h4 className="text-xs font-bold text-white truncate">
-                  PayPal Protection
-                </h4>
-                <p className="mt-0.5 text-[10px] text-slate-300 leading-tight">
-                  Outcome verification and resolutions governed by human-reviewed policies.
-                </p>
-              </div>
             </div>
           </div>
         </div>

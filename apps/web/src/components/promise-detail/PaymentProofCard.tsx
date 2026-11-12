@@ -160,160 +160,176 @@ export function PaymentProofCard({
       )}
 
       {/* 4-Step Verification Lifecycle */}
-      <div className="mb-5 rounded-xl bg-slate-50 p-3.5 border border-slate-200/80">
+      <div className="mb-4 rounded-xl bg-slate-50 p-3.5 border border-slate-200/80">
         <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-2.5">
           Verification Pipeline
         </span>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+        <div className="space-y-2.5">
           {/* Step 1: Order Created */}
-          <div className="flex items-center gap-2">
-            <div
-              className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[10px] font-bold ${
-                payment.paypalOrderId
-                  ? 'bg-emerald-100 text-emerald-800'
-                  : 'bg-slate-200 text-slate-500'
-              }`}
-            >
-              1
+          <div className="flex items-center justify-between text-xs">
+            <div className="flex items-center gap-2">
+              <div
+                className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] font-bold ${
+                  payment.paypalOrderId
+                    ? 'bg-emerald-100 text-emerald-800'
+                    : 'bg-slate-200 text-slate-500'
+                }`}
+              >
+                1
+              </div>
+              <span className="font-semibold text-slate-800">Order Created</span>
             </div>
-            <div>
-              <p className="font-bold text-slate-800 leading-tight">Order Created</p>
-              <p className="text-[10px] text-slate-400 truncate">
-                {payment.paypalOrderId ? 'Generated' : 'Pending'}
-              </p>
-            </div>
+            <span className="text-[11px] font-mono font-medium text-slate-500">
+              {payment.paypalOrderId ? 'Generated' : 'Pending'}
+            </span>
           </div>
 
           {/* Step 2: Buyer Approved */}
-          <div className="flex items-center gap-2">
-            <div
-              className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[10px] font-bold ${
-                payment.buyerApproved || isCaptured
-                  ? 'bg-emerald-100 text-emerald-800'
-                  : 'bg-slate-200 text-slate-500'
-              }`}
-            >
-              2
+          <div className="flex items-center justify-between text-xs">
+            <div className="flex items-center gap-2">
+              <div
+                className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] font-bold ${
+                  payment.buyerApproved || isCaptured
+                    ? 'bg-emerald-100 text-emerald-800'
+                    : 'bg-slate-200 text-slate-500'
+                }`}
+              >
+                2
+              </div>
+              <span className="font-semibold text-slate-800">Buyer Approved</span>
             </div>
-            <div>
-              <p className="font-bold text-slate-800 leading-tight">Buyer Approved</p>
-              <p className="text-[10px] text-slate-400 truncate">
-                {payment.buyerApproved || isCaptured ? 'Authorized' : 'Awaiting'}
-              </p>
-            </div>
+            <span className="text-[11px] font-mono font-medium text-slate-500">
+              {payment.buyerApproved || isCaptured ? 'Authorized' : 'Awaiting'}
+            </span>
           </div>
 
           {/* Step 3: Payment Captured */}
-          <div className="flex items-center gap-2">
-            <div
-              className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[10px] font-bold ${
+          <div className="flex items-center justify-between text-xs">
+            <div className="flex items-center gap-2">
+              <div
+                className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] font-bold ${
+                  isCaptured
+                    ? 'bg-emerald-100 text-emerald-800'
+                    : isFailed
+                    ? 'bg-rose-100 text-rose-800'
+                    : 'bg-slate-200 text-slate-500'
+                }`}
+              >
+                3
+              </div>
+              <span className="font-semibold text-slate-800">Payment Captured</span>
+            </div>
+            <span
+              className={`text-[11px] font-mono font-medium ${
                 isCaptured
-                  ? 'bg-emerald-100 text-emerald-800'
+                  ? 'text-emerald-700'
                   : isFailed
-                  ? 'bg-rose-100 text-rose-800'
-                  : 'bg-slate-200 text-slate-500'
+                  ? 'text-rose-700'
+                  : 'text-slate-500'
               }`}
             >
-              3
-            </div>
-            <div>
-              <p className="font-bold text-slate-800 leading-tight">Captured</p>
-              <p className="text-[10px] text-slate-400 truncate">
-                {isCaptured ? 'Completed' : isFailed ? 'Failed' : 'Pending'}
-              </p>
-            </div>
+              {isCaptured ? 'Completed' : isFailed ? 'Failed' : 'Pending'}
+            </span>
           </div>
 
           {/* Step 4: Webhook Reconciled */}
-          <div className="flex items-center gap-2">
-            <div
-              className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[10px] font-bold ${
-                payment.webhookVerified
-                  ? 'bg-emerald-100 text-emerald-800'
-                  : 'bg-amber-100 text-amber-800'
+          <div className="flex items-center justify-between text-xs">
+            <div className="flex items-center gap-2">
+              <div
+                className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] font-bold ${
+                  payment.webhookVerified
+                    ? 'bg-emerald-100 text-emerald-800'
+                    : 'bg-amber-100 text-amber-800'
+                }`}
+              >
+                4
+              </div>
+              <span className="font-semibold text-slate-800">Webhook Sync</span>
+            </div>
+            <span
+              className={`text-[11px] font-mono font-medium ${
+                payment.webhookVerified ? 'text-emerald-700' : 'text-amber-700'
               }`}
             >
-              4
-            </div>
-            <div>
-              <p className="font-bold text-slate-800 leading-tight">Webhook</p>
-              <p className="text-[10px] text-slate-500 truncate">
-                {payment.webhookVerified ? 'Verified' : 'Awaiting tunnel'}
-              </p>
-            </div>
+              {payment.webhookVerified ? 'Verified' : 'Awaiting tunnel'}
+            </span>
           </div>
         </div>
       </div>
 
       {/* Provenance Attributes Table */}
       <div className="space-y-2 text-xs divide-y divide-slate-100">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between py-1.5 gap-1">
-          <span className="text-slate-500 font-medium">PayPal Order ID</span>
-          <div className="flex items-center gap-1.5 font-mono text-slate-800">
+        <div className="flex items-center justify-between py-1.5 gap-2">
+          <span className="text-slate-500 font-medium shrink-0">PayPal Order ID</span>
+          <div className="flex items-center gap-1.5 font-mono text-slate-800 truncate">
             {isOrderSimulated && (
-              <span className="rounded bg-amber-100 px-1.5 py-0.5 text-[9px] font-bold text-amber-800 border border-amber-300">
+              <span className="rounded bg-amber-100 px-1 py-0.2 text-[9px] font-bold text-amber-800 border border-amber-300 shrink-0">
                 Simulated
               </span>
             )}
-            <span className="font-bold">{payment.paypalOrderId || 'Pending generation'}</span>
+            <span className="font-bold truncate" title={payment.paypalOrderId ?? undefined}>
+              {payment.paypalOrderId || 'Pending'}
+            </span>
           </div>
         </div>
 
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between py-1.5 gap-1">
-          <span className="text-slate-500 font-medium">PayPal Capture ID</span>
-          <div className="flex items-center gap-1.5 font-mono text-slate-800">
+        <div className="flex items-center justify-between py-1.5 gap-2">
+          <span className="text-slate-500 font-medium shrink-0">PayPal Capture ID</span>
+          <div className="flex items-center gap-1.5 font-mono text-slate-800 truncate">
             {isCaptureSimulated && (
-              <span className="rounded bg-amber-100 px-1.5 py-0.5 text-[9px] font-bold text-amber-800 border border-amber-300">
+              <span className="rounded bg-amber-100 px-1 py-0.2 text-[9px] font-bold text-amber-800 border border-amber-300 shrink-0">
                 Simulated
               </span>
             )}
-            <span className="font-bold">{payment.paypalCaptureId || 'None (Uncaptured)'}</span>
+            <span className="font-bold truncate" title={payment.paypalCaptureId ?? undefined}>
+              {payment.paypalCaptureId || 'None (Uncaptured)'}
+            </span>
           </div>
         </div>
 
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between py-1.5 gap-1">
-          <span className="text-slate-500 font-medium">Amount & Currency</span>
-          <span className="font-bold text-slate-900">
+        <div className="flex items-center justify-between py-1.5 gap-2">
+          <span className="text-slate-500 font-medium shrink-0">Amount & Currency</span>
+          <span className="font-bold text-slate-900 font-mono">
             ${parseFloat(payment.amount?.value || '0').toFixed(2)} {payment.amount?.currencyCode || 'USD'}
           </span>
         </div>
 
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between py-1.5 gap-1">
-          <span className="text-slate-500 font-medium">Order Created At</span>
-          <span className="text-slate-700">{formatTimestamp(payment.createdAt)}</span>
+        <div className="flex items-center justify-between py-1.5 gap-2">
+          <span className="text-slate-500 font-medium shrink-0">Order Created At</span>
+          <span className="text-slate-700 truncate">{formatTimestamp(payment.createdAt)}</span>
         </div>
 
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between py-1.5 gap-1">
-          <span className="text-slate-500 font-medium">Payment Captured At</span>
-          <span className="text-slate-700">{formatTimestamp(payment.capturedAt)}</span>
+        <div className="flex items-center justify-between py-1.5 gap-2">
+          <span className="text-slate-500 font-medium shrink-0">Captured At</span>
+          <span className="text-slate-700 truncate">{formatTimestamp(payment.capturedAt)}</span>
         </div>
 
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between py-1.5 gap-1">
-          <span className="text-slate-500 font-medium">Buyer Authorization</span>
+        <div className="flex items-center justify-between py-1.5 gap-2">
+          <span className="text-slate-500 font-medium shrink-0">Buyer Authorization</span>
           {payment.buyerApproved || isCaptured ? (
-            <span className="inline-flex items-center gap-1 text-emerald-700 font-bold">
+            <span className="inline-flex items-center gap-1 text-emerald-700 font-bold shrink-0">
               <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" />
-              Approved in PayPal popup
+              Approved
             </span>
           ) : (
-            <span className="inline-flex items-center gap-1 text-slate-500 font-medium">
+            <span className="inline-flex items-center gap-1 text-slate-500 font-medium shrink-0">
               <Clock className="h-3.5 w-3.5 text-slate-400" />
-              Awaiting buyer authorization
+              Awaiting
             </span>
           )}
         </div>
 
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between py-1.5 gap-1">
-          <span className="text-slate-500 font-medium">Webhook Signature Verification</span>
+        <div className="flex flex-col py-1.5 gap-1">
+          <span className="text-slate-500 font-medium">Webhook Signature</span>
           {payment.webhookVerified ? (
             <span className="inline-flex items-center gap-1 text-emerald-700 font-bold">
               <ShieldCheck className="h-3.5 w-3.5 text-emerald-600" />
               Signature verified via PayPal
             </span>
           ) : (
-            <span className="inline-flex items-center gap-1 text-amber-700 font-semibold bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
-              <Radio className="h-3 w-3 text-amber-600" />
-              Webhook awaiting public HTTPS endpoint
+            <span className="inline-flex items-center gap-1 text-amber-700 font-semibold bg-amber-50 px-2 py-0.5 rounded border border-amber-200 text-[11px]">
+              <Radio className="h-3 w-3 text-amber-600 shrink-0" />
+              Awaiting public HTTPS tunnel
             </span>
           )}
         </div>

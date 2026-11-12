@@ -7,9 +7,10 @@
     "dev:web": "npm --prefix apps/web run dev",
     "dev:api": "node infra/scripts/run_python.js services/api/promisepay_api/run.py",
     "dev:worker": "node infra/scripts/run_python.js services/worker/promisepay_worker/worker.py",
-    "build:rust": "cargo +stable-x86_64-pc-windows-gnu build --release --manifest-path crates/promisepay-verify/Cargo.toml",
-    "test:rust": "cargo +stable-x86_64-pc-windows-gnu test --manifest-path crates/promisepay-verify/Cargo.toml",
+    "build:rust": "cargo build --release --manifest-path crates/promisepay-verify/Cargo.toml",
+    "test:rust": "cargo test --manifest-path crates/promisepay-verify/Cargo.toml",
     "build:web": "npm --prefix apps/web run build",
+    "typecheck:web": "npm --prefix apps/web run typecheck",
     "lint:python": "node infra/scripts/run_python.js -m ruff check services infra",
     "lint:web": "npm --prefix apps/web run lint",
     "lint": "npm run lint:python && npm run lint:web",
@@ -21,7 +22,7 @@
     "migrate:check": "node infra/scripts/run_python.js infra/scripts/check_migrations.py",
     "scan:secrets": "node infra/scripts/run_python.js infra/scripts/scan_repo.py",
     "audit": "npm audit --audit-level=high",
-    "ci": "npm run scan:secrets && npm run migrate:check && npm run lint && npm run test"
+    "ci": "npm run scan:secrets && npm run migrate:check && npm run lint && npm run typecheck:web && npm run test && npm run build:web"
   },
   "keywords": [
     "paypal",

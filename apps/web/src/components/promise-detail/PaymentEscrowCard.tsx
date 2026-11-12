@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { PayPalButtons, PayPalScriptProvider } from '@paypal/react-paypal-js';
+import { Ban, Clock, CheckCircle2 } from 'lucide-react';
 import { PromiseGraphResponse } from '@/types/promise';
 import { PayPalLogo } from '../PayPalLogo';
 
@@ -15,6 +16,8 @@ interface PaymentEscrowCardProps {
   onAddEvidence: () => void;
   onDirectPaySandbox?: () => Promise<void>;
   onOpenCancelModal?: () => void;
+  onConfirmDraft?: () => Promise<void>;
+  confirmingDraft?: boolean;
 }
 
 export function PaymentEscrowCard({
@@ -27,10 +30,13 @@ export function PaymentEscrowCard({
   onAddEvidence,
   onDirectPaySandbox,
   onOpenCancelModal,
+  onConfirmDraft,
+  confirmingDraft = false,
 }: PaymentEscrowCardProps) {
   const isCaptured = promise.payment.state === 'CAPTURED';
   const isRefunded = promise.payment.state === 'REFUNDED';
   const isCancelled = promise.status === 'CANCELLED';
+  const isDraft = promise.status === 'DRAFT';
   const isReady = promise.status === 'READY_FOR_PAYMENT';
   const canAddEvidence =
     (isCaptured || promise.status === 'PAID' || promise.status === 'EVIDENCE_SUBMITTED') &&
@@ -172,10 +178,36 @@ export function PaymentEscrowCard({
       {/* Cancelled Unpaid Banner */}
       {isCancelled && !isRefunded && (
         <div className="rounded-lg bg-slate-100 p-3 border border-slate-200 text-xs text-slate-700 space-y-1">
-          <div className="font-bold">🚫 Agreement Cancelled</div>
+          <div className="font-bold flex items-center gap-1.5 text-slate-800">
+            <Ban className="h-4 w-4 text-rose-500 shrink-0" />
+            <span>Agreement Cancelled</span>
+          </div>
           <p className="text-[11px] text-slate-600">
             This agreement was cancelled before payment was captured. No charge was incurred.
           </p>
+        </div>
+      )}
+
+      {/* Draft Confirmation Action */}
+      {isDraft && !isCancelled && (
+        <div className="pt-2 border-t border-slate-100 space-y-3">
+          <div className="rounded-lg bg-amber-50 p-3 border border-amber-200 text-xs text-amber-900">
+            <span className="font-bold block">Draft Requirements Pending Confirmation</span>
+            <p className="text-[11px] text-amber-800 mt-0.5">
+              Lock atomic requirements to enable PayPal buyer checkout for this agreement.
+            </p>
+          </div>
+          {onConfirmDraft && (
+            <button
+              type="button"
+              onClick={onConfirmDraft}
+              disabled={confirmingDraft}
+              className="w-full inline-flex items-center justify-center gap-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 py-2.5 px-4 text-xs font-bold text-white transition shadow-xs disabled:opacity-50"
+            >
+              <CheckCircle2 className="h-4 w-4 shrink-0" />
+              <span>{confirmingDraft ? 'Locking Terms...' : 'Lock Requirements & Open for Payment'}</span>
+            </button>
+          )}
         </div>
       )}
 
@@ -295,7 +327,7 @@ export function PaymentEscrowCard({
             onClick={onOpenCancelModal}
             className="w-full inline-flex items-center justify-center gap-1.5 rounded-lg border border-rose-200 bg-rose-50/70 hover:bg-rose-100 py-1.5 text-xs font-semibold text-rose-800 transition shadow-2xs"
           >
-            <span>⏱️</span>
+            <Clock className="h-3.5 w-3.5 text-rose-600 shrink-0" />
             <span>
               {isCaptured
                 ? 'Cancel Agreement & Refund via PayPal'

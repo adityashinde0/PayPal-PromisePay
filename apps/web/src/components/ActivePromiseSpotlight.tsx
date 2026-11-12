@@ -46,7 +46,7 @@ export function ActivePromiseSpotlight({
   confidence: propConfidence,
   currentStep: propStep,
 }: ActivePromiseSpotlightProps) {
-  const steps = ['Created', 'Paid', 'Delivered', 'AI Verify', 'Resolve'];
+  const steps = ['Create Promise', 'Pay with PayPal', 'Submit Delivery', 'AI Verification', 'Settled Outcome'];
 
   const id = promise?.promiseId || propId || 'PP-8F72X-2026';
   const title = promise?.title || propTitle || 'E-commerce website development';
@@ -141,8 +141,8 @@ export function ActivePromiseSpotlight({
           </span>
           <div className="flex items-center gap-1.5">
             {orderId.startsWith('MOCK_') && (
-              <span className="rounded bg-amber-100 px-1 py-0.2 text-[9px] font-bold text-amber-800 border border-amber-200">
-                Simulated Demo Mode
+              <span className="rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-bold text-amber-800 border border-amber-200">
+                Sandbox Environment
               </span>
             )}
             <span className="font-mono text-[11px] font-bold text-slate-800">

@@ -62,7 +62,7 @@ export function RecentActivityTimeline({ promises = [], onViewAll }: RecentActiv
       })
     : [
         {
-          id: 'canonical-1-digital',
+          id: 'PP-DEMO1-2026',
           title: 'Payment Completed',
           desc: '$500.00 captured via PayPal (Sandbox)',
           time: 'Active',
@@ -70,7 +70,7 @@ export function RecentActivityTimeline({ promises = [], onViewAll }: RecentActiv
           iconColor: 'bg-emerald-50 text-emerald-600 border-emerald-200',
         },
         {
-          id: 'canonical-2-doc',
+          id: 'PP-DEMO2-2026',
           title: 'Delivery Submitted',
           desc: 'Evidence uploaded (URLs, files)',
           time: 'Active',
@@ -78,7 +78,7 @@ export function RecentActivityTimeline({ promises = [], onViewAll }: RecentActiv
           iconColor: 'bg-blue-50 text-[#0070BA] border-blue-200',
         },
         {
-          id: 'canonical-3-physical',
+          id: 'PP-DEMO3-2026',
           title: 'AI Verification in Progress',
           desc: 'Analyzing delivery against promise...',
           time: 'Active',

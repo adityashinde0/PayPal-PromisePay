@@ -28,7 +28,12 @@ function findTsxFiles(dir) {
 findTsxFiles(path.join(webRoot, 'src'));
 
 function isRouteValid(href) {
-  if (href.startsWith('http://') || href.startsWith('https://')) return true;
+  if (
+    href.startsWith('http://') ||
+    href.startsWith('https://') ||
+    href.startsWith('mailto:') ||
+    href.startsWith('tel:')
+  ) return true;
   if (href.startsWith('/#') || href === '#') return true;
   if (href === '/') return true;
   if (href === '/create') return true;
