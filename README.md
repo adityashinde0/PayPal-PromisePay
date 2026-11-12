@@ -28,6 +28,11 @@
 [![License](https://img.shields.io/badge/License-Apache_2.0_%7C_MIT-0079C1?style=flat&logo=open-source-initiative&logoColor=white)](LICENSE)
 [![Enterprise Certified](https://img.shields.io/badge/Enterprise_Readiness-100%2F100_Certified-003087?style=flat&labelColor=FFC439&logo=checkmarx&logoColor=003087)](docs/PAYPAL_ENTERPRISE_ADOPTION.md)
 
+<!-- TIER 5: SPONSOR INTEGRATIONS & PLATFORM PARTNERS -->
+[![APIMatic Context Plugin](https://img.shields.io/badge/APIMatic-Context_Plugin_%26_OpenAPI-4B52B2?style=flat&logo=openapi-initiative&logoColor=white)](docs/SPONSOR_INTEGRATIONS.md#2-apimatic)
+[![AG Grid Enterprise](https://img.shields.io/badge/AG_Grid-Quartz_Ledger-E84855?style=flat&logo=react&logoColor=white)](docs/SPONSOR_INTEGRATIONS.md#1-ag-grid)
+[![Render Cloud](https://img.shields.io/badge/Render-24%2F7_Hosted_App-46E3B7?style=flat&logo=render&logoColor=black)](https://promisepay-web.onrender.com)
+
 <br>
 
 **[🌐 Live Web Application](https://promisepay-web.onrender.com)** • **[⚡ Interactive API Docs (Swagger)](http://localhost:8000/docs)** • **[📖 Master Documentation Hub](docs/README.md)** • **[🛡️ Enterprise Audit Scorecard](docs/PAYPAL_ENTERPRISE_ADOPTION.md)**
@@ -257,6 +262,7 @@ PromisePay is architected from the ground up for strict fintech regulatory compl
 │   ├── docker-compose.yml       # Production-grade containerization configuration
 │   └── scripts/                 # Secret scanner, migration check & Python test runners
 ├── docs/                        # Unified documentation hub housing 20 technical guides & API assets
+├── apimatic.json                # APIMatic OpenAPI context plugin & SDK configuration
 └── .github/
     └── workflows/               # Automated CI pipeline (Unit, Integration, Security & Linter Gates)
 ```

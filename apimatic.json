@@ -1,0 +1,28 @@
+{
+  "$schema": "https://apimatic.io/schemas/apimatic-schema.json",
+  "name": "PayPal PromisePay API",
+  "version": "0.1.0",
+  "description": "APIMatic integration metadata for PayPal PromisePay API specifications, SDK generation, and AI Context Plugins.",
+  "input": "docs/openapi.json",
+  "plugins": {
+    "contextPlugin": {
+      "enabled": true,
+      "providers": [
+        "paypal-orders-v2",
+        "paypal-disputes-v1",
+        "paypal-payments-v2"
+      ],
+      "targetEnvironments": [
+        "sandbox",
+        "production"
+      ],
+      "contextWindowOptimized": true
+    }
+  },
+  "codegen": {
+    "platforms": [
+      "typescript",
+      "python"
+    ]
+  }
+}
