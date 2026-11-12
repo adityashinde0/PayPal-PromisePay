@@ -62,22 +62,6 @@ Every transaction is anchored to an immutable **Promise ID** (e.g., `PP-DEMO1-20
 
 ---
 
-## 🖼️ Application Showcase & UI Tour
-
-<div align="center">
-  <img src="assets/promisepay_hero_dashboard.jpg" alt="PromisePay Active Promise Spotlight & Ledger" width="95%" />
-  <p><em>Executive Command Center: Active Promise Spotlight, AG Grid Ledger, and Real-Time Lifecycle Stepper</em></p>
-</div>
-
-<br>
-
-<div align="center">
-  <img src="assets/promisepay_escrow_audit_studio.jpg" alt="PromisePay Verification Studio & Evidence Vault" width="95%" />
-  <p><em>Evidence Vault & Verification Studio: SHA-256 Fingerprinted Deliverables, Explainable AI Findings & Merkle Inclusion Proofs</em></p>
-</div>
-
----
-
 ## 🌟 Feature Comparison Matrix: Standard PayPal vs PromisePay
 
 | Capability Dimension | Standard PayPal Payments | PromisePay Verifiable Payments | Architectural Advantage |
